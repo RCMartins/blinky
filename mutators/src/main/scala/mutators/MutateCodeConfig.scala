@@ -1,17 +1,20 @@
 package mutators
 
-import metaconfig.ConfDecoder
+import metaconfig.annotation.Description
+import metaconfig.{ConfDecoder, generic}
 import metaconfig.generic.Surface
 
 case class MutateCodeConfig(
-  mutationsPath: String = "",
+  @Description("The project directory, required")
+  projectPath: String,
+  @Description("The mutation types to use, defaults to all types")
   activeMutators: List[MutationType] = MutationType.all
 )
 
 object MutateCodeConfig {
-  val default = MutateCodeConfig()
+  val default = MutateCodeConfig("")
   implicit val surface: Surface[MutateCodeConfig] =
-    metaconfig.generic.deriveSurface[MutateCodeConfig]
+    generic.deriveSurface[MutateCodeConfig]
   implicit val decoder: ConfDecoder[MutateCodeConfig] =
-    metaconfig.generic.deriveDecoder(default)
+    generic.deriveDecoder(default)
 }
