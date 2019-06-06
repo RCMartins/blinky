@@ -1,6 +1,5 @@
 /*
 rule = MutateCode
-MutateCode.mutationsPath = ""
 */
 package test
 

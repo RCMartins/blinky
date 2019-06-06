@@ -81,11 +81,9 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
       Patch.replaceTree(original, mutatedStr.syntax)
     }
 
-    val allMutations: Seq[MutationType] = MutationType.all
-
     def findAllMutations(term: Term): (Seq[Term], Boolean) = {
       val (mutations, fullReplace) =
-        allMutations.map(_.collectMutations(term)).unzip
+        config.activeMutators.map(_.collectMutations(term)).unzip
       (mutations.flatten, fullReplace.exists(identity))
     }
 
@@ -115,8 +113,17 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
             mainMutations
           else {
             mainMutations ++
+                topTermMutations(fun).map(mutated => Term.Apply(mutated, args)) ++
                 args.zipWithIndex.flatMap { case (arg, index) => topTermMutations(arg).map((_, index)) }
                     .map { case (mutated, index) => Term.Apply(fun, args.updated(index, mutated)) }
+          }
+        case select @ Term.Select(qual, name) =>
+          val (mainMutations, fullReplace) = findAllMutations(select)
+          if (fullReplace)
+            mainMutations
+          else {
+            mainMutations ++
+                topTermMutations(qual).map(mutated => Term.Select(mutated, name))
           }
         case other =>
           findAllMutations(other)._1
@@ -145,9 +152,9 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
     val patchesAndMutations: Iterable[(Patch, Seq[Mutation])] = collectPatchesFromTree(doc.tree)
     val (finalPatch, mutationsFound) = patchesAndMutations.unzip
 
-    if (config.mutationsPath.nonEmpty) {
+    if (config.projectPath.nonEmpty) {
       val jsonMutationReport = mutationsFound.flatten.map(Json.toJson(_)).mkString("[", ",", "]")
-      new java.io.PrintWriter(new File(s"${config.mutationsPath}/mutations.json")) {
+      new java.io.PrintWriter(new File(s"${config.projectPath}/mutations.json")) {
         write(jsonMutationReport)
         close()
       }

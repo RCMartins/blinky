@@ -21,7 +21,7 @@ object MutationType {
     ScalaOption
   )
 
-  implicit val readerMemberKind: ConfDecoder[MutationType] =
+  implicit val readerMutationType: ConfDecoder[MutationType] =
     ReaderUtil.fromMap(all.map(mType => mType.toString -> mType).toMap)
 
   case object LiteralBoolean extends MutationType {
@@ -113,24 +113,16 @@ object MutationType {
           default(Lit.Null())
         case filter @ Term.Apply(Term.Select(termName, Term.Name("filter")), args) if
         SymbolMatcher.exact("scala/Option#filter().").matches(filter.symbol) =>
-          default(Term.Apply(Term.Select(termName, Term.Name("filterNot")), args))
+          default(termName, Term.Apply(Term.Select(termName, Term.Name("filterNot")), args))
         case filterNot @ Term.Apply(Term.Select(termName, Term.Name("filterNot")), args) if
         SymbolMatcher.exact("scala/Option#filterNot().").matches(filterNot.symbol) =>
-          default(Term.Apply(Term.Select(termName, Term.Name("filter")), args))
+          default(termName, Term.Apply(Term.Select(termName, Term.Name("filter")), args))
         case contains @ Term.Apply(Term.Select(_, Term.Name("contains")), _) if
         SymbolMatcher.exact("scala/Option#contains().").matches(contains.symbol) =>
           default(Lit.Boolean(true), Lit.Boolean(false))
         case _ =>
           empty
       }
-    }
-  }
-
-  def selectName(term: Term): String = {
-    term match {
-      case Term.Select(_, Term.Name(name)) => name
-      case Term.Name(name) => name
-      case _ => ""
     }
   }
 

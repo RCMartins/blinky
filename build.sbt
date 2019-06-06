@@ -12,12 +12,12 @@ inThisBuild(
         url("https://github.com/RCMartins")
       )
     ),
-    version := "0.1.0",
     scalaVersion := V.scala212,
     addCompilerPlugin(scalafixSemanticdb),
     scalacOptions ++= List(
       "-Yrangepos"
-    )
+    ),
+    classLoaderLayeringStrategy in Compile := ClassLoaderLayeringStrategy.Flat
   )
 )
 
@@ -26,7 +26,7 @@ skip in publish := true
 lazy val mutators = project.settings(
   moduleName := "MutateCode",
   libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafixVersion,
-  libraryDependencies += "com.typesafe.play" %% "play-json" % "2.7.1"
+  libraryDependencies += "com.typesafe.play" %% "play-json" % "2.7.3"
 )
 
 lazy val input = project.settings(
