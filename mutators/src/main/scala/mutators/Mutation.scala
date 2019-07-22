@@ -9,7 +9,7 @@ case class Mutation(id: Int, diffLines: List[String], original: Term, mutated: T
 object Mutation {
   implicit val jsonWrites: OWrites[Mutation] =
     (mutation: Mutation) => Json.obj(
-      "id" -> mutation.id.toString,
+      "id" -> mutation.id,
       "diff" -> mutation.diffLines,
       "original" -> mutation.original.syntax,
       "mutated" -> mutation.mutated.syntax

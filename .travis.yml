@@ -2,7 +2,7 @@ language: scala
 scala:
   - 2.12.8
 before_script:
-  - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.6.7/2.12-1.6.7) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
+  - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.6.9/2.12-1.6.9) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
 script:
   - sbt tests/test
 cache:
