@@ -1,9 +1,10 @@
 /*
 rule = MutateCode
+MutateCode.activeMutators = [ConditionalExpressions]
 */
 package test
 
-object ConditionalExpression1 {
+object ConditionalExpressions1 {
 
   val bool1 = true
   val bool2 = false

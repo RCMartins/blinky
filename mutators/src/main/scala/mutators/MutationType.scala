@@ -16,7 +16,7 @@ object MutationType {
   val all: List[MutationType] = List(
     LiteralBoolean,
     ArithmeticOperators,
-    ConditionalExpression,
+    ConditionalExpressions,
     LiteralString,
     ScalaOption
   )
@@ -52,7 +52,7 @@ object MutationType {
     }
   }
 
-  case object ConditionalExpression extends MutationType {
+  case object ConditionalExpressions extends MutationType {
     override def collectMutations(term: Term)(implicit doc: SemanticDocument): (Iterable[Term], Boolean) = term match {
       case and @ Term.ApplyInfix(left, Term.Name("&&"), targs, right) if
       SymbolMatcher.exact("scala/Boolean#`&&`().").matches(and.symbol) =>
@@ -124,11 +124,6 @@ object MutationType {
           empty
       }
     }
-  }
-
-  def select(fullPath: String): Term = {
-    val terms = fullPath.split("\\.").map(Term.Name(_))
-    terms.tail.foldLeft(terms.head: Term)((a, b) => Term.Select(a, b))
   }
 
   def default(terms: Term*): (List[Term], Boolean) = (terms.toList, false)

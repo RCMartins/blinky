@@ -11,7 +11,8 @@ import scala.meta.inputs.Input.VirtualFile
 
 class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
 
-  var mutationId: Int = 1
+  private var mutationId: Int = 1
+  private var allMutationsFound: Seq[Mutation] = Seq.empty
 
   def nextIndex: Int = {
     val currentId = mutationId
@@ -153,7 +154,8 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
     val (finalPatch, mutationsFound) = patchesAndMutations.unzip
 
     if (config.projectPath.nonEmpty) {
-      val jsonMutationReport = mutationsFound.flatten.map(Json.toJson(_)).mkString("[", ",", "]")
+      allMutationsFound = allMutationsFound ++ mutationsFound.flatten
+      val jsonMutationReport = allMutationsFound.map(Json.toJson(_)).mkString("[", ",", "]")
       new java.io.PrintWriter(new File(s"${config.projectPath}/mutations.json")) {
         write(jsonMutationReport)
         close()
