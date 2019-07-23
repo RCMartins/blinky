@@ -1,13 +1,13 @@
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
   List(
-    organization := "com.rcmartins",
+    organization := "com.github.rcmartins",
     homepage := Some(url("https://github.com/RCMartins/ScalaMutation")),
     licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     developers := List(
       Developer(
         "RCMartins",
-        "Ricardo Martins",
+        "Ricardo Carvalho Martins",
         "ricardocmartins91@gmail.com",
         url("https://github.com/RCMartins")
       )
