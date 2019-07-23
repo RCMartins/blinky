@@ -126,6 +126,26 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
             mainMutations ++
                 topTermMutations(qual).map(mutated => Term.Select(mutated, name))
           }
+        case tuple @ Term.Tuple(args) =>
+          val (mainMutations, fullReplace) = findAllMutations(tuple)
+          if (fullReplace)
+            mainMutations
+          else {
+            mainMutations ++
+              args.zipWithIndex.flatMap { case (arg, index) => topTermMutations(arg).map((_, index)) }
+                .map { case (mutated, index) => Term.Tuple(args.updated(index, mutated)) }
+          }
+        case matchTerm @ Term.Match(expr, cases) =>
+          val (mainMutations, fullReplace) = findAllMutations(matchTerm)
+          if (fullReplace)
+            mainMutations
+          else {
+            mainMutations ++
+                topTermMutations(expr).map(mutated => Term.Match(mutated, cases)) ++
+                cases.zipWithIndex.flatMap {
+                  case (Case(pat, cond, body), index) => topTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
+                }.map { case (mutated, index) => Term.Match(expr, cases.updated(index, mutated)) }
+          }
         case other =>
           findAllMutations(other)._1
       }

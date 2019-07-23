@@ -1,5 +1,6 @@
 /*
 rule = MutateCode
+MutateCode.activeMutators = [LiteralBoolean]
 */
 package test
 
