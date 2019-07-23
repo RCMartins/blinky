@@ -89,6 +89,14 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
     }
 
     def topTermMutations(term: Term): Seq[Term] = {
+      // Disable rules on Apply Term.Placeholder until we can handle this case properly
+      if (term.collect { case Term.Apply(_, List(Term.Placeholder())) => }.nonEmpty)
+        Seq.empty
+      else
+        termMutations(term)
+    }
+
+    def termMutations(term: Term): Seq[Term] = {
       term match {
         case applyInfix @ Term.ApplyInfix(left, op, targs, rightList) =>
           val (mainMutations, fullReplace) = findAllMutations(applyInfix)
