@@ -69,7 +69,7 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
       Mutation(mutationIndex, diffLines, original, mutated)
     }
 
-    def createPatch(mutationSeq: Seq[Mutation]): Patch = {
+    def createPatch(mutationSeq: Seq[Mutation], needsParens: Boolean): Patch = {
       val original = mutationSeq.head.original
       val (_, mutatedStr) =
         mutationSeq.map(mutation => (mutation.id, mutation.mutated)).foldRight((0, original)) {
@@ -79,7 +79,10 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
             (0, result)
         }
 
-      Patch.replaceTree(original, mutatedStr.syntax)
+      if (needsParens)
+        Patch.replaceTree(original, "(" + mutatedStr.syntax + ")")
+      else
+        Patch.replaceTree(original, mutatedStr.syntax)
     }
 
     def findAllMutations(term: Term): (Seq[Term], Boolean) = {
@@ -88,125 +91,149 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
       (mutations.flatten, fullReplace.exists(identity))
     }
 
-    def topTermMutations(term: Term): Seq[Term] = {
-      // Disable rules on Apply Term.Placeholder until we can handle this case properly
-      if (term.collect { case Term.Apply(_, List(Term.Placeholder())) => }.nonEmpty)
-        Seq.empty
-      else
-        termMutations(term)
-    }
-
-    def termMutations(term: Term): Seq[Term] = {
-      term match {
-        case applyInfix @ Term.ApplyInfix(left, op, targs, rightList) =>
-          val (mainMutations, fullReplace) = findAllMutations(applyInfix)
-          if (fullReplace)
-            mainMutations
-          else {
-            mainMutations ++
-                topTermMutations(left).map(mutated => Term.ApplyInfix(mutated, op, targs, rightList)) ++
-                rightList.zipWithIndex.flatMap { case (right, index) => topTermMutations(right).map((_, index)) }
-                    .map { case (mutated, index) => Term.ApplyInfix(left, op, targs, rightList.updated(index, mutated)) }
-          }
-        case applyUnary @ Term.ApplyUnary(op, arg) =>
-          val (mainMutations, fullReplace) = findAllMutations(applyUnary)
-          if (fullReplace)
-            mainMutations
-          else {
-            mainMutations ++
-                topTermMutations(arg).map(mutated => Term.ApplyUnary(op, mutated))
-          }
-        case apply @ Term.Apply(fun, args) =>
-          val (mainMutations, fullReplace) = findAllMutations(apply)
-          if (fullReplace)
-            mainMutations
-          else {
-            mainMutations ++
-                topTermMutations(fun).map(mutated => Term.Apply(mutated, args)) ++
-                args.zipWithIndex.flatMap { case (arg, index) => topTermMutations(arg).map((_, index)) }
-                    .map { case (mutated, index) => Term.Apply(fun, args.updated(index, mutated)) }
-          }
-        case select @ Term.Select(qual, name) =>
-          val (mainMutations, fullReplace) = findAllMutations(select)
-          if (fullReplace)
-            mainMutations
-          else {
-            mainMutations ++
-                topTermMutations(qual).map(mutated => Term.Select(mutated, name))
-          }
-        case tuple @ Term.Tuple(args) =>
-          val (mainMutations, fullReplace) = findAllMutations(tuple)
-          if (fullReplace)
-            mainMutations
-          else {
-            mainMutations ++
-              args.zipWithIndex.flatMap { case (arg, index) => topTermMutations(arg).map((_, index)) }
-                .map { case (mutated, index) => Term.Tuple(args.updated(index, mutated)) }
-          }
-        case matchTerm @ Term.Match(expr, cases) =>
-          val (mainMutations, fullReplace) = findAllMutations(matchTerm)
-          if (fullReplace)
-            mainMutations
-          else {
-            mainMutations ++
-                topTermMutations(expr).map(mutated => Term.Match(mutated, cases)) ++
-                cases.zipWithIndex.flatMap {
-                  case (Case(pat, cond, body), index) => topTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
-                }.map { case (mutated, index) => Term.Match(expr, cases.updated(index, mutated)) }
-          }
-        case function @ Term.Function(params, body) =>
-          val (mainMutations, fullReplace) = findAllMutations(function)
-          if (fullReplace)
-            mainMutations
-          else {
-            mainMutations ++
-                topTermMutations(body).map(mutated => Term.Function(params, mutated))
-          }
-        case assign @ Term.Assign(name, exp) =>
-          val (mainMutations, fullReplace) = findAllMutations(assign)
-          if (fullReplace)
-            mainMutations
-          else {
-            mainMutations ++
-              topTermMutations(exp).map(mutated => Term.Assign(name, mutated))
-          }
-        case other =>
-          findAllMutations(other)._1
-      }
-    }
-
     def collectPatchesFromTree(tree: Tree): Iterable[(Patch, Seq[Mutation])] = {
-      tree match {
-        case term: Term =>
-          val mutationsFound = topTermMutations(term)
-
+      topTreeMutations(tree).flatMap {
+        case (term, MutatedTerms(mutationsFound, needsParens)) =>
           val mutationSeq =
             mutationsFound.map(mutated => replace(term, mutated))
 
           if (mutationSeq.nonEmpty) {
-            List((createPatch(mutationSeq), mutationSeq))
-          } else
-            List.empty[(Patch, Seq[Mutation])]
-        case _: Type | _: Pat | _: Name.Anonymous | _: Self =>
-          List.empty[(Patch, Seq[Mutation])]
+            Some((createPatch(mutationSeq, needsParens = needsParens), mutationSeq))
+          } else {
+            None
+          }
+      }
+    }
+
+    def topTreeMutations(tree: Tree): Seq[(Term, MutatedTerms)] = {
+      tree match {
+        case term: Term =>
+          topTermMutations(term, parensRequired = false)
         case other =>
-          other.children.flatMap(collectPatchesFromTree)
+          other.children.flatMap(topTreeMutations)
       }
     }
 
-    val patchesAndMutations: Iterable[(Patch, Seq[Mutation])] = collectPatchesFromTree(doc.tree)
-    val (finalPatch, mutationsFound) = patchesAndMutations.unzip
+    def topTermMutations(term: Term, parensRequired: Boolean): Seq[(Term, MutatedTerms)] = {
+      termMutations(term, mainTermsOnly = false).collect {
+        // Disable rules on Apply Term.Placeholder until we can handle this case properly
+        case (original, _) if original.collect { case Term.Apply(_, List(Term.Placeholder())) => }.nonEmpty =>
+          None
+        case (original, mutatedTerms) if parensRequired && original == term =>
+          Some((original, mutatedTerms.copy(needsParens = true)))
+        case other =>
+          Some(other)
+      }.flatten
+    }
 
-    if (config.projectPath.nonEmpty) {
-      allMutationsFound = allMutationsFound ++ mutationsFound.flatten
-      val jsonMutationReport = allMutationsFound.map(Json.toJson(_)).mkString("[", ",", "]")
-      new java.io.PrintWriter(new File(s"${config.projectPath}/mutations.json")) {
-        write(jsonMutationReport)
-        close()
+    def topMainTermMutations(term: Term): Seq[Term] = {
+      // Disable rules on Apply Term.Placeholder until we can handle this case properly
+      if (term.collect { case Term.Apply(_, List(Term.Placeholder())) => }.nonEmpty)
+        Seq.empty
+      else
+        termMutations(term, mainTermsOnly = true).flatMap(_._2.mutated)
+    }
+
+    def termMutations(mainTerm: Term, mainTermsOnly: Boolean): Seq[(Term, MutatedTerms)] = {
+      def selectSmallerMutation(
+          term: Term,
+          subMutationsWithMain: => Seq[Term],
+          subMutationsWithoutMain: => Seq[(Term, MutatedTerms)]
+      ): Seq[(Term, MutatedTerms)] = {
+        val (mainMutations, fullReplace) = findAllMutations(term)
+        if (fullReplace)
+          Seq((term, mainMutations.toMutated(needsParens = false)))
+        else if (mainMutations.nonEmpty || mainTermsOnly) {
+          Seq((term, (mainMutations ++ subMutationsWithMain).toMutated(needsParens = false)))
+        } else {
+          subMutationsWithoutMain
+        }
+      }
+
+      mainTerm match {
+        case applyInfix @ Term.ApplyInfix(left, op, targs, rightList) =>
+          selectSmallerMutation(
+            applyInfix,
+            topMainTermMutations(left).map(mutated => Term.ApplyInfix(mutated, op, targs, rightList)) ++
+              rightList.zipWithIndex.flatMap { case (right, index) => topMainTermMutations(right).map((_, index)) }
+                .map { case (mutated, index) => Term.ApplyInfix(left, op, targs, rightList.updated(index, mutated)) },
+            topTermMutations(left, parensRequired = true) ++
+              rightList.flatMap(topTermMutations(_, parensRequired = true))
+          )
+        case applyUnary @ Term.ApplyUnary(op, arg) =>
+          selectSmallerMutation(
+            applyUnary,
+            topMainTermMutations(arg).map(mutated => Term.ApplyUnary(op, mutated)),
+            topTermMutations(arg, parensRequired = true)
+          )
+        case apply @ Term.Apply(fun, args) =>
+          selectSmallerMutation(
+            apply,
+            topMainTermMutations(fun).map(mutated => Term.Apply(mutated, args)) ++
+              args.zipWithIndex.flatMap { case (arg, index) => topMainTermMutations(arg).map((_, index)) }
+                .map { case (mutated, index) => Term.Apply(fun, args.updated(index, mutated)) },
+            topTermMutations(fun, parensRequired = false) ++
+              args.flatMap(topTermMutations(_, parensRequired = false))
+          )
+        case select @ Term.Select(qual, name) =>
+          selectSmallerMutation(
+            select,
+            topMainTermMutations(qual).map(mutated => Term.Select(mutated, name)),
+            topTermMutations(qual, parensRequired = true)
+          )
+        case tuple @ Term.Tuple(args) =>
+          selectSmallerMutation(
+            tuple,
+            args.zipWithIndex.flatMap { case (arg, index) => topMainTermMutations(arg).map((_, index)) }
+              .map { case (mutated, index) => Term.Tuple(args.updated(index, mutated)) },
+            args.flatMap(topTermMutations(_, parensRequired = false))
+          )
+        case matchTerm @ Term.Match(expr, cases) =>
+          selectSmallerMutation(
+            matchTerm,
+            topMainTermMutations(expr).map(mutated => Term.Match(mutated, cases)) ++
+              cases.zipWithIndex.flatMap {
+                case (Case(pat, cond, body), index) => topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
+              }.map { case (mutated, index) => Term.Match(expr, cases.updated(index, mutated)) },
+            cases.flatMap(caseTerm => topTermMutations(caseTerm.body, parensRequired = false))
+          )
+        case function @ Term.Function(params, body) =>
+          selectSmallerMutation(
+            function,
+            topMainTermMutations(body).map(mutated => Term.Function(params, mutated)),
+            topTermMutations(body, parensRequired = false)
+          )
+        case assign @ Term.Assign(name, exp) =>
+          selectSmallerMutation(
+            assign,
+            topMainTermMutations(exp).map(mutated => Term.Assign(name, mutated)),
+            topTermMutations(exp, parensRequired = false)
+          )
+        case block @ Term.Block(stats) =>
+          selectSmallerMutation(
+            block,
+            Seq.empty,
+            stats.flatMap(topTreeMutations)
+          )
+        case other =>
+          Seq((mainTerm, findAllMutations(other)._1.toMutated(needsParens = false)))
       }
     }
 
-    finalPatch.asPatch
+    {
+      val patchesAndMutations: Iterable[(Patch, Seq[Mutation])] = collectPatchesFromTree(doc.tree)
+      val (finalPatch, mutationsFound) = patchesAndMutations.unzip
+
+      if (config.projectPath.nonEmpty) {
+        allMutationsFound = allMutationsFound ++ mutationsFound.flatten
+        val jsonMutationReport = allMutationsFound.map(Json.toJson(_)).mkString("[", ",", "]")
+        new java.io.PrintWriter(new File(s"${config.projectPath}/mutations.json")) {
+          write(jsonMutationReport)
+          close()
+        }
+      }
+      finalPatch.asPatch
+    }
   }
 
 }
