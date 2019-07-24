@@ -28,4 +28,6 @@ object GeneralSyntax1 {
   case _ => false
 }
 
+  val list2 = if (sys.props.contains("SCALA_MUTATION_10")) list.map(_ => false) else list.map(_ => true)
+
 }

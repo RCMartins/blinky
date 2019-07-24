@@ -20,4 +20,6 @@ object GeneralSyntax1 {
     case _ => false
   }
 
+  val list2 = list.map(_ => true)
+
 }
