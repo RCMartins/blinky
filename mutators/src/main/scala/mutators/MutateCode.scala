@@ -197,6 +197,14 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
               }.map { case (mutated, index) => Term.Match(expr, cases.updated(index, mutated)) },
             cases.flatMap(caseTerm => topTermMutations(caseTerm.body, parensRequired = false))
           )
+        case parFunc @ Term.PartialFunction(cases) =>
+          selectSmallerMutation(
+            parFunc,
+            cases.zipWithIndex.flatMap {
+              case (Case(pat, cond, body), index) => topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
+            }.map { case (mutated, index) => Term.PartialFunction(cases.updated(index, mutated)) },
+            cases.flatMap(caseTerm => topTermMutations(caseTerm.body, parensRequired = false))
+          )
         case function @ Term.Function(params, body) =>
           selectSmallerMutation(
             function,
@@ -214,6 +222,16 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
             block,
             Seq.empty,
             stats.flatMap(topTreeMutations)
+          )
+        case ifTerm @ Term.If(cond, thenPart, elsePart) =>
+          selectSmallerMutation(
+            ifTerm,
+            topMainTermMutations(cond).map(mutated => Term.If(mutated, thenPart, elsePart)) ++
+              topMainTermMutations(thenPart).map(mutated => Term.If(cond, mutated, elsePart)) ++
+              topMainTermMutations(elsePart).map(mutated => Term.If(cond, thenPart, mutated)),
+            topTermMutations(cond, parensRequired = false) ++
+              topTermMutations(thenPart, parensRequired = false) ++
+              topTermMutations(elsePart, parensRequired = false)
           )
         case other =>
           Seq((mainTerm, findAllMutations(other)._1.toMutated(needsParens = false)))
