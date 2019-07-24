@@ -202,8 +202,6 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
             Seq.empty,
             stats.flatMap(topStatMutations)
           )
-        case _: Term.Name | _: Lit | _: Term.Placeholder | _: Term.Interpolate =>
-          Seq((mainTerm, findAllMutations(mainTerm)._1.toMutation(false)))
         case other =>
           Seq((mainTerm, findAllMutations(other)._1.toMutation(false)))
       }
