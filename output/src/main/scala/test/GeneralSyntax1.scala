@@ -16,8 +16,12 @@ object GeneralSyntax1 {
     case _ => if (sys.props.contains("SCALA_MUTATION_9")) true else false
   }
 
-  val list2 = list.map(_ => if (sys.props.contains("SCALA_MUTATION_10")) false else true)
+  val partial = list.collect {
+    case true => if (sys.props.contains("SCALA_MUTATION_10")) true else false
+  }
 
-  val callWithNamedParams = validate(bool = if (sys.props.contains("SCALA_MUTATION_11")) true else false)
+  val list2 = list.map(_ => if (sys.props.contains("SCALA_MUTATION_11")) false else true)
+
+  val callWithNamedParams = validate(bool = if (sys.props.contains("SCALA_MUTATION_12")) true else false)
 
 }

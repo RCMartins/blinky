@@ -20,6 +20,10 @@ object GeneralSyntax1 {
     case _ => false
   }
 
+  val partial = list.collect {
+    case true => false
+  }
+
   val list2 = list.map(_ => true)
 
   val callWithNamedParams = validate(bool = false)

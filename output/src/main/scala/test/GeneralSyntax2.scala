@@ -14,4 +14,6 @@ object GeneralSyntax2 {
     !bool
   }
 
+  val if1: Int = if (if (sys.props.contains("SCALA_MUTATION_7")) false else true) if (sys.props.contains("SCALA_MUTATION_8")) 1 - 1 else 1 + 1 else if (sys.props.contains("SCALA_MUTATION_9")) 6 * 2 else 6 / 2
+
 }

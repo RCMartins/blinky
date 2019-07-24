@@ -18,4 +18,6 @@ object GeneralSyntax2 {
     !bool
   }
 
+  val if1: Int = if (true) 1 + 1 else 6 / 2
+
 }
