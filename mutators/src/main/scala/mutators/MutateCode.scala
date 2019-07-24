@@ -115,14 +115,15 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
     }
 
     def topTermMutations(term: Term, parensRequired: Boolean): Seq[(Term, MutatedTerms)] = {
-      // Disable rules on Apply Term.Placeholder until we can handle this case properly
-      if (term.collect { case Term.Apply(_, List(Term.Placeholder())) => }.nonEmpty)
-        Seq.empty
-      else
-        termMutations(term, mainTermsOnly = false).collect {
-          case (original, mutatedTerms) if parensRequired && original == term => (original, mutatedTerms.copy(needsParens = true))
-          case other => other
-        }
+      termMutations(term, mainTermsOnly = false).collect {
+        // Disable rules on Apply Term.Placeholder until we can handle this case properly
+        case (original, _) if original.collect { case Term.Apply(_, List(Term.Placeholder())) => }.nonEmpty =>
+          None
+        case (original, mutatedTerms) if parensRequired && original == term =>
+          Some((original, mutatedTerms.copy(needsParens = true)))
+        case other =>
+          Some(other)
+      }.flatten
     }
 
     def topMainTermMutations(term: Term): Seq[Term] = {
@@ -178,7 +179,7 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
           selectSmallerMutation(
             select,
             topMainTermMutations(qual).map(mutated => Term.Select(mutated, name)),
-            topTermMutations(qual, parensRequired = false)
+            topTermMutations(qual, parensRequired = true)
           )
         case tuple @ Term.Tuple(args) =>
           selectSmallerMutation(
