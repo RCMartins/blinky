@@ -12,6 +12,7 @@ object GeneralSyntax2 {
 
   def functionWithBlock: Boolean = {
     val bool = true
+    def fun(param: Int = 5 + 3): Int = param + 1
     !bool
   }
 

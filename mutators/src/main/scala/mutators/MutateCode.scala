@@ -91,14 +91,26 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
       (mutations.flatten, fullReplace.exists(identity))
     }
 
-    def topStatMutations(stat: Stat): Seq[(Term, MutatedTerms)] = {
-      stat match {
-        case Defn.Val(_, _, _, term) =>
-          topTermMutations(term, parensRequired = false)
+    def collectPatchesFromTree(tree: Tree): Iterable[(Patch, Seq[Mutation])] = {
+      topTreeMutations(tree).flatMap {
+        case (term, MutatedTerms(mutationsFound, needsParens)) =>
+          val mutationSeq =
+            mutationsFound.map(mutated => replace(term, mutated))
+
+          if (mutationSeq.nonEmpty) {
+            Some((createPatch(mutationSeq, needsParens = needsParens), mutationSeq))
+          } else {
+            None
+          }
+      }
+    }
+
+    def topTreeMutations(tree: Tree): Seq[(Term, MutatedTerms)] = {
+      tree match {
         case term: Term =>
           topTermMutations(term, parensRequired = false)
         case other =>
-          Seq.empty
+          other.children.flatMap(topTreeMutations)
       }
     }
 
@@ -200,31 +212,10 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
           selectSmallerMutation(
             block,
             Seq.empty,
-            stats.flatMap(topStatMutations)
+            stats.flatMap(topTreeMutations)
           )
         case other =>
           Seq((mainTerm, findAllMutations(other)._1.toMutated(needsParens = false)))
-      }
-    }
-
-    def collectPatchesFromTree(tree: Tree): Iterable[(Patch, Seq[Mutation])] = {
-      tree match {
-        case mainTerm: Term =>
-          topTermMutations(mainTerm, parensRequired = false).flatMap {
-            case (term, MutatedTerms(mutationsFound, needsParens)) =>
-              val mutationSeq =
-                mutationsFound.map(mutated => replace(term, mutated))
-
-              if (mutationSeq.nonEmpty) {
-                Some((createPatch(mutationSeq, needsParens = needsParens), mutationSeq))
-              } else {
-                None
-              }
-          }
-        case _: Type | _: Pat | _: Name.Anonymous | _: Self =>
-          List.empty[(Patch, Seq[Mutation])]
-        case other =>
-          other.children.flatMap(collectPatchesFromTree)
       }
     }
 
