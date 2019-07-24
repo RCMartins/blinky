@@ -129,9 +129,9 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
       ): Seq[(Term, MutatedTerms)] = {
         val (mainMutations, fullReplace) = findAllMutations(term)
         if (fullReplace)
-          Seq((term, mainMutations.toMutation(false)))
+          Seq((term, mainMutations.toMutated(needsParens = false)))
         else if (mainMutations.nonEmpty || mainTermsOnly) {
-          Seq((term, (mainMutations ++ subMutationsWithMain).toMutation(false)))
+          Seq((term, (mainMutations ++ subMutationsWithMain).toMutated(needsParens = false)))
         } else {
           subMutationsWithoutMain
         }
@@ -203,7 +203,7 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
             stats.flatMap(topStatMutations)
           )
         case other =>
-          Seq((mainTerm, findAllMutations(other)._1.toMutation(false)))
+          Seq((mainTerm, findAllMutations(other)._1.toMutated(needsParens = false)))
       }
     }
 
