@@ -30,4 +30,6 @@ object GeneralSyntax1 {
 
   val list2 = if (sys.props.contains("SCALA_MUTATION_10")) list.map(_ => false) else list.map(_ => true)
 
+  val callWithNamedParams = if (sys.props.contains("SCALA_MUTATION_11")) validate(bool = true) else validate(bool = false)
+
 }

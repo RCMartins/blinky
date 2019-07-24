@@ -22,4 +22,6 @@ object GeneralSyntax1 {
 
   val list2 = list.map(_ => true)
 
+  val callWithNamedParams = validate(bool = false)
+
 }

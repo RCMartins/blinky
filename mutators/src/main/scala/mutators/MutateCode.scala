@@ -162,6 +162,14 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
             mainMutations ++
                 topTermMutations(body).map(mutated => Term.Function(params, mutated))
           }
+        case assign @ Term.Assign(name, exp) =>
+          val (mainMutations, fullReplace) = findAllMutations(assign)
+          if (fullReplace)
+            mainMutations
+          else {
+            mainMutations ++
+              topTermMutations(exp).map(mutated => Term.Assign(name, mutated))
+          }
         case other =>
           findAllMutations(other)._1
       }
