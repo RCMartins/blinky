@@ -7,7 +7,7 @@ object GeneralSyntax2 {
   val bool1 = !(if (sys.props.contains("SCALA_MUTATION_2")) false else true)
 
   def functionWithBlock: Boolean = {
-    val bool = (if (sys.props.contains("SCALA_MUTATION_3")) false else true)
+    val bool = if (sys.props.contains("SCALA_MUTATION_3")) false else true
     !bool
   }
 
