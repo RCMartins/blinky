@@ -10,4 +10,8 @@ object GeneralSyntax4 {
 
   val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 + 4).value1)
 
+  val some1 = Some("value")
+
+  val pair1 = "str" -> some1.orNull[String]
+
 }

@@ -114,13 +114,15 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
       }
     }
 
-    def topTermMutations(term: Term, parensRequired: Boolean): Seq[(Term, MutatedTerms)] = {
+    def topTermMutations(term: Term, parensRequired: Boolean, overrideOriginal: Option[Term] = None): Seq[(Term, MutatedTerms)] = {
       termMutations(term, mainTermsOnly = false).collect {
         // Disable rules on Apply Term.Placeholder until we can handle this case properly
         case (original, _) if original.collect { case Term.Apply(_, List(Term.Placeholder())) => }.nonEmpty =>
           None
         case (original, mutatedTerms) if parensRequired && original == term =>
           Some((original, mutatedTerms.copy(needsParens = true)))
+        case (original, mutatedTerms) if original == term && overrideOriginal.nonEmpty =>
+          Some((overrideOriginal.get, mutatedTerms))
         case other =>
           Some(other)
       }.flatten
@@ -190,8 +192,8 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
         case applyType @ Term.ApplyType(fun, targs) =>
           selectSmallerMutation(
             applyType,
-            topMainTermMutations(fun).map(mutated => Term.ApplyType(mutated, targs)),
-            topTermMutations(fun, parensRequired = false)
+            topMainTermMutations(fun).map(mutated => mutated),
+            topTermMutations(fun, parensRequired = false, overrideOriginal = Some(applyType))
           )
         case select @ Term.Select(qual, name) =>
           selectSmallerMutation(
