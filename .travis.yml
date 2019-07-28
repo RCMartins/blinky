@@ -11,6 +11,9 @@ jobs:
     if: type = pull_request
     script: sbt tests/test
 
+  - name: formatting check
+    script: sbt scalafmtCheckAll scalafmtSbtCheck
+
   - stage: build
     if: type = push AND branch = master
     script: sbt tests/test

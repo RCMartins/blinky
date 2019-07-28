@@ -23,7 +23,8 @@ class RuleSuite extends SemanticRuleSuite() {
     outputFiles.foreach {
       case (path, source) =>
         def replacedQuestionMarks(before: String, id: Int): String = {
-          val after = before.replaceFirst("\\?\\?\\?", "sys.props.contains(\"SCALA_MUTATION_" + id + "\")")
+          val after =
+            before.replaceFirst("\\?\\?\\?", "sys.props.contains(\"SCALA_MUTATION_" + id + "\")")
           if (after != before)
             replacedQuestionMarks(after, id + 1)
           else

@@ -1,7 +1,7 @@
 /*
 rule = MutateCode
 MutateCode.activeMutators = [ScalaOption, ArithmeticOperators]
-*/
+ */
 package test
 
 object GeneralSyntax4 {

@@ -1,6 +1,6 @@
 /*
 rule = MutateCode
-*/
+ */
 package test
 
 object ArithmeticOperators {

@@ -1,7 +1,7 @@
 /*
 rule = MutateCode
 MutateCode.activeMutators = [ArithmeticOperators]
-*/
+ */
 package test
 
 object TermPlaceholder1 {
