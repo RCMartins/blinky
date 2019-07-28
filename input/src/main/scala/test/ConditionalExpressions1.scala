@@ -1,7 +1,7 @@
 /*
 rule = MutateCode
 MutateCode.activeMutators = [ConditionalExpressions]
-*/
+ */
 package test
 
 object ConditionalExpressions1 {

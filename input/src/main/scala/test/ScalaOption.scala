@@ -1,7 +1,7 @@
 /*
 rule = MutateCode
 MutateCode.activeMutators = [ScalaOption]
-*/
+ */
 package test
 
 object ScalaOption {

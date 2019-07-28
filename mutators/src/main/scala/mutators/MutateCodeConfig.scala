@@ -5,10 +5,10 @@ import metaconfig.{ConfDecoder, generic}
 import metaconfig.generic.Surface
 
 case class MutateCodeConfig(
-  @Description("The project directory, required")
-  projectPath: String,
-  @Description("The mutation types to use, defaults to all types")
-  activeMutators: List[MutationType] = MutationType.all
+    @Description("The project directory, required")
+    projectPath: String,
+    @Description("The mutation types to use, defaults to all types")
+    activeMutators: List[MutationType] = MutationType.all
 )
 
 object MutateCodeConfig {
