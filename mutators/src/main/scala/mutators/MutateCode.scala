@@ -32,7 +32,7 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
     val fileName =
       doc.input match {
         case VirtualFile(path, _) => path
-        case _ => ""
+        case _                    => ""
       }
 
     def replace(original: Term, mutated: Term): Mutation = {
@@ -52,19 +52,29 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
         if (p == -1) mutatedInput.length else p
       }
 
-      def addLineNumbers(startLine: Int, linesBefore: List[String], linesAfter: List[String]): List[String] = {
-        val fileDiffSize = 1 + Math.log10(startLine + Math.max(linesBefore.size, linesAfter.size)).toInt
-        linesBefore.zipWithIndex.map { case (line, index) => ("%" + fileDiffSize + "d: %s").format(startLine + index + 1, line) } ++
-            linesAfter.zipWithIndex.map { case (line, index) => ("%" + fileDiffSize + "d: %s").format(startLine + index + 1, line) }
+      def addLineNumbers(
+          startLine: Int,
+          linesBefore: List[String],
+          linesAfter: List[String]
+      ): List[String] = {
+        val fileDiffSize = 1 + Math
+          .log10(startLine + Math.max(linesBefore.size, linesAfter.size))
+          .toInt
+        linesBefore.zipWithIndex.map {
+          case (line, index) => ("%" + fileDiffSize + "d: %s").format(startLine + index + 1, line)
+        } ++
+          linesAfter.zipWithIndex.map {
+            case (line, index) => ("%" + fileDiffSize + "d: %s").format(startLine + index + 1, line)
+          }
       }
 
       val diffLines: List[String] =
         fileName +:
-            addLineNumbers(
-              pos.startLine,
-              input.substring(startDiffBefore, endDiffBefore).split("\n").toList.map("-" + _),
-              mutatedInput.substring(startDiffAfter, endDiffAfter).split("\n").toList.map("+" + _)
-            )
+          addLineNumbers(
+            pos.startLine,
+            input.substring(startDiffBefore, endDiffBefore).split("\n").toList.map("-" + _),
+            mutatedInput.substring(startDiffAfter, endDiffAfter).split("\n").toList.map("+" + _)
+          )
 
       Mutation(mutationIndex, diffLines, original, mutated)
     }
@@ -75,7 +85,8 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
         mutationSeq.map(mutation => (mutation.id, mutation.mutated)).foldRight((0, original)) {
           case ((id, mutated), (_, originalTerm)) =>
             val mutationName = Lit.String(s"SCALA_MUTATION_$id")
-            val result = q"""if (sys.props.contains($mutationName)) ($mutated) else ($originalTerm)"""
+            val result =
+              q"""if (sys.props.contains($mutationName)) ($mutated) else ($originalTerm)"""
             (0, result)
         }
 
@@ -114,10 +125,15 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
       }
     }
 
-    def topTermMutations(term: Term, parensRequired: Boolean, overrideOriginal: Option[Term] = None): Seq[(Term, MutatedTerms)] = {
+    def topTermMutations(
+        term: Term,
+        parensRequired: Boolean,
+        overrideOriginal: Option[Term] = None
+    ): Seq[(Term, MutatedTerms)] = {
       termMutations(term, mainTermsOnly = false).collect {
         // Disable rules on Apply Term.Placeholder until we can handle this case properly
-        case (original, _) if original.collect { case Term.Apply(_, List(Term.Placeholder())) => }.nonEmpty =>
+        case (original, _)
+            if original.collect { case Term.Apply(_, List(Term.Placeholder())) => }.nonEmpty =>
           None
         case (original, mutatedTerms) if parensRequired && original == term =>
           Some((original, mutatedTerms.copy(needsParens = true)))
@@ -130,7 +146,7 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
 
     def topMainTermMutations(term: Term): Seq[Term] = {
       // Disable rules on Apply Term.Placeholder until we can handle this case properly
-      if (term.collect { case Term.Apply(_, list) if list.contains(Term.Placeholder()) => ()}.nonEmpty)
+      if (term.collect { case Term.Apply(_, list) if list.contains(Term.Placeholder()) => () }.nonEmpty)
         Seq.empty
       else
         termMutations(term, mainTermsOnly = true).flatMap(_._2.mutated)
@@ -153,24 +169,34 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
       }
 
       def listTermsMutateMain(originalList: List[Term]): List[List[Term]] = {
-        originalList.zipWithIndex.flatMap { case (term, index) => topMainTermMutations(term).map((_, index)) }
+        originalList.zipWithIndex
+          .flatMap { case (term, index) => topMainTermMutations(term).map((_, index)) }
           .map { case (mutated, index) => originalList.updated(index, mutated) }
       }
 
       def initMutateMain(init: Init): List[Init] = {
-        init.argss.map(_.zipWithIndex).zipWithIndex.flatMap { case (args, index) =>
-          args.flatMap { case (arg, indexInner) => topMainTermMutations(arg).map((_, (index, indexInner)))}
-        }.map { case (mutated, (index, indexInner)) =>
-          val argsUpdated = init.argss(index).updated(indexInner, mutated)
-          Init(init.tpe, init.name, init.argss.updated(index, argsUpdated))
-        }
+        init.argss
+          .map(_.zipWithIndex)
+          .zipWithIndex
+          .flatMap {
+            case (args, index) =>
+              args.flatMap {
+                case (arg, indexInner) => topMainTermMutations(arg).map((_, (index, indexInner)))
+              }
+          }
+          .map {
+            case (mutated, (index, indexInner)) =>
+              val argsUpdated = init.argss(index).updated(indexInner, mutated)
+              Init(init.tpe, init.name, init.argss.updated(index, argsUpdated))
+          }
       }
 
       mainTerm match {
         case applyInfix @ Term.ApplyInfix(left, op, targs, rightList) =>
           selectSmallerMutation(
             applyInfix,
-            topMainTermMutations(left).map(mutated => Term.ApplyInfix(mutated, op, targs, rightList)) ++
+            topMainTermMutations(left)
+              .map(mutated => Term.ApplyInfix(mutated, op, targs, rightList)) ++
               listTermsMutateMain(rightList).map(Term.ApplyInfix(left, op, targs, _)),
             topTermMutations(left, parensRequired = true) ++
               rightList.flatMap(topTermMutations(_, parensRequired = true))
@@ -211,17 +237,23 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
           selectSmallerMutation(
             matchTerm,
             topMainTermMutations(expr).map(mutated => Term.Match(mutated, cases)) ++
-              cases.zipWithIndex.flatMap {
-                case (Case(pat, cond, body), index) => topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
-              }.map { case (mutated, index) => Term.Match(expr, cases.updated(index, mutated)) },
+              cases.zipWithIndex
+                .flatMap {
+                  case (Case(pat, cond, body), index) =>
+                    topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
+                }
+                .map { case (mutated, index) => Term.Match(expr, cases.updated(index, mutated)) },
             cases.flatMap(caseTerm => topTermMutations(caseTerm.body, parensRequired = false))
           )
         case parFunc @ Term.PartialFunction(cases) =>
           selectSmallerMutation(
             parFunc,
-            cases.zipWithIndex.flatMap {
-              case (Case(pat, cond, body), index) => topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
-            }.map { case (mutated, index) => Term.PartialFunction(cases.updated(index, mutated)) },
+            cases.zipWithIndex
+              .flatMap {
+                case (Case(pat, cond, body), index) =>
+                  topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
+              }
+              .map { case (mutated, index) => Term.PartialFunction(cases.updated(index, mutated)) },
             cases.flatMap(caseTerm => topTermMutations(caseTerm.body, parensRequired = false))
           )
         case function @ Term.Function(params, body) =>
@@ -261,10 +293,15 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
         case newAnonymous @ Term.NewAnonymous(Template(early, inits, self, stats)) =>
           selectSmallerMutation(
             newAnonymous,
-            inits.zipWithIndex.flatMap { case (init, index) => initMutateMain(init).map((_, index))}
-              .map { case (mutated, index) => Term.NewAnonymous(Template(early, inits.updated(index, mutated), self, stats)) } ++
+            inits.zipWithIndex
+              .flatMap { case (init, index) => initMutateMain(init).map((_, index)) }
+              .map {
+                case (mutated, index) =>
+                  Term.NewAnonymous(Template(early, inits.updated(index, mutated), self, stats))
+              } ++
               Seq.empty, //TODO when the top stats are completely done we should update this
-            inits.flatMap(_.argss.flatMap(_.flatMap(topTermMutations(_, parensRequired = false)))) ++
+            inits
+              .flatMap(_.argss.flatMap(_.flatMap(topTermMutations(_, parensRequired = false)))) ++
               stats.flatMap(topTreeMutations)
           )
         case repeated @ Term.Repeated(expr) =>

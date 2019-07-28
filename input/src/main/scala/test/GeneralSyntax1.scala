@@ -1,7 +1,7 @@
 /*
 rule = MutateCode
 MutateCode.activeMutators = [LiteralBoolean]
-*/
+ */
 package test
 
 object GeneralSyntax1 {
@@ -17,7 +17,7 @@ object GeneralSyntax1 {
   val mat = (1, 2) match {
     case (1, 2) => true
     case (2, 1) => true
-    case _ => false
+    case _      => false
   }
 
   val partial = list.collect {

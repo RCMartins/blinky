@@ -13,7 +13,7 @@ object GeneralSyntax1 {
   val mat = (1, 2) match {
     case (1, 2) => if (???) false else true
     case (2, 1) => if (???) false else true
-    case _ => if (???) true else false
+    case _      => if (???) true else false
   }
 
   val partial = list.collect {
