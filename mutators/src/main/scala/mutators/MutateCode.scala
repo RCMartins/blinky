@@ -1,6 +1,6 @@
 package mutators
 
-import java.io.File
+import java.io.{File, FileWriter}
 
 import metaconfig.Configured
 import play.api.libs.json.Json
@@ -12,7 +12,10 @@ import scala.meta.inputs.Input.VirtualFile
 class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
 
   private var mutationId: Int = 1
-  private var allMutationsFound: Seq[Mutation] = Seq.empty
+  private val mutatorsPathOption: Option[File] =
+    if (config.mutatorsPath.nonEmpty) Some(new File(config.mutatorsPath))
+    else if (config.projectPath.nonEmpty) Some(new File(config.projectPath))
+    else None
 
   def nextIndex: Int = {
     val currentId = mutationId
@@ -323,14 +326,16 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
 
     {
       val patchesAndMutations: Iterable[(Patch, Seq[Mutation])] = collectPatchesFromTree(doc.tree)
-      val (finalPatch, mutationsFound) = patchesAndMutations.unzip
+      val (finalPatch, mutationsFoundIterable) = patchesAndMutations.unzip
 
-      if (config.projectPath.nonEmpty) {
-        allMutationsFound = allMutationsFound ++ mutationsFound.flatten
-        val jsonMutationReport = allMutationsFound.map(Json.toJson(_)).mkString("[", ",", "]")
-        new java.io.PrintWriter(new File(s"${config.projectPath}/mutations.json")) {
-          write(jsonMutationReport)
-          close()
+      mutatorsPathOption.foreach { mutatorsPath =>
+        val mutationsFound = mutationsFoundIterable.flatten
+        if (mutationsFound.nonEmpty) {
+          val jsonMutationReport = mutationsFound.map(Json.toJson(_)).mkString("", "\n", "\n")
+          new FileWriter(new File(mutatorsPath, "mutations.json"), true) {
+            write(jsonMutationReport)
+            close()
+          }
         }
       }
       finalPatch.asPatch
