@@ -9,7 +9,7 @@ jobs:
   include:
   - stage: pull request testing
     if: type = pull_request
-    script: sbt tests/test
+    script: sbt clean coverage tests/test coverageReport
 
   - name: formatting check
     script: sbt scalafmtCheckAll scalafmtSbtCheck
