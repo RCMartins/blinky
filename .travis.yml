@@ -8,8 +8,9 @@ before_script:
 jobs:
   include:
   - stage: pull request testing
+    name: running unit tests
     if: type = pull_request
-    script: sbt clean coverage tests/test coverageReport codacyCoverage
+    script: sbt clean tests/test coverageReport codacyCoverage
 
   - name: formatting check
     if: type = pull_request
