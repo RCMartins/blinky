@@ -10,7 +10,7 @@ jobs:
   - stage: pull request testing
     name: running unit tests
     if: type = pull_request
-    script: sbt clean tests/test coverageReport codacyCoverage
+    script: sbt clean tests/test coverageReport coverageAggregate codacyCoverage
 
   - name: formatting check
     if: type = pull_request
