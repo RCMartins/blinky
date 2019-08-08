@@ -9,14 +9,11 @@ jobs:
   include:
   - stage: pull request testing
     if: type = pull_request
-    script: sbt clean coverage tests/test coverageReport
+    script: sbt clean coverage tests/test coverageReport codacyCoverage
 
   - name: formatting check
+    if: type = pull_request
     script: sbt scalafmtCheckAll scalafmtSbtCheck
-
-  - stage: build
-    if: type = push AND branch = master
-    script: sbt tests/test
 
   - stage: release
     if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
