@@ -9,7 +9,7 @@ jobs:
   include:
   - stage: pull request testing
     name: running unit tests
-    if: type = pull_request
+    if: (type = pull_request) OR (branch = master AND type = push)
     script: sbt clean tests/test coverageReport coverageAggregate codacyCoverage
 
   - name: formatting check
