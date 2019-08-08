@@ -1,3 +1,5 @@
+import scoverage.ScoverageKeys.coverageFailOnMinimum
+
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
   List(
@@ -17,7 +19,8 @@ inThisBuild(
     scalacOptions ++= List(
       "-Yrangepos"
     ),
-    classLoaderLayeringStrategy in Compile := ClassLoaderLayeringStrategy.Flat
+    classLoaderLayeringStrategy in Compile := ClassLoaderLayeringStrategy.Flat,
+    coverageEnabled := false
   )
 )
 
@@ -26,7 +29,10 @@ skip in publish := true
 lazy val mutators = project.settings(
   moduleName := "MutateCode",
   libraryDependencies += "ch.epfl.scala"     %% "scalafix-core" % V.scalafixVersion,
-  libraryDependencies += "com.typesafe.play" %% "play-json"     % "2.7.3"
+  libraryDependencies += "com.typesafe.play" %% "play-json"     % "2.7.3",
+  coverageEnabled := true,
+  coverageMinimum := 74,
+  coverageFailOnMinimum := true
 )
 
 lazy val input = project.settings(
@@ -50,3 +56,5 @@ lazy val tests = project
   )
   .dependsOn(mutators)
   .enablePlugins(ScalafixTestkitPlugin)
+
+Global / onChangedBuildSource := ReloadOnSourceChanges
