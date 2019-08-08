@@ -56,3 +56,5 @@ lazy val tests = project
   )
   .dependsOn(mutators)
   .enablePlugins(ScalafixTestkitPlugin)
+
+Global / onChangedBuildSource := ReloadOnSourceChanges
