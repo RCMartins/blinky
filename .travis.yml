@@ -8,15 +8,13 @@ before_script:
 jobs:
   include:
   - stage: pull request testing
-    if: type = pull_request
-    script: sbt tests/test
+    name: running unit tests
+    if: (type = pull_request) OR (branch = master AND type = push)
+    script: sbt clean tests/test coverageReport coverageAggregate codacyCoverage
 
   - name: formatting check
+    if: type = pull_request
     script: sbt scalafmtCheckAll scalafmtSbtCheck
-
-  - stage: build
-    if: type = push AND branch = master
-    script: sbt tests/test
 
   - stage: release
     if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
@@ -26,3 +24,6 @@ cache:
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt/boot/"
   - "$HOME/.coursier/cache"
+env:
+  global:
+    secure: T3HdurQNcKxoZP53SzFWrKe8xEmdY/w43sB4rnMRg4ETgE+jQzfPP78XGKAC6J56O4BmijHP6j/aiEA+CTddG9HtIal4WWMVI5wxIONzDtNdUf+TKpx1GDyN6UslGAyJdN671cL/9f36lN56wKj5BQBWwqBNaM/92qzfyeSWp88TMcUA+ItSAYt3CD/vkdw96kSIMdVuTIlCuhurF6Zn8hILtEVGFwFZElsroGHdBQCL33ddoCKr4tXlx/Id2b8Oa2T8vbwlMH6sm/RfwIlO8273/B3CoP/V783eVlYZmqcy3f/FhJ6AwrhvHHwJTX13zc1R1o7IUCf/NZ5c5xk4GpFSRYAD5EKYZIop56+NNDgzJMf6HfYzV7iyEEVsGrHxX1PYyl7eK/b0Uj30gVCOaVray9R5QLNfmP3s6RRBoKgDT0mcxrPUt6yYq41WB7uAYlnBgSUUdoFwvHvMn+IkC/v2f0f0GVQ+Ukigpcb4hDyxLjTZaLCd+AhXbcDpbYC83PVqC5hwKs2jGt0LTeE1Op7GfUX1fxV0GxmCJV5bRH5mdow+LFku+mOE7R9LVYypn9/kVSS1fz+lfY8Ehm6yp3gJECNS9meE9bWuEV0sv1o+9yTgzm95tGfnZx2jxn5brx1iQq4tPmeQ0/OL8ELZqDpOILtUFniYplYr4CBixDc=
