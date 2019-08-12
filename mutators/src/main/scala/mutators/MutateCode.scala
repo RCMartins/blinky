@@ -1,6 +1,7 @@
 package mutators
 
 import java.io.{File, FileWriter}
+import java.util.concurrent.atomic.AtomicInteger
 
 import metaconfig.Configured
 import play.api.libs.json.Json
@@ -11,17 +12,13 @@ import scala.meta.inputs.Input.VirtualFile
 
 class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
 
-  private var mutationId: Int = 1
+  private val mutationId: AtomicInteger = new AtomicInteger(1)
   private val mutatorsPathOption: Option[File] =
     if (config.mutatorsPath.nonEmpty) Some(new File(config.mutatorsPath))
     else if (config.projectPath.nonEmpty) Some(new File(config.projectPath))
     else None
 
-  def nextIndex: Int = {
-    val currentId = mutationId
-    mutationId += 1
-    currentId
-  }
+  private def nextIndex: Int = mutationId.getAndIncrement()
 
   def this() = this(MutateCodeConfig.default)
 
