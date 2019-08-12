@@ -79,21 +79,26 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
       Mutation(mutationIndex, diffLines, original, mutated)
     }
 
-    def createPatch(mutationSeq: Seq[Mutation], needsParens: Boolean): Patch = {
-      val original = mutationSeq.head.original
-      val (_, mutatedStr) =
-        mutationSeq.map(mutation => (mutation.id, mutation.mutated)).foldRight((0, original)) {
-          case ((id, mutated), (_, originalTerm)) =>
-            val mutationName = Lit.String(s"SCALA_MUTATION_$id")
-            val result =
-              q"""if (sys.props.contains($mutationName)) ($mutated) else ($originalTerm)"""
-            (0, result)
-        }
+    def createPatch(
+        mutationSeq: Seq[Mutation],
+        needsParens: Boolean
+    ): Option[(Patch, Seq[Mutation])] = {
+      mutationSeq match {
+        case Mutation(_, _, original, _, _) +: _ =>
+          val (_, mutatedStr) =
+            mutationSeq.map(mutation => (mutation.id, mutation.mutated)).foldRight((0, original)) {
+              case ((id, mutated), (_, originalTerm)) =>
+                val mutationName = Lit.String(s"SCALA_MUTATION_$id")
+                val result =
+                  q"""if (sys.props.contains($mutationName)) ($mutated) else ($originalTerm)"""
+                (0, result)
+            }
 
-      if (needsParens)
-        Patch.replaceTree(original, "(" + mutatedStr.syntax + ")")
-      else
-        Patch.replaceTree(original, mutatedStr.syntax)
+          val finalSyntax = if (needsParens) "(" + mutatedStr.syntax + ")" else mutatedStr.syntax
+          Some(Patch.replaceTree(original, finalSyntax), mutationSeq)
+        case _ =>
+          None
+      }
     }
 
     def findAllMutations(term: Term): (Seq[Term], Boolean) = {
@@ -105,14 +110,8 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
     def collectPatchesFromTree(tree: Tree): Iterable[(Patch, Seq[Mutation])] = {
       topTreeMutations(tree).flatMap {
         case (term, MutatedTerms(mutationsFound, needsParens)) =>
-          val mutationSeq =
-            mutationsFound.map(mutated => replace(term, mutated))
-
-          if (mutationSeq.nonEmpty) {
-            Some((createPatch(mutationSeq, needsParens = needsParens), mutationSeq))
-          } else {
-            None
-          }
+          val mutationSeq = mutationsFound.map(mutated => replace(term, mutated))
+          createPatch(mutationSeq, needsParens = needsParens)
       }
     }
 
