@@ -7,6 +7,8 @@ import metaconfig.generic.Surface
 case class MutateCodeConfig(
     @Description("The project directory, required")
     projectPath: String,
+    @Description("The directory to store the mutators.json file, defaults to the project directory")
+    mutatorsPath: String = "",
     @Description("The mutation types to use, defaults to all types")
     activeMutators: List[MutationType] = MutationType.all
 )

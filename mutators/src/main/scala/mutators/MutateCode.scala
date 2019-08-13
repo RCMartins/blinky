@@ -1,6 +1,7 @@
 package mutators
 
-import java.io.File
+import java.io.{File, FileWriter}
+import java.util.concurrent.atomic.AtomicInteger
 
 import metaconfig.Configured
 import play.api.libs.json.Json
@@ -11,14 +12,13 @@ import scala.meta.inputs.Input.VirtualFile
 
 class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
 
-  private var mutationId: Int = 1
-  private var allMutationsFound: Seq[Mutation] = Seq.empty
+  private val mutationId: AtomicInteger = new AtomicInteger(1)
+  private val mutatorsPathOption: Option[File] =
+    if (config.mutatorsPath.nonEmpty) Some(new File(config.mutatorsPath))
+    else if (config.projectPath.nonEmpty) Some(new File(config.projectPath))
+    else None
 
-  def nextIndex: Int = {
-    val currentId = mutationId
-    mutationId += 1
-    currentId
-  }
+  private def nextIndex: Int = mutationId.getAndIncrement()
 
   def this() = this(MutateCodeConfig.default)
 
@@ -79,21 +79,26 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
       Mutation(mutationIndex, diffLines, original, mutated)
     }
 
-    def createPatch(mutationSeq: Seq[Mutation], needsParens: Boolean): Patch = {
-      val original = mutationSeq.head.original
-      val (_, mutatedStr) =
-        mutationSeq.map(mutation => (mutation.id, mutation.mutated)).foldRight((0, original)) {
-          case ((id, mutated), (_, originalTerm)) =>
-            val mutationName = Lit.String(s"SCALA_MUTATION_$id")
-            val result =
-              q"""if (sys.props.contains($mutationName)) ($mutated) else ($originalTerm)"""
-            (0, result)
-        }
+    def createPatch(
+        mutationSeq: Seq[Mutation],
+        needsParens: Boolean
+    ): Option[(Patch, Seq[Mutation])] = {
+      mutationSeq match {
+        case Mutation(_, _, original, _, _) +: _ =>
+          val (_, mutatedStr) =
+            mutationSeq.map(mutation => (mutation.id, mutation.mutated)).foldRight((0, original)) {
+              case ((id, mutated), (_, originalTerm)) =>
+                val mutationName = Lit.String(s"SCALA_MUTATION_$id")
+                val result =
+                  q"""if (sys.props.contains($mutationName)) ($mutated) else ($originalTerm)"""
+                (0, result)
+            }
 
-      if (needsParens)
-        Patch.replaceTree(original, "(" + mutatedStr.syntax + ")")
-      else
-        Patch.replaceTree(original, mutatedStr.syntax)
+          val finalSyntax = if (needsParens) "(" + mutatedStr.syntax + ")" else mutatedStr.syntax
+          Some(Patch.replaceTree(original, finalSyntax), mutationSeq)
+        case _ =>
+          None
+      }
     }
 
     def findAllMutations(term: Term): (Seq[Term], Boolean) = {
@@ -105,14 +110,8 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
     def collectPatchesFromTree(tree: Tree): Iterable[(Patch, Seq[Mutation])] = {
       topTreeMutations(tree).flatMap {
         case (term, MutatedTerms(mutationsFound, needsParens)) =>
-          val mutationSeq =
-            mutationsFound.map(mutated => replace(term, mutated))
-
-          if (mutationSeq.nonEmpty) {
-            Some((createPatch(mutationSeq, needsParens = needsParens), mutationSeq))
-          } else {
-            None
-          }
+          val mutationSeq = mutationsFound.map(mutated => replace(term, mutated))
+          createPatch(mutationSeq, needsParens = needsParens)
       }
     }
 
@@ -323,14 +322,16 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
 
     {
       val patchesAndMutations: Iterable[(Patch, Seq[Mutation])] = collectPatchesFromTree(doc.tree)
-      val (finalPatch, mutationsFound) = patchesAndMutations.unzip
+      val (finalPatch, mutationsFoundIterable) = patchesAndMutations.unzip
 
-      if (config.projectPath.nonEmpty) {
-        allMutationsFound = allMutationsFound ++ mutationsFound.flatten
-        val jsonMutationReport = allMutationsFound.map(Json.toJson(_)).mkString("[", ",", "]")
-        new java.io.PrintWriter(new File(s"${config.projectPath}/mutations.json")) {
-          write(jsonMutationReport)
-          close()
+      mutatorsPathOption.foreach { mutatorsPath =>
+        val mutationsFound = mutationsFoundIterable.flatten
+        if (mutationsFound.nonEmpty) {
+          val jsonMutationReport = mutationsFound.map(Json.toJson(_)).mkString("", "\n", "\n")
+          new FileWriter(new File(mutatorsPath, "mutations.json"), true) {
+            write(jsonMutationReport)
+            close()
+          }
         }
       }
       finalPatch.asPatch

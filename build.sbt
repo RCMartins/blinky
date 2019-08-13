@@ -31,7 +31,7 @@ lazy val mutators = project.settings(
   libraryDependencies += "ch.epfl.scala"     %% "scalafix-core" % V.scalafixVersion,
   libraryDependencies += "com.typesafe.play" %% "play-json"     % "2.7.3",
   coverageEnabled := true,
-  coverageMinimum := 74,
+  coverageMinimum := 73,
   coverageFailOnMinimum := true
 )
 
