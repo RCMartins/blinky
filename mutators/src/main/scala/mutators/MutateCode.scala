@@ -214,8 +214,6 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
             topTermMutations(fun, parensRequired = false) ++
               args.flatMap(topTermMutations(_, parensRequired = false))
           )
-        case Term.ApplyType(Term.Name(_), _) =>
-          Seq.empty
         case applyType @ Term.ApplyType(select @ Term.Select(_, _), targs) =>
           selectSmallerMutation(
             applyType,
