@@ -14,4 +14,8 @@ object GeneralSyntax4 {
 
   val pair1 = "str" -> some1.orNull[String]
 
+  val applyType1 = Some(1 + 2).asInstanceOf[Option[String]].filter(_.nonEmpty)
+
+  val applyType2 = Some(3 + 4).asInstanceOf[Option[String]].nonEmpty
+
 }

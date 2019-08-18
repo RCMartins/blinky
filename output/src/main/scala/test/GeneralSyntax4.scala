@@ -16,4 +16,13 @@ object GeneralSyntax4 {
 
   val pair1 = "str" -> (if (???) null else some1.orNull[String])
 
+  val applyType1 = if (???) Some(1 + 2).asInstanceOf[Option[String]] ///
+              else if (???) Some(1 + 2).asInstanceOf[Option[String]].filterNot(_.nonEmpty) ///
+              else if (???) Some(1 - 2).asInstanceOf[Option[String]].filter(_.nonEmpty) ///
+                       else Some(1 + 2).asInstanceOf[Option[String]].filter(_.nonEmpty)
+
+  val applyType2 = if (???) Some(3 + 4).asInstanceOf[Option[String]].isEmpty ///
+              else if (???) Some(3 - 4).asInstanceOf[Option[String]].nonEmpty ///
+                       else Some(3 + 4).asInstanceOf[Option[String]].nonEmpty
+
 }

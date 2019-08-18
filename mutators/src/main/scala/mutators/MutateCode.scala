@@ -214,12 +214,18 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
             topTermMutations(fun, parensRequired = false) ++
               args.flatMap(topTermMutations(_, parensRequired = false))
           )
-        case applyType @ Term.ApplyType(fun, _) =>
+        case Term.ApplyType(Term.Name(_), _) =>
+          Seq.empty
+        case applyType @ Term.ApplyType(select @ Term.Select(_, _), targs) =>
           selectSmallerMutation(
             applyType,
-            topMainTermMutations(fun), // TODO needs more checking
-            topTermMutations(fun, parensRequired = false, overrideOriginal = Some(applyType))
+            topMainTermMutations(select).map { mutated =>
+              Term.ApplyType(mutated, targs)
+            },
+            topTermMutations(select, parensRequired = false, overrideOriginal = Some(applyType))
           )
+        case Term.ApplyType(_, _) =>
+          Seq.empty
         case select @ Term.Select(qual, name) =>
           selectSmallerMutation(
             select,
