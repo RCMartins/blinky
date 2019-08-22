@@ -17,9 +17,9 @@ object GeneralSyntax4 {
   val pair1 = "str" -> (if (???) null else some1.orNull[String])
 
   val applyType1 = if (???) Some(1 + 2).asInstanceOf[Option[Int]] ///
-              else if (???) Some(1 + 2).asInstanceOf[Option[Int]].filterNot(_ == 3) ///
-              else if (???) Some(1 - 2).asInstanceOf[Option[Int]].filter(_ == 3) ///
-                       else Some(1 + 2).asInstanceOf[Option[Int]].filter(_ == 3)
+              else if (???) Some(1 + 2).asInstanceOf[Option[Int]].filterNot(v => v == 3) ///
+              else if (???) Some(1 - 2).asInstanceOf[Option[Int]].filter(v => v == 3) ///
+                       else Some(1 + 2).asInstanceOf[Option[Int]].filter(v => v == 3)
 
   val applyType2 = if (???) Some(3 + 4).asInstanceOf[Option[Int]].isEmpty ///
               else if (???) Some(3 - 4).asInstanceOf[Option[Int]].nonEmpty ///
