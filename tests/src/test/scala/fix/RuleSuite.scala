@@ -49,5 +49,18 @@ class RuleSuite extends SemanticRuleSuite() {
     }
   }
 
-  runAllTests()
+  val only: Option[String] =
+    //Some("Playground") // << to run only one test
+    None
+
+  def testOnly(file: String): Unit = {
+    testsToRun
+      .filter(_.path.testPath.toNIO.getFileName.toString.stripSuffix(".scala") == file)
+      .foreach(runOn)
+  }
+
+  only match {
+    case Some(file) => testOnly(file)
+    case None       => runAllTests()
+  }
 }
