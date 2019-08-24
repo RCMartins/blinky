@@ -42,7 +42,7 @@ class FindMutations(activeMutators: Seq[MutationType], implicit val doc: Semanti
   }
 
   def topMainTermMutations(term: Term): Seq[Term] =
-    termMutations(term, mainTermsOnly = true).flatMap(_._2.mutated)
+    termMutations(term, mainTermsOnly = true).flatMap { case (_, mutations) => mutations.mutated }
 
   def termMutations(mainTerm: Term, mainTermsOnly: Boolean): Seq[(Term, MutatedTerms)] = {
 
