@@ -32,8 +32,21 @@ def run(config: MutationsConfig): Unit = {
     }
 
     %('sbt, "compile", RUNNING_MUTATIONS = "true")(cloneProjectPath)
-    cp(pwd / 'scalafix, cloneProjectPath / 'scalafix)
-    cp(pwd / 'coursier, cloneProjectPath / 'coursier)
+
+    %("curl", "-Lo", "coursier", "https://git.io/coursier-cli")(cloneProjectPath)
+    %("chmod", "+x", "coursier")(cloneProjectPath)
+
+    %(
+      "./coursier",
+      "bootstrap",
+      "ch.epfl.scala:scalafix-cli_2.12.8:0.9.5",
+      "-f",
+      "--main",
+      "scalafix.cli.Cli",
+      "-o",
+      "scalafix"
+    )(cloneProjectPath)
+
     cloneProjectPath
   }
 
