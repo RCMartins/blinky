@@ -1,10 +1,10 @@
 /*
 rule = MutateCode
-MutateCode.activeMutators = [LiteralBoolean]
+MutateCode.enabledMutators = [LiteralBooleans]
  */
 package test
 
-object LiteralBoolean {
+object LiteralBooleans {
 
   val boolT = true
   val boolF = false

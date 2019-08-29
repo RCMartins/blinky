@@ -1,18 +1,18 @@
 /*
 rule = MutateCode
-MutateCode.activeMutators = [ScalaOption]
+MutateCode.enabledMutators = [ScalaOptions]
  */
 package test
 
-object ScalaOption {
+object ScalaOptions {
 
   val op: Option[String] = Some("string")
   val op1 = op.getOrElse("")
   val op2 = op.exists(str => str.startsWith("str"))
   val op3 = op.forall(str => str.contains("ing"))
   val op4 = op.map(str => str + "!")
-  val op5 = op.isDefined
-  val op6 = op.isEmpty
+  val op5 = op.isEmpty
+  val op6 = op.isDefined
   val op7 = op.nonEmpty
   val op8 = op.get
   val op9 = op.fold("")(str => str * 3)

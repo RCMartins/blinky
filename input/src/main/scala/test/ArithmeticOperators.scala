@@ -1,5 +1,6 @@
 /*
 rule = MutateCode
+MutateCode.enabledMutators = [ArithmeticOperators]
  */
 package test
 
