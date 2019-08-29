@@ -4,13 +4,13 @@ import scalafix.v1.SemanticDocument
 
 import scala.meta._
 
-class FindMutations(activeMutators: Seq[MutationType], implicit val doc: SemanticDocument) {
+class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocument) {
 
   def findAllMutations(
       term: Term
   ): (Seq[Term], Boolean) = {
     val (mutations, fullReplace) =
-      activeMutators.map(_.collectMutations(term)).unzip
+      activeMutators.flatMap(_.getMutator(doc).lift(term)).unzip
     (mutations.flatten, fullReplace.exists(identity))
   }
 

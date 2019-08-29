@@ -1,9 +1,10 @@
 /*
 rule = MutateCode
+MutateCode.enabledMutators = LiteralStrings
  */
 package test
 
-object LiteralString {
+object LiteralStrings {
 
   val string1 = ""
   val string2 = "a cool string"

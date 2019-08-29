@@ -1,6 +1,6 @@
 package test
 
-object LiteralString {
+object LiteralStrings {
 
   val string1 = if (???) "mutated!" else ""
   val string2 = if (???) "" else if (???) "mutated!" else "a cool string"

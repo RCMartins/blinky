@@ -1,6 +1,6 @@
 /*
 rule = MutateCode
-MutateCode.activeMutators = [ConditionalExpressions]
+MutateCode.enabledMutators = [ConditionalExpressions]
  */
 package test
 

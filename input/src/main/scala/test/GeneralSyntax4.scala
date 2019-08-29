@@ -1,6 +1,6 @@
 /*
 rule = MutateCode
-MutateCode.activeMutators = [ScalaOption, ArithmeticOperators]
+MutateCode.enabledMutators = [ScalaOptions, ArithmeticOperators]
  */
 package test
 

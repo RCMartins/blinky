@@ -1,14 +1,14 @@
 package test
 
-object ScalaOption {
+object ScalaOptions {
 
   val op: Option[String] = Some("string")
   val op1 = if (???) "" else op.getOrElse("")
   val op2 = if (???) op.forall(str => str.startsWith("str")) else op.exists(str => str.startsWith("str"))
   val op3 = if (???) op.exists(str => str.contains("ing")) else op.forall(str => str.contains("ing"))
   val op4 = op.map(str => str + "!")
-  val op5 = if (???) op.nonEmpty else op.isDefined
-  val op6 = if (???) op.nonEmpty else op.isEmpty
+  val op5 = if (???) op.nonEmpty else op.isEmpty
+  val op6 = if (???) op.isEmpty else op.isDefined
   val op7 = if (???) op.isEmpty else op.nonEmpty
   val op8 = op.get
   val op9 = if (???) "" else op.fold("")(str => str * 3)
