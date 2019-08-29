@@ -16,6 +16,10 @@ jobs:
     if: type = pull_request
     script: sbt scalafmtCheckAll scalafmtSbtCheck
 
+  - name: mutation testing
+    if: type = pull_request
+    script: amm travis/run.sc travis/.mutations.conf
+
   - stage: release
     if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
     script: sbt ci-release
