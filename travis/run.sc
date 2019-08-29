@@ -72,7 +72,7 @@ def run(config: MutationsConfig): Unit = {
   val toolPath = %%(
     "./coursier",
     "fetch",
-    "com.github.rcmartins:MutateCode_2.12-0.1.0+8-28cfc07b-SNAPSHOT",
+    "com.github.rcmartins:MutateCode_2.12:0.1.0+8-28cfc07b-SNAPSHOT",
     "-p",
     COURSIER_REPOSITORIES = "ivy2Local|sonatype:snapshots|sonatype:releases"
   )(mutatedProjectPath).out.string.trim
