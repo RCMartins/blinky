@@ -11,9 +11,6 @@ trait MutatorGroup {
 
   def getSubMutators: List[Mutator]
 
-  def findMutators(str: String): Map[String, Mutator] =
-    getSubMutators.map(subMutator => (s"$name.${subMutator.name}", subMutator)).toMap
-
 }
 
 trait Mutator {
