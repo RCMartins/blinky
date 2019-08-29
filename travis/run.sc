@@ -17,6 +17,7 @@ def run(config: MutationsConfig): Unit = {
   val rule = "MutateCode"
   val projectPath = Try(Path(config.projectPath)).getOrElse(pwd / RelPath(config.projectPath))
 
+  val mutatedProjectPath = {
     val tempFolder = tmp.dir()
     val cloneProjectPath = tempFolder / 'project
     println(tempFolder)
@@ -30,10 +31,11 @@ def run(config: MutationsConfig): Unit = {
         cp.into(projectPath / fileToCopy, cloneProjectPath / fileToCopy / up)
     }
 
-    %('sbt, "compile", RUNNING_MUTATIONS="true")(cloneProjectPath)
+    %('sbt, "compile", RUNNING_MUTATIONS = "true")(cloneProjectPath)
     cp(pwd / 'scalafix, cloneProjectPath / 'scalafix)
     cp(pwd / 'coursier, cloneProjectPath / 'coursier)
     cloneProjectPath
+  }
 
   val scalafixConfFile = {
     val scalaFixConf = MutateCodeConfig.encoder.write(config.conf).show.trim.stripPrefix("{").stripSuffix("}").trim
