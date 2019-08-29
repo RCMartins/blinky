@@ -24,7 +24,10 @@ class RuleSuite extends SemanticRuleSuite() {
       case (path, source) =>
         def replacedQuestionMarks(before: String, id: Int): String = {
           val after =
-            before.replaceFirst("\\?\\?\\?", "sys.props.contains(\"SCALA_MUTATION_" + id + "\")")
+            before.replaceFirst(
+              "\\?\\?\\?",
+              "_root_.scala.sys.props.contains(\"SCALA_MUTATION_" + id + "\")"
+            )
           if (after != before)
             replacedQuestionMarks(after, id + 1)
           else
