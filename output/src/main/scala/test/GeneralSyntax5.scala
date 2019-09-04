@@ -8,4 +8,8 @@ object GeneralSyntax5 {
        else if (???) (if (true) 1 + 7 else 2 / 5) + 10 ///
                 else (if (true) 1 + 7 else 2 * 5) + 10
 
+  val tuple1 = if (???) (10 + 20, 30)._1 - 10 ///
+          else if (???) (10 - 20, 30)._1 + 10 ///
+                   else (10 + 20, 30)._1 + 10
+
 }
