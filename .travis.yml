@@ -10,7 +10,10 @@ jobs:
   - stage: pull request testing
     name: running unit tests
     if: (type = pull_request) OR (branch = master AND type = push)
-    script: sbt clean "set mutators/coverageEnabled:=true" tests/test coverageReport codacyCoverage
+    script:
+    - sbt clean "set mutators/coverageEnabled:=true" tests/test coverageReport
+    - sbt coverageAggregate
+    - sbt codacyCoverage
 
   - name: formatting check
     if: type = pull_request
