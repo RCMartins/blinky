@@ -26,14 +26,11 @@ inThisBuild(
 
 skip in publish := true
 
-lazy val coverageOn = sys.env.contains("TRAVIS") || sys.env.contains("COVERAGE")
-
 lazy val mutators = project.settings(
   moduleName := "MutateCode",
   libraryDependencies += "ch.epfl.scala"     %% "scalafix-core" % V.scalafixVersion,
   libraryDependencies += "com.typesafe.play" %% "play-json"     % "2.7.3",
-  coverageEnabled := coverageOn,
-  coverageMinimum := 73,
+  coverageMinimum := 81,
   coverageFailOnMinimum := true
 )
 
