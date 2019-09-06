@@ -59,12 +59,12 @@ def run(
               val time = System.currentTimeMillis()
 
               if (options.verbose)
-                println(s"""sbt ";set javaOptions in Test += \"-DSCALA_MUTATION_$id\";$sbtCommand"""")
+                println(s"""sbt ";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$id\";$sbtCommand"""")
 
               val testResult =
                 Try(%%(
                   'sbt,
-                  s""";set javaOptions in Test += \"-DSCALA_MUTATION_$id\";$sbtCommand"""
+                  s""";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$id\";$sbtCommand"""
                 )(projectPath))
 
               val result =

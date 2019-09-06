@@ -18,7 +18,7 @@ object MutationType {
 
   case object ConditionalExpressions extends MutationType
 
-  case object LiteralString extends MutationType
+  case object LiteralStrings extends MutationType
 
   case object ScalaOptions extends MutationType
 
@@ -26,7 +26,7 @@ object MutationType {
     LiteralBooleans,
     ArithmeticOperators,
     ConditionalExpressions,
-    LiteralString,
+    LiteralStrings,
     ScalaOptions
   )
 
@@ -58,7 +58,8 @@ object MutationType {
 }
 
 case class MutateCodeConfig(
-    activeMutators: List[MutationType] = MutationType.all
+    activeMutators: List[MutationType] = MutationType.all,
+    disabledMutators: List[MutationType] = Nil
 )
 
 object MutateCodeConfig {

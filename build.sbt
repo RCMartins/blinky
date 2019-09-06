@@ -20,7 +20,8 @@ inThisBuild(
       "-Yrangepos"
     ),
     classLoaderLayeringStrategy in Compile := ClassLoaderLayeringStrategy.Flat,
-    coverageEnabled := false
+    coverageEnabled := false,
+    fork in Test := true
   )
 )
 
@@ -51,8 +52,7 @@ lazy val tests = project
     scalafixTestkitInputSourceDirectories :=
       sourceDirectories.in(input, Compile).value,
     scalafixTestkitInputClasspath :=
-      fullClasspath.in(input, Compile).value,
-    fork in Test := true
+      fullClasspath.in(input, Compile).value
   )
   .dependsOn(mutators)
   .enablePlugins(ScalafixTestkitPlugin)
