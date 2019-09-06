@@ -2,7 +2,7 @@ language: scala
 scala:
   - 2.12.8
 jdk:
-  - oraclejdk8
+  - oraclejdk9
 before_install:
   - git fetch --tags
 before_script:
@@ -13,8 +13,7 @@ jobs:
     name: running unit tests
     if: (type = pull_request) OR (branch = master AND type = push)
     script:
-    - sbt clean "set mutators/coverageEnabled:=true" tests/test coverageReport
-    - sbt coverageAggregate codacyCoverage
+    - sbt clean "set mutators/coverageEnabled:=true" tests/test coverageReport && sbt coverageAggregate codacyCoverage
 
   - name: formatting check
     if: type = pull_request
