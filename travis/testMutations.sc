@@ -33,7 +33,7 @@ def run(
     println("Try changing the mutation settings.")
   } else {
     println("Running tests with original config")
-    Try(%%('sbt, options.dryRunSbt)(projectPath))
+    Try(%%('sbt, options.compileSbt)(projectPath))
     val originalTestInitialTime = System.currentTimeMillis()
     val vanillaResult = Try(%%('sbt, sbtCommand)(projectPath))
     vanillaResult match {
@@ -44,7 +44,7 @@ def run(
         println(green("Original tests passed..."))
         if (!options.dryRun) {
           val originalTestTime = System.currentTimeMillis() - originalTestInitialTime
-          val maxRunningTime = 10 * 60 * 1000L
+          val maxRunningTime = 60 * 60 * 1000L
           val mutationsToTest =
             Random.shuffle(mutationReport)
               .take(Math.floor(maxRunningTime / originalTestTime).toInt)

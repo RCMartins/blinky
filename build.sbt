@@ -51,7 +51,8 @@ lazy val tests = project
     scalafixTestkitInputSourceDirectories :=
       sourceDirectories.in(input, Compile).value,
     scalafixTestkitInputClasspath :=
-      fullClasspath.in(input, Compile).value
+      fullClasspath.in(input, Compile).value,
+    fork in Test := true
   )
   .dependsOn(mutators)
   .enablePlugins(ScalafixTestkitPlugin)

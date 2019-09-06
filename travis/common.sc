@@ -74,7 +74,7 @@ object MutateCodeConfig {
 case class OptionsConfig(
     verbose: Boolean = false,
     dryRun: Boolean = false,
-    dryRunSbt: String = "test:compile"
+    compileSbt: String = "test:compile"
 )
 
 object OptionsConfig {
