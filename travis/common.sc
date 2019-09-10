@@ -6,6 +6,7 @@ import metaconfig.typesafeconfig._
 import metaconfig.{Conf, ConfDecoder, ConfEncoder, ConfError, Configured, generic}
 import play.api.libs.json.{Json, Reads}
 
+import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 trait MutationType
@@ -75,10 +76,15 @@ object MutateCodeConfig {
 case class OptionsConfig(
     verbose: Boolean = false,
     dryRun: Boolean = false,
-    compileSbt: String = "test:compile"
+    compileSbt: String = "test:compile",
+    maxRunningTime: Duration = 60.minutes
 )
 
 object OptionsConfig {
+  implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.instance[Duration] {
+    case Conf.Str(durationStr) => Configured.Ok(Duration(durationStr))
+  }
+
   val default = OptionsConfig()
   implicit val surface: Surface[OptionsConfig] =
     generic.deriveSurface[OptionsConfig]
@@ -91,6 +97,7 @@ case class MutationsConfig(
     sourceCodePath: String,
     filesToMutate: String,
     conf: MutateCodeConfig,
+    mutateCodeVersion: String = "0.1.0",
     sbtCommand: String = "test",
     options: OptionsConfig = OptionsConfig()
 )

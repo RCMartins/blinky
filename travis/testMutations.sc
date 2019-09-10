@@ -44,10 +44,9 @@ def run(
         println(green("Original tests passed..."))
         if (!options.dryRun) {
           val originalTestTime = System.currentTimeMillis() - originalTestInitialTime
-          val maxRunningTime = 60 * 60 * 1000L
           val mutationsToTest =
             Random.shuffle(mutationReport)
-              .take(Math.floor(maxRunningTime / originalTestTime).toInt)
+              .take(Math.floor(options.maxRunningTime.toMillis / originalTestTime).toInt)
               .sortBy(_.id)
           println(s"Running the same tests on ${mutationsToTest.size} mutations...")
 

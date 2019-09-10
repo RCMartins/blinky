@@ -21,7 +21,7 @@ jobs:
 
   - name: mutation testing
     if: type = pull_request
-    script: amm travis/run.sc travis/.mutations.conf
+    script: amm travis/runCurrentVersion.sc
 
   - stage: release
     if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
