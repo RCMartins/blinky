@@ -77,12 +77,18 @@ case class OptionsConfig(
     verbose: Boolean = false,
     dryRun: Boolean = false,
     compileSbt: String = "test:compile",
-    maxRunningTime: Duration = 60.minutes
+    maxRunningTime: Duration = 60.minutes,
+    failOnMinimum: Boolean = false,
+    mutationMinimum: Double = 25.0
 )
 
 object OptionsConfig {
   implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.instance[Duration] {
     case Conf.Str(durationStr) => Configured.Ok(Duration(durationStr))
+  }
+
+  implicit val doubleDecoder: ConfDecoder[Double] = ConfDecoder.instance[Double] {
+    case Conf.Num(number) if number.isExactDouble => Configured.Ok(number.toDouble)
   }
 
   val default = OptionsConfig()
@@ -113,8 +119,8 @@ object MutationsConfig {
     decoder.read(Conf.parseString(conf)).get
 }
 
-case class Mutation(id: Int, diff: List[String], original: String, mutated: String)
+case class Mutant(id: Int, diff: List[String], original: String, mutated: String)
 
-object Mutation {
-  implicit val mutationReads: Reads[Mutation] = Json.reads[Mutation]
+object Mutant {
+  implicit val mutationReads: Reads[Mutant] = Json.reads[Mutant]
 }
