@@ -75,8 +75,12 @@ def run(
                |""".stripMargin
           )
 
-          if (options.failOnMinimum && score < options.mutationMinimum)
+          if (options.failOnMinimum && score < options.mutationMinimum) {
+            println(red(s"Mutation score is below minimum [${"%4.1f".format(score)}% < ${options.mutationMinimum}%]"))
             System.exit(1)
+          } else {
+            println(green(s"Mutation score is above minimum [${"%4.1f".format(score)}% \u2265 ${options.mutationMinimum}%]"))
+          }
         }
     }
   }
