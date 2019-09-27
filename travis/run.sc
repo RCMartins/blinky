@@ -39,7 +39,7 @@ def run(config: MutationsConfig): Unit = {
     %(
       "./coursier",
       "bootstrap",
-      "ch.epfl.scala:scalafix-cli_2.12.8:0.9.5",
+      "ch.epfl.scala:scalafix-cli_2.12.10:0.9.7",
       "-f",
       "--main",
       "scalafix.cli.Cli",
