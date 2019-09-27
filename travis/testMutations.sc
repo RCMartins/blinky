@@ -59,6 +59,7 @@ def run(
           val totalKilled = results.count(_._2)
           val totalNotKilled = mutantsToTestSize - results.count(_._2)
           val score = (totalKilled * 100.0) / mutantsToTestSize
+          val scoreFormatted = "%4.1f".format(score)
           val totalTime = System.currentTimeMillis() - initialTime
           println(
             s"""
@@ -71,15 +72,17 @@ def run(
                |
                |Mutants Killed: ${green(totalKilled.toString)}
                |Mutants Not Killed: ${red(totalNotKilled.toString)}
-               |Score: ${"%4.1f".format(score)}%
+               |Score: $scoreFormatted%
                |""".stripMargin
           )
 
-          if (options.failOnMinimum && score < options.mutationMinimum) {
-            println(red(s"Mutation score is below minimum [${"%4.1f".format(score)}% < ${options.mutationMinimum}%]"))
-            System.exit(1)
-          } else {
-            println(green(s"Mutation score is above minimum [${"%4.1f".format(score)}% \u2265 ${options.mutationMinimum}%]"))
+          if (options.failOnMinimum) {
+            if (score < options.mutationMinimum) {
+              println(red(s"Mutation score is below minimum [$scoreFormatted% < ${options.mutationMinimum}%]"))
+              System.exit(1)
+            } else {
+              println(green(s"Mutation score is above minimum [$scoreFormatted% \u2265 ${options.mutationMinimum}%]"))
+            }
           }
         }
     }
