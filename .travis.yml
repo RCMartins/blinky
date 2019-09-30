@@ -6,7 +6,7 @@ jdk:
 before_install:
   - git fetch --tags
 before_script:
-  - pacaur -S coursier
+  - brew install --HEAD olafurpg/scalafmt/scalafmt
 jobs:
   include:
   - stage: pull request testing
@@ -18,9 +18,6 @@ jobs:
   - name: formatting check
     if: type = pull_request
     script:
-    - coursier bootstrap org.scalameta:scalafmt-cli_2.12:2.1.0-RC2 \
-        -r sonatype:snapshots \
-        -o /usr/local/bin/scalafmt --standalone --main org.scalafmt.cli.Cli
     - sbt scalafmtCheckAll scalafmtSbtCheck && scalafmt --check travis/*
 
   - name: mutation testing
