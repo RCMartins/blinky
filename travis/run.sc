@@ -23,12 +23,13 @@ def run(config: MutationsConfig): Unit = {
     println(tempFolder)
 
     val filesToCopy =
-      %%("git", "ls-files", "--others", "--exclude-standard", "--cached")(projectPath).out.string.trim.split("\n").toList
-    filesToCopy.foreach {
-      fileToCopyStr =>
-        val fileToCopy = RelPath(fileToCopyStr)
-        mkdir(cloneProjectPath / fileToCopy / up)
-        cp.into(projectPath / fileToCopy, cloneProjectPath / fileToCopy / up)
+      %%("git", "ls-files", "--others", "--exclude-standard", "--cached")(projectPath).out.string.trim
+        .split("\n")
+        .toList
+    filesToCopy.foreach { fileToCopyStr =>
+      val fileToCopy = RelPath(fileToCopyStr)
+      mkdir(cloneProjectPath / fileToCopy / up)
+      cp.into(projectPath / fileToCopy, cloneProjectPath / fileToCopy / up)
     }
 
     %('sbt, "compile", RUNNING_MUTATIONS = "true")(cloneProjectPath)
@@ -51,7 +52,8 @@ def run(config: MutationsConfig): Unit = {
   }
 
   val scalafixConfFile = {
-    val scalaFixConf = MutateCodeConfig.encoder.write(config.conf).show.trim.stripPrefix("{").stripSuffix("}").trim
+    val scalaFixConf =
+      MutateCodeConfig.encoder.write(config.conf).show.trim.stripPrefix("{").stripSuffix("}").trim
 
     val content =
       s"""MutateCode {
@@ -80,11 +82,16 @@ def run(config: MutationsConfig): Unit = {
   %(
     "./scalafix",
     "--verbose",
-    "--tool-classpath", toolPath,
-    "--rules", rule,
-    "--files", fileName,
-    "--config", scalafixConfFile,
-    "--auto-classpath", semanticDbPath,
+    "--tool-classpath",
+    toolPath,
+    "--rules",
+    rule,
+    "--files",
+    fileName,
+    "--config",
+    scalafixConfFile,
+    "--auto-classpath",
+    semanticDbPath
   )(mutatedProjectPath)
 
   testMutations.run(mutatedProjectPath, config.sbtCommand, config.options)

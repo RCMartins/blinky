@@ -36,7 +36,9 @@ object MutationType {
   implicit val readerMutationType: ConfDecoder[MutationType] = fromMap(allMap)
 
   implicit val writerMutationType: ConfEncoder[MutationType] =
-    ConfEncoder.instance[MutationType] { mType => Conf.fromString(mType.toString) }
+    ConfEncoder.instance[MutationType] { mType =>
+      Conf.fromString(mType.toString)
+    }
 
   // Poor mans coproduct reader
   private def fromMap[T: ClassTag](

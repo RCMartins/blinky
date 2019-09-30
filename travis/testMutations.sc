@@ -10,8 +10,8 @@ val path = pwd
 
 @main
 def main(
-  projectPath: Path,
-  sbtCommand: String = "test"
+    projectPath: Path,
+    sbtCommand: String = "test"
 ): Unit = {
   run(
     projectPath,
@@ -21,11 +21,12 @@ def main(
 }
 
 def run(
-  projectPath: Path,
-  sbtCommand: String,
-  options: OptionsConfig
+    projectPath: Path,
+    sbtCommand: String,
+    options: OptionsConfig
 ): Unit = {
-  val mutationReport: Seq[Mutant] = read(projectPath / "mutations.json").split("\n").toSeq.map(Json.parse(_).as[Mutant])
+  val mutationReport: Seq[Mutant] =
+    read(projectPath / "mutations.json").split("\n").toSeq.map(Json.parse(_).as[Mutant])
 
   val numberOfMutants = mutationReport.length
   println(s"$numberOfMutants mutants found.")
@@ -45,7 +46,8 @@ def run(
         if (!options.dryRun) {
           val originalTestTime = System.currentTimeMillis() - originalTestInitialTime
           val mutationsToTest =
-            Random.shuffle(mutationReport)
+            Random
+              .shuffle(mutationReport)
               .take(Math.floor(options.maxRunningTime.toMillis / originalTestTime).toInt)
               .sortBy(_.id)
               .toList
@@ -78,10 +80,18 @@ def run(
 
           if (options.failOnMinimum) {
             if (score < options.mutationMinimum) {
-              println(red(s"Mutation score is below minimum [$scoreFormatted% < ${options.mutationMinimum}%]"))
+              println(
+                red(
+                  s"Mutation score is below minimum [$scoreFormatted% < ${options.mutationMinimum}%]"
+                )
+              )
               System.exit(1)
             } else {
-              println(green(s"Mutation score is above minimum [$scoreFormatted% \u2265 ${options.mutationMinimum}%]"))
+              println(
+                green(
+                  s"Mutation score is above minimum [$scoreFormatted% \u2265 ${options.mutationMinimum}%]"
+                )
+              )
             }
           }
         }
@@ -93,20 +103,26 @@ def run(
       case Nil =>
         Nil
       case _ if System.currentTimeMillis() - initialTime > options.maxRunningTime.toMillis =>
-        println(s"Timed out - maximum of ${options.maxRunningTime} (this can be changed in options.maxRunningTime)")
+        println(
+          s"Timed out - maximum of ${options.maxRunningTime} (this can be changed in options.maxRunningTime)"
+        )
         Nil
       case mutant :: othersMutants =>
         val id = mutant.id
         val time = System.currentTimeMillis()
 
         if (options.verbose)
-          println(s"""sbt ";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$id\";$sbtCommand"""")
+          println(
+            s"""sbt ";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$id\";$sbtCommand""""
+          )
 
         val testResult =
-          Try(%%(
-            'sbt,
-            s""";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$id\";$sbtCommand"""
-          )(projectPath))
+          Try(
+            %%(
+              'sbt,
+              s""";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$id\";$sbtCommand"""
+            )(projectPath)
+          )
 
         val result =
           if (testResult.isSuccess) {
@@ -120,7 +136,7 @@ def run(
         if (options.verbose)
           println(s"time: ${System.currentTimeMillis() - time}")
 
-        result:: runMutations(othersMutants, initialTime)
+        result :: runMutations(othersMutants, initialTime)
     }
   }
 }
@@ -132,10 +148,12 @@ def green(str: String): String = s"\u001B[32m" + str + "\u001B[0m"
 def prettyDiff(diffLines: List[String], projectPath: String): String = {
   val MinusRegex = "(^\\s*\\d+: -.*)".r
   val PlusRegex = "(^\\s*\\d+: +.*)".r
-  diffLines.map {
-    case MinusRegex(line) => red(line)
-    case PlusRegex(line) => green(line)
-    case line => line.stripPrefix(projectPath)
+  diffLines
+    .map {
+      case MinusRegex(line) => red(line)
+      case PlusRegex(line)  => green(line)
+      case line             => line.stripPrefix(projectPath)
 
-  }.mkString("\n")
+    }
+    .mkString("\n")
 }
