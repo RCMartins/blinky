@@ -6,7 +6,7 @@ jdk:
 before_install:
   - git fetch --tags
 before_script:
-  - pkg install coursier
+  - pacaur -S coursier
 jobs:
   include:
   - stage: pull request testing
