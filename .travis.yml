@@ -17,10 +17,10 @@ jobs:
     if: type = pull_request
     script:
     - curl -Lo coursier https://git.io/coursier-cli && chmod +x coursier
-    - sudo ./coursier bootstrap org.scalameta:scalafmt-cli_2.12:2.1.0-RC2 \
+    - ./coursier bootstrap org.scalameta:scalafmt-cli_2.12:2.1.0-RC2 \
       -r sonatype:snapshots \
       -o scalafmt --main org.scalafmt.cli.Cli
-    - sbt scalafmtCheckAll scalafmtSbtCheck && scalafmt --check travis/*
+    - sbt scalafmtCheckAll scalafmtSbtCheck && ./scalafmt --check travis/*
 
   - name: mutation testing
     if: type = pull_request
