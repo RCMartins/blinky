@@ -20,7 +20,8 @@ inThisBuild(
       "-Yrangepos"
     ),
     classLoaderLayeringStrategy in Compile := ClassLoaderLayeringStrategy.Flat,
-    coverageEnabled := false
+    coverageEnabled := false,
+    fork in Test := true
   )
 )
 

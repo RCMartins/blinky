@@ -279,5 +279,4 @@ object Mutator {
 
   def fullReplace(terms: Term*): (List[Term], Boolean) = (terms.toList, true)
 
-  def empty: (List[Term], Boolean) = (List.empty, false)
 }
