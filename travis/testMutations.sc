@@ -11,18 +11,18 @@ val path = pwd
 @main
 def main(
     projectPath: Path,
-    sbtCommand: String = "test"
+    testCommand: String = "test"
 ): Unit = {
   run(
     projectPath,
-    sbtCommand,
+    testCommand,
     OptionsConfig()
   )
 }
 
 def run(
     projectPath: Path,
-    sbtCommand: String,
+    testCommand: String,
     options: OptionsConfig
 ): Unit = {
   val mutationReport: Seq[Mutant] =
@@ -33,10 +33,11 @@ def run(
   if (numberOfMutants == 0) {
     println("Try changing the mutation settings.")
   } else {
+    %('sbt, 'bloopInstall)(projectPath)
     println("Running tests with original config")
-    Try(%%('sbt, options.compileSbt)(projectPath))
+    Try(%%('bloop, options.compileCommand)(projectPath))
     val originalTestInitialTime = System.currentTimeMillis()
-    val vanillaResult = Try(%%('sbt, sbtCommand)(projectPath))
+    val vanillaResult = Try(%%('bloop, 'test, testCommand)(projectPath))
     vanillaResult match {
       case Failure(error) =>
         println("Tests failed... No mutations will run until this is fixed...")
@@ -111,18 +112,8 @@ def run(
         val id = mutant.id
         val time = System.currentTimeMillis()
 
-        if (options.verbose)
-          println(
-            s"""sbt ";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$id\";$sbtCommand""""
-          )
-
-        val testResult =
-          Try(
-            %%(
-              'sbt,
-              s""";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$id\";$sbtCommand"""
-            )(projectPath)
-          )
+//        val testResult = runInSbt(id)
+        val testResult = runInBloop(id)
 
         val result =
           if (testResult.isSuccess) {
@@ -138,6 +129,31 @@ def run(
 
         result :: runMutations(othersMutants, initialTime)
     }
+  }
+
+  def runInSbt(mutantId: Int): Try[CommandResult] = {
+    if (options.verbose)
+      println(
+        s"""sbt ";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$mutantId\";$testCommand""""
+      )
+
+    Try(
+      %%(
+        'sbt,
+        s""";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$mutantId\";$testCommand"""
+      )(projectPath)
+    )
+  }
+
+  def runInBloop(mutantId: Int): Try[CommandResult] = {
+
+    Try(
+      Command(Vector.empty, Map(s"SCALA_MUTATION_$mutantId" -> "1"), Shellout.executeStream)(
+        'bash,
+        "-c",
+        s"bloop test $testCommand"
+      )(projectPath)
+    )
   }
 }
 

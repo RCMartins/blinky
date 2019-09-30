@@ -1,7 +1,6 @@
 import $file.common
 import common._
 import $file.testMutations
-import metaconfig.typesafeconfig._
 import ammonite.ops._
 
 import scala.util.Try
@@ -94,5 +93,5 @@ def run(config: MutationsConfig): Unit = {
     semanticDbPath
   )(mutatedProjectPath)
 
-  testMutations.run(mutatedProjectPath, config.sbtCommand, config.options)
+  testMutations.run(mutatedProjectPath, config.testCommand, config.options)
 }

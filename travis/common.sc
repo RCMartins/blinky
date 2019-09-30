@@ -78,7 +78,7 @@ object MutateCodeConfig {
 case class OptionsConfig(
     verbose: Boolean = false,
     dryRun: Boolean = false,
-    compileSbt: String = "test:compile",
+    compileCommand: String = "compile",
     maxRunningTime: Duration = 60.minutes,
     failOnMinimum: Boolean = false,
     mutationMinimum: Double = 25.0
@@ -106,7 +106,7 @@ case class MutationsConfig(
     filesToMutate: String,
     conf: MutateCodeConfig,
     mutateCodeVersion: String = "0.1.0",
-    sbtCommand: String = "test",
+    testCommand: String = "test",
     options: OptionsConfig = OptionsConfig()
 )
 
