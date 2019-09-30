@@ -8,13 +8,14 @@ before_install:
 before_script:
   - curl -Lo coursier https://git.io/coursier-cli && chmod +x coursier
   - sudo ./coursier bootstrap org.scalameta:scalafmt-cli_2.12:2.1.0-RC2 -r sonatype:snapshots -o /usr/local/bin/scalafmt --standalone --main org.scalafmt.cli.Cli
+  - curl -L https://github.com/scalacenter/bloop/releases/download/v1.3.2/install.py | python
 jobs:
   include:
   - stage: pull request testing
     name: running unit tests
     if: (type = pull_request) OR (branch = master AND type = push)
     script:
-    - sbt clean "set mutators/coverageEnabled:=true" tests/test coverageReport && sbt coverageAggregate codacyCoverage
+    - sbt clean "set mutators/coverageEnabled:=true" tests/test coverageReport #&& sbt coverageAggregate codacyCoverage
 
   - name: formatting check
     if: type = pull_request
@@ -25,7 +26,6 @@ jobs:
     if: type = pull_request
     script:
     - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.7.4/2.12-1.7.4) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
-    - curl -L https://github.com/scalacenter/bloop/releases/download/v1.3.2/install.py | python
     - bloop server &>/dev/null &
     - amm travis/runCurrentVersion.sc
 
