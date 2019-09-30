@@ -42,6 +42,7 @@ def run(
       case Failure(error) =>
         println("Tests failed... No mutations will run until this is fixed...")
         println(error)
+        System.exit(1)
       case Success(_) =>
         println(green("Original tests passed..."))
         if (!options.dryRun) {

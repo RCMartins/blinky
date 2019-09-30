@@ -15,18 +15,19 @@ jobs:
     name: running unit tests
     if: (type = pull_request) OR (branch = master AND type = push)
     script:
-    - sbt clean "set mutators/coverageEnabled:=true" tests/test coverageReport #&& sbt coverageAggregate codacyCoverage
+    - sbt -Dsbt.color=always clean "set mutators/coverageEnabled:=true" tests/test coverageReport #&& sbt coverageAggregate codacyCoverage
 
   - name: formatting check
     if: type = pull_request
     script:
-    - sbt scalafmtCheckAll scalafmtSbtCheck && scalafmt --check travis/*
+    - sbt -Dsbt.color=always scalafmtCheckAll scalafmtSbtCheck && scalafmt --check travis/*
 
   - name: mutation testing
     if: type = pull_request
     script:
     - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.7.4/2.12-1.7.4) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
-    - bloop server &>/dev/null &
+    #- bloop server &>/dev/null &
+    - bloop server &
     - amm travis/runCurrentVersion.sc
 
   - stage: release
