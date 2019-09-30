@@ -5,6 +5,8 @@ jdk:
   - openjdk8
 before_install:
   - git fetch --tags
+before_script:
+  - pkg install coursier
 jobs:
   include:
   - stage: pull request testing
@@ -16,11 +18,10 @@ jobs:
   - name: formatting check
     if: type = pull_request
     script:
-    - curl -Lo coursier https://git.io/coursier-cli && chmod +x coursier
-    - ./coursier bootstrap org.scalameta:scalafmt-cli_2.12:2.1.0-RC2 \
-      -r sonatype:snapshots \
-      -o scalafmt --main org.scalafmt.cli.Cli
-    - sbt scalafmtCheckAll scalafmtSbtCheck && ./scalafmt --check travis/*
+    - coursier bootstrap org.scalameta:scalafmt-cli_2.12:2.1.0-RC2 \
+        -r sonatype:snapshots \
+        -o /usr/local/bin/scalafmt --standalone --main org.scalafmt.cli.Cli
+    - sbt scalafmtCheckAll scalafmtSbtCheck && scalafmt --check travis/*
 
   - name: mutation testing
     if: type = pull_request
