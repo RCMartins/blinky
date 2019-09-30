@@ -8,7 +8,7 @@ before_install:
 before_script:
   - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.6.9/2.12-1.6.9) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
   - curl -Lo coursier https://git.io/coursier-cli && chmod +x coursier
-  - coursier bootstrap org.scalameta:scalafmt-cli_2.12:2.1.0-RC2 \
+  - ./coursier bootstrap org.scalameta:scalafmt-cli_2.12:2.1.0-RC2 \
       -r sonatype:snapshots \
       -o /usr/local/bin/scalafmt --standalone --main org.scalafmt.cli.Cli
 jobs:
