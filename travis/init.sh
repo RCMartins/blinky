@@ -1,4 +1,3 @@
 #!/bin/bash
 
-alias bloop="$HOME/.bloop/bloop"
-alias sbt="sbt -Dsbt.color=always"
+export PATH="$PATH:$HOME/.bloop/bloop"
