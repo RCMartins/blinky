@@ -50,10 +50,8 @@ def run(
           val mutationsToTest =
             Random
               .shuffle(mutationReport)
-              .take(Math.floor(options.maxRunningTime.toMillis / originalTestTime).toInt)
-              .sortBy(_.id)
               .toList
-          println(s"Running the same tests on ${mutationsToTest.size} mutations...")
+          println(s"Running the same tests with mutations (maximum of ${options.maxRunningTime})")
 
           val initialTime = System.currentTimeMillis()
 
