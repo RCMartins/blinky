@@ -34,7 +34,7 @@ jobs:
       if: type = pull_request
       script:
         - (bloop server &) &&
-        - (amm travis/runCurrentVersion.sc)
+            (amm travis/runCurrentVersion.sc)
     - stage: release
       if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
       script:
