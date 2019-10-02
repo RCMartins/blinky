@@ -18,30 +18,26 @@ jobs:
       name: running unit tests
       if: (type = pull_request) OR (branch = master AND type = push)
       script:
-        - source travis/init.sh \
-            && sbt clean "set mutators/coverageEnabled:=true" tests/test coverageReport \
+        - sbt clean "set mutators/coverageEnabled:=true" tests/test coverageReport \
             && sbt coverageAggregate codacyCoverage
 
     - name: formatting check
       if: type = pull_request
       script:
-        - source travis/init.sh \
-            && sbt scalafmtCheckAll scalafmtSbtCheck \
+        - sbt scalafmtCheckAll scalafmtSbtCheck \
             && scalafmt --check travis/*
 
     - name: mutation testing
       if: type = pull_request
       script:
-        - source travis/init.sh \
-            && sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.7.4/2.12-1.7.4) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm' \
+        - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.7.4/2.12-1.7.4) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm' \
             && (bloop server &) \
             && amm travis/runCurrentVersion.sc
 
     - stage: release
       if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
       script:
-        - source travis/init.sh \
-            && sbt ci-release
+        - sbt ci-release
 cache:
   directories:
     - "$HOME/.ivy2/cache"
