@@ -28,6 +28,10 @@ def run(
   val mutationReport: Seq[Mutant] =
     read(projectPath / "mutations.json").split("\n").toSeq.map(Json.parse(_).as[Mutant])
 
+  println("-" * 20)
+  %("bash", "-c",  "echo $PATH")(projectPath)
+  println("-" * 20)
+
   val numberOfMutants = mutationReport.length
   println(s"$numberOfMutants mutants found.")
   if (numberOfMutants == 0) {
