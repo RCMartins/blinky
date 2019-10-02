@@ -6,6 +6,7 @@ jdk:
 before_install:
   - git fetch --tags
 before_script:
+  - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.7.4/2.12-1.7.4) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm
   - curl -Lo coursier https://git.io/coursier-cli && chmod +x coursier
   - sudo ./coursier bootstrap org.scalameta:scalafmt-cli_2.12:2.1.0-RC2 -r sonatype:snapshots -o /usr/local/bin/scalafmt --standalone --main org.scalafmt.cli.Cli
   - curl -L https://github.com/scalacenter/bloop/releases/download/v1.3.2/install.py | python
@@ -31,10 +32,7 @@ jobs:
     - name: mutation testing
       if: type = pull_request
       script:
-        - echo '-----'
-        - echo $PATH
-        - echo '-----'
-        - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.7.4/2.12-1.7.4) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm' && (bloop server &) && amm travis/runCurrentVersion.sc
+        - (bloop server &) && (amm travis/runCurrentVersion.sc)
     - stage: release
       if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
       script:
