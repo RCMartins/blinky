@@ -35,9 +35,9 @@ def run(
   } else {
     %('sbt, 'bloopInstall)(projectPath)
     println("Running tests with original config")
-    Try(%%('bloop, options.compileCommand)(projectPath))
+    Try(%%('bash, "-c", s"""bloop "${options.compileCommand}"""")(projectPath))
     val originalTestInitialTime = System.currentTimeMillis()
-    val vanillaResult = Try(%%('bloop, 'test, testCommand)(projectPath))
+    val vanillaResult = Try(%%('bash, "-c", s"""bloop test "$testCommand"""")(projectPath))
     vanillaResult match {
       case Failure(error) =>
         println("Tests failed... No mutations will run until this is fixed...")
@@ -135,18 +135,23 @@ def run(
   def runInSbt(mutantId: Int): Try[CommandResult] = {
     if (options.verbose)
       println(
-        s"""sbt ";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$mutantId\";$testCommand""""
+        s"""[SCALA_MUTATION_$mutantId=1] sbt "$testCommand""""
       )
 
     Try(
-      %%(
+      Command(Vector.empty, Map(s"SCALA_MUTATION_$mutantId" -> "1"), Shellout.executeStream)(
         'sbt,
-        s""";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$mutantId\";$testCommand"""
+        testCommand
       )(projectPath)
     )
   }
 
   def runInBloop(mutantId: Int): Try[CommandResult] = {
+
+    if (options.verbose)
+      println(
+        s"""bash -c "bloop test \"$testCommand\"""""
+      )
 
     Try(
       Command(Vector.empty, Map(s"SCALA_MUTATION_$mutantId" -> "1"), Shellout.executeStream)(
