@@ -36,7 +36,7 @@ def run(
     %('sbt, 'bloopInstall)(projectPath)
     println("Running tests with original config")
     Try(%%('bash, "-c", s"""bloop "${options.compileCommand}"""")(projectPath))
-    val originalTestInitialTime = System.currentTimeMillis()
+    //val originalTestInitialTime = System.currentTimeMillis()
     val vanillaResult = Try(%%('bash, "-c", s"""bloop test "$testCommand"""")(projectPath))
     vanillaResult match {
       case Failure(error) =>
@@ -46,12 +46,12 @@ def run(
       case Success(_) =>
         println(green("Original tests passed..."))
         if (!options.dryRun) {
-          val originalTestTime = System.currentTimeMillis() - originalTestInitialTime
+          //val originalTestTime = System.currentTimeMillis() - originalTestInitialTime
           val mutationsToTest =
             Random
               .shuffle(mutationReport)
               .toList
-          println(s"Running the same tests with mutations (maximum of ${options.maxRunningTime})")
+          println(s"Running the same tests on mutated code (maximum of ${options.maxRunningTime})")
 
           val initialTime = System.currentTimeMillis()
 
