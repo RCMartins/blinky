@@ -25,8 +25,8 @@ def run(
     testCommand: String,
     options: OptionsConfig
 ): Unit = {
-  val mutationReport: Seq[Mutant] =
-    read(projectPath / "mutations.json").split("\n").toSeq.map(Json.parse(_).as[Mutant])
+  val mutationReport: List[Mutant] =
+    read(projectPath / "mutations.json").split("\n").map(Json.parse(_).as[Mutant]).toList
 
   val numberOfMutants = mutationReport.length
   println(s"$numberOfMutants mutants found.")
@@ -36,7 +36,7 @@ def run(
     %('sbt, 'bloopInstall)(projectPath)
     println("Running tests with original config")
     Try(%%('bash, "-c", s"""bloop "${options.compileCommand}"""")(projectPath))
-    //val originalTestInitialTime = System.currentTimeMillis()
+    val originalTestInitialTime = System.currentTimeMillis()
     val vanillaResult = Try(%%('bash, "-c", s"""bloop test "$testCommand"""")(projectPath))
     vanillaResult match {
       case Failure(error) =>
@@ -46,11 +46,13 @@ def run(
       case Success(_) =>
         println(green("Original tests passed..."))
         if (!options.dryRun) {
-          //val originalTestTime = System.currentTimeMillis() - originalTestInitialTime
+          val originalTestTime = System.currentTimeMillis() - originalTestInitialTime
           val mutationsToTest =
-            Random
-              .shuffle(mutationReport)
-              .toList
+            if (originalTestTime * mutationReport.size * 1.2 >= options.maxRunningTime.toMillis)
+              mutationReport
+            else
+              Random.shuffle(mutationReport)
+
           println(s"Running the same tests on mutated code (maximum of ${options.maxRunningTime})")
 
           val initialTime = System.currentTimeMillis()
