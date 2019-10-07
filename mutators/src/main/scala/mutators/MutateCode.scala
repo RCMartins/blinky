@@ -48,7 +48,7 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
               case ((id, mutated), (_, originalTerm)) =>
                 val mutationName = Lit.String(s"SCALA_MUTATION_$id")
                 val result =
-                  q"""if (_root_.scala.sys.props.contains($mutationName)) ($mutated) else ($originalTerm)"""
+                  q"""if (_root_.scala.sys.env.contains($mutationName)) ($mutated) else ($originalTerm)"""
                 (0, result)
             }
 

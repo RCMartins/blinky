@@ -6,35 +6,43 @@ jdk:
 before_install:
   - git fetch --tags
 before_script:
-  - curl -Lo coursier https://git.io/coursier-cli && chmod +x coursier
-  - sudo ./coursier bootstrap org.scalameta:scalafmt-cli_2.12:2.1.0-RC2 -r sonatype:snapshots -o /usr/local/bin/scalafmt --standalone --main org.scalafmt.cli.Cli
+  - shopt -s expand_aliases
+  - alias sbt="sbt -Dsbt.color=always"
 jobs:
   include:
-  - stage: pull request testing
-    name: running unit tests
-    if: (type = pull_request) OR (branch = master AND type = push)
-    script:
-    - sbt clean "set mutators/coverageEnabled:=true" tests/test coverageReport && sbt coverageAggregate codacyCoverage
+    - stage: pull request testing
+      name: running unit tests
+      if: (type = pull_request) OR (branch = master AND type = push)
+      script:
+        - sbt clean "set mutators/coverageEnabled:=true" tests/test coverageReport \
+            && sbt coverageAggregate codacyCoverage
 
-  - name: formatting check
-    if: type = pull_request
-    script:
-    - sbt scalafmtCheckAll scalafmtSbtCheck && scalafmt --check travis/*
+    - name: formatting check
+      if: type = pull_request
+      script:
+        - curl -Lo coursier https://git.io/coursier-cli && chmod +x coursier
+        - sudo ./coursier bootstrap org.scalameta:scalafmt-cli_2.12:2.1.0-RC2 -r sonatype:snapshots -o /usr/local/bin/scalafmt --standalone --main org.scalafmt.cli.Cli
+        - sbt scalafmtCheckAll scalafmtSbtCheck \
+            && scalafmt --check travis/*
 
-  - name: mutation testing
-    if: type = pull_request
-    script:
-    - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.6.9/2.12-1.6.9) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
-    - amm travis/runCurrentVersion.sc
-
-  - stage: release
-    if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
-    script: sbt ci-release
+    - name: mutation testing
+      if: type = pull_request
+      script:
+        - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.7.4/2.12-1.7.4) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
+        - curl -L https://github.com/scalacenter/bloop/releases/download/v1.3.2/install.py | python
+        - export PATH="$PATH:$HOME/.bloop"
+        - systemctl --user enable $HOME/.bloop/systemd/bloop.service
+        - systemctl --user start bloop
+        - amm travis/runCurrentVersion.sc
+    - stage: release
+      if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
+      script:
+        - sbt ci-release
 cache:
   directories:
-  - "$HOME/.ivy2/cache"
-  - "$HOME/.sbt/boot/"
-  - "$HOME/.coursier/cache"
+    - "$HOME/.ivy2/cache"
+    - "$HOME/.sbt/boot/"
+    - "$HOME/.coursier/cache"
 env:
   global:
     secure: T3HdurQNcKxoZP53SzFWrKe8xEmdY/w43sB4rnMRg4ETgE+jQzfPP78XGKAC6J56O4BmijHP6j/aiEA+CTddG9HtIal4WWMVI5wxIONzDtNdUf+TKpx1GDyN6UslGAyJdN671cL/9f36lN56wKj5BQBWwqBNaM/92qzfyeSWp88TMcUA+ItSAYt3CD/vkdw96kSIMdVuTIlCuhurF6Zn8hILtEVGFwFZElsroGHdBQCL33ddoCKr4tXlx/Id2b8Oa2T8vbwlMH6sm/RfwIlO8273/B3CoP/V783eVlYZmqcy3f/FhJ6AwrhvHHwJTX13zc1R1o7IUCf/NZ5c5xk4GpFSRYAD5EKYZIop56+NNDgzJMf6HfYzV7iyEEVsGrHxX1PYyl7eK/b0Uj30gVCOaVray9R5QLNfmP3s6RRBoKgDT0mcxrPUt6yYq41WB7uAYlnBgSUUdoFwvHvMn+IkC/v2f0f0GVQ+Ukigpcb4hDyxLjTZaLCd+AhXbcDpbYC83PVqC5hwKs2jGt0LTeE1Op7GfUX1fxV0GxmCJV5bRH5mdow+LFku+mOE7R9LVYypn9/kVSS1fz+lfY8Ehm6yp3gJECNS9meE9bWuEV0sv1o+9yTgzm95tGfnZx2jxn5brx1iQq4tPmeQ0/OL8ELZqDpOILtUFniYplYr4CBixDc=

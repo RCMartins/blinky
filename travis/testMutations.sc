@@ -11,47 +11,49 @@ val path = pwd
 @main
 def main(
     projectPath: Path,
-    sbtCommand: String = "test"
+    testCommand: String = "test"
 ): Unit = {
   run(
     projectPath,
-    sbtCommand,
+    testCommand,
     OptionsConfig()
   )
 }
 
 def run(
     projectPath: Path,
-    sbtCommand: String,
+    testCommand: String,
     options: OptionsConfig
 ): Unit = {
-  val mutationReport: Seq[Mutant] =
-    read(projectPath / "mutations.json").split("\n").toSeq.map(Json.parse(_).as[Mutant])
+  val mutationReport: List[Mutant] =
+    read(projectPath / "mutations.json").split("\n").map(Json.parse(_).as[Mutant]).toList
 
   val numberOfMutants = mutationReport.length
   println(s"$numberOfMutants mutants found.")
   if (numberOfMutants == 0) {
     println("Try changing the mutation settings.")
   } else {
+    %('sbt, 'bloopInstall)(projectPath)
     println("Running tests with original config")
-    Try(%%('sbt, options.compileSbt)(projectPath))
+    Try(%%('bash, "-c", s"""bloop "${options.compileCommand}"""")(projectPath))
     val originalTestInitialTime = System.currentTimeMillis()
-    val vanillaResult = Try(%%('sbt, sbtCommand)(projectPath))
+    val vanillaResult = Try(%%('bash, "-c", s"""bloop test "$testCommand"""")(projectPath))
     vanillaResult match {
       case Failure(error) =>
         println("Tests failed... No mutations will run until this is fixed...")
         println(error)
+        System.exit(1)
       case Success(_) =>
         println(green("Original tests passed..."))
         if (!options.dryRun) {
           val originalTestTime = System.currentTimeMillis() - originalTestInitialTime
           val mutationsToTest =
-            Random
-              .shuffle(mutationReport)
-              .take(Math.floor(options.maxRunningTime.toMillis / originalTestTime).toInt)
-              .sortBy(_.id)
-              .toList
-          println(s"Running the same tests on ${mutationsToTest.size} mutations...")
+            if (originalTestTime * mutationReport.size * 1.2 >= options.maxRunningTime.toMillis)
+              mutationReport
+            else
+              Random.shuffle(mutationReport)
+
+          println(s"Running the same tests on mutated code (maximum of ${options.maxRunningTime})")
 
           val initialTime = System.currentTimeMillis()
 
@@ -111,18 +113,8 @@ def run(
         val id = mutant.id
         val time = System.currentTimeMillis()
 
-        if (options.verbose)
-          println(
-            s"""sbt ";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$id\";$sbtCommand""""
-          )
-
-        val testResult =
-          Try(
-            %%(
-              'sbt,
-              s""";set tests / javaOptions in Test += \"-DSCALA_MUTATION_$id\";$sbtCommand"""
-            )(projectPath)
-          )
+//        val testResult = runInSbt(id)
+        val testResult = runInBloop(id)
 
         val result =
           if (testResult.isSuccess) {
@@ -138,6 +130,36 @@ def run(
 
         result :: runMutations(othersMutants, initialTime)
     }
+  }
+
+  def runInSbt(mutantId: Int): Try[CommandResult] = {
+    if (options.verbose)
+      println(
+        s"""[SCALA_MUTATION_$mutantId=1] sbt "$testCommand""""
+      )
+
+    Try(
+      Command(Vector.empty, Map(s"SCALA_MUTATION_$mutantId" -> "1"), Shellout.executeStream)(
+        'sbt,
+        testCommand
+      )(projectPath)
+    )
+  }
+
+  def runInBloop(mutantId: Int): Try[CommandResult] = {
+
+    if (options.verbose)
+      println(
+        s"""bash -c "bloop test \"$testCommand\"""""
+      )
+
+    Try(
+      Command(Vector.empty, Map(s"SCALA_MUTATION_$mutantId" -> "1"), Shellout.executeStream)(
+        'bash,
+        "-c",
+        s"bloop test $testCommand"
+      )(projectPath)
+    )
   }
 }
 
