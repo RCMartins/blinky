@@ -57,4 +57,13 @@ lazy val tests = project
   .dependsOn(mutators)
   .enablePlugins(ScalafixTestkitPlugin)
 
+lazy val `mutators-cli` = project
+  .settings(
+    libraryDependencies += "com.lihaoyi"  %% "ammonite-ops"               % "1.7.4",
+    libraryDependencies += "com.geirsson" %% "metaconfig-core"            % "0.8.1",
+    libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "0.8.1",
+    skip in publish := true
+  )
+  .dependsOn(mutators)
+
 Global / onChangedBuildSource := ReloadOnSourceChanges
