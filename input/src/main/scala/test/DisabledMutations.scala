@@ -1,6 +1,6 @@
 /*
-rule = MutateCode
-MutateCode.disabledMutators = [
+rule = Blinky
+Blinky.disabledMutators = [
   LiteralBooleans
   ArithmeticOperators.IntMulToDiv
   ScalaOptions.OrElse

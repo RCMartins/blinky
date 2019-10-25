@@ -27,13 +27,16 @@ inThisBuild(
 
 skip in publish := true
 
-lazy val `blinky-core` = project.settings(
-  moduleName := "blinky",
-  libraryDependencies += "ch.epfl.scala"     %% "scalafix-core" % V.scalafixVersion,
-  libraryDependencies += "com.typesafe.play" %% "play-json"     % "2.7.3",
-  coverageMinimum := 81,
-  coverageFailOnMinimum := true
-)
+lazy val core =
+  project
+    .in(file("blinky-core"))
+    .settings(
+      moduleName := "blinky",
+      libraryDependencies += "ch.epfl.scala"     %% "scalafix-core" % V.scalafixVersion,
+      libraryDependencies += "com.typesafe.play" %% "play-json"     % "2.7.3",
+      coverageMinimum := 81,
+      coverageFailOnMinimum := true
+    )
 
 lazy val input = project.settings(
   skip in publish := true
@@ -54,7 +57,7 @@ lazy val tests = project
     scalafixTestkitInputClasspath :=
       fullClasspath.in(input, Compile).value
   )
-  .dependsOn(`blinky-core`)
+  .dependsOn(core)
   .enablePlugins(ScalafixTestkitPlugin)
 
 Global / onChangedBuildSource := ReloadOnSourceChanges

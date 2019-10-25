@@ -1,6 +1,6 @@
 /*
-rule = MutateCode
-MutateCode.enabledMutators = [ConditionalExpressions]
+rule = Blinky
+Blinky.enabledMutators = [ConditionalExpressions]
  */
 package test
 

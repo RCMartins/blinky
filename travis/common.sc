@@ -105,13 +105,13 @@ case class MutationsConfig(
     sourceCodePath: String,
     filesToMutate: String,
     conf: MutateCodeConfig,
-    mutateCodeVersion: String = "0.1.0",
+    mutateCodeVersion: String,
     testCommand: String = "test",
     options: OptionsConfig = OptionsConfig()
 )
 
 object MutationsConfig {
-  val default = MutationsConfig("", "", "", MutateCodeConfig())
+  val default = MutationsConfig("", "", "", MutateCodeConfig(), "")
   implicit val surface: Surface[MutationsConfig] =
     generic.deriveSurface[MutationsConfig]
   implicit val decoder: ConfDecoder[MutationsConfig] =

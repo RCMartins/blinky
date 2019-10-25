@@ -25,7 +25,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
 
   override def withConfiguration(config: Configuration): Configured[Rule] =
     config.conf
-      .getOrElse("MutateCode")(BlinkyConfig.default)
+      .getOrElse(name.value)(BlinkyConfig.default)
       .map(new Blinky(_))
 
   override def fix(implicit doc: SemanticDocument): Patch = {

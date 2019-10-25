@@ -1,6 +1,6 @@
 /*
-rule = MutateCode
-MutateCode.enabledMutators = [ScalaOptions]
+rule = Blinky
+Blinky.enabledMutators = [ScalaOptions]
  */
 package test
 

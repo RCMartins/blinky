@@ -1,6 +1,6 @@
 /*
-rule = MutateCode
-MutateCode.enabledMutators = [ArithmeticOperators]
+rule = Blinky
+Blinky.enabledMutators = [ArithmeticOperators]
  */
 package test
 

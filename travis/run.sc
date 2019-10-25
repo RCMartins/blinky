@@ -13,7 +13,7 @@ def main(confFilePath: Path = pwd / ".mutations.conf"): Unit = {
 }
 
 def run(config: MutationsConfig): Unit = {
-  val rule = "MutateCode"
+  val rule = "Blinky"
   val projectPath = Try(Path(config.projectPath)).getOrElse(pwd / RelPath(config.projectPath))
 
   val mutatedProjectPath = {
@@ -55,7 +55,7 @@ def run(config: MutationsConfig): Unit = {
       MutateCodeConfig.encoder.write(config.conf).show.trim.stripPrefix("{").stripSuffix("}").trim
 
     val content =
-      s"""MutateCode {
+      s"""Blinky {
          |  projectPath="$mutatedProjectPath"
          |  $scalaFixConf
          |}
@@ -73,7 +73,7 @@ def run(config: MutationsConfig): Unit = {
   val toolPath = %%(
     "./coursier",
     "fetch",
-    s"com.github.rcmartins:${rule}_2.12:${config.mutateCodeVersion}",
+    s"com.github.rcmartins:${rule.toLowerCase}_2.12:${config.mutateCodeVersion}",
     "-p",
     COURSIER_REPOSITORIES = "ivy2Local|sonatype:snapshots|sonatype:releases"
   )(mutatedProjectPath).out.string.trim

@@ -1,6 +1,6 @@
 /*
-rule = MutateCode
-MutateCode.enabledMutators = [
+rule = Blinky
+Blinky.enabledMutators = [
   { ArithmeticOperators = [IntMinusToPlus, IntDivToMul] }
 ]
  */
