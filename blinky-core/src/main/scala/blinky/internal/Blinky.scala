@@ -1,8 +1,9 @@
-package mutators
+package blinky.internal
 
 import java.io.{File, FileWriter}
 import java.util.concurrent.atomic.AtomicInteger
 
+import blinky.v0.BlinkyConfig
 import metaconfig.Configured
 import play.api.libs.json.Json
 import scalafix.v1._
@@ -10,7 +11,7 @@ import scalafix.v1._
 import scala.meta._
 import scala.meta.inputs.Input.VirtualFile
 
-class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
+class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
 
   private val mutationId: AtomicInteger = new AtomicInteger(1)
   private val mutationsPathOption: Option[File] =
@@ -20,12 +21,12 @@ class MutateCode(config: MutateCodeConfig) extends SemanticRule("MutateCode") {
 
   private def nextIndex: Int = mutationId.getAndIncrement()
 
-  def this() = this(MutateCodeConfig.default)
+  def this() = this(BlinkyConfig.default)
 
   override def withConfiguration(config: Configuration): Configured[Rule] =
     config.conf
-      .getOrElse("MutateCode")(MutateCodeConfig.default)
-      .map(new MutateCode(_))
+      .getOrElse("MutateCode")(BlinkyConfig.default)
+      .map(new Blinky(_))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
 

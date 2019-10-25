@@ -1,10 +1,11 @@
-package mutators
+package blinky.v0
 
+import blinky.internal.Mutator
 import metaconfig.annotation.Description
-import metaconfig.{ConfDecoder, generic}
 import metaconfig.generic.Surface
+import metaconfig.{ConfDecoder, generic}
 
-case class MutateCodeConfig(
+case class BlinkyConfig(
     @Description("The project directory, required")
     projectPath: String,
     @Description("The directory to store the mutators.json file, defaults to the project directory")
@@ -20,10 +21,10 @@ case class MutateCodeConfig(
 
 }
 
-object MutateCodeConfig {
-  val default = MutateCodeConfig("")
-  implicit val surface: Surface[MutateCodeConfig] =
-    generic.deriveSurface[MutateCodeConfig]
-  implicit val decoder: ConfDecoder[MutateCodeConfig] =
+object BlinkyConfig {
+  val default = BlinkyConfig("")
+  implicit val surface: Surface[BlinkyConfig] =
+    generic.deriveSurface[BlinkyConfig]
+  implicit val decoder: ConfDecoder[BlinkyConfig] =
     generic.deriveDecoder(default)
 }

@@ -1,4 +1,4 @@
-package mutators
+package blinky.internal
 
 import scala.meta.Term
 

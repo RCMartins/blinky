@@ -1,4 +1,4 @@
-package mutators
+package blinky.internal
 
 import scalafix.v1.SemanticDocument
 

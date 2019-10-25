@@ -4,14 +4,14 @@ lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
   List(
     organization := "com.github.rcmartins",
-    homepage := Some(url("https://github.com/RCMartins/ScalaMutation")),
+    homepage := Some(url("https://github.com/rcmartins/blinky")),
     licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     developers := List(
       Developer(
-        "RCMartins",
+        "rcmartins",
         "Ricardo Carvalho Martins",
         "ricardocmartins91@gmail.com",
-        url("https://github.com/RCMartins")
+        url("https://github.com/rcmartins")
       )
     ),
     scalaVersion := V.scala212,
@@ -27,8 +27,8 @@ inThisBuild(
 
 skip in publish := true
 
-lazy val mutators = project.settings(
-  moduleName := "MutateCode",
+lazy val `blinky-core` = project.settings(
+  moduleName := "blinky",
   libraryDependencies += "ch.epfl.scala"     %% "scalafix-core" % V.scalafixVersion,
   libraryDependencies += "com.typesafe.play" %% "play-json"     % "2.7.3",
   coverageMinimum := 81,
@@ -54,7 +54,7 @@ lazy val tests = project
     scalafixTestkitInputClasspath :=
       fullClasspath.in(input, Compile).value
   )
-  .dependsOn(mutators)
+  .dependsOn(`blinky-core`)
   .enablePlugins(ScalafixTestkitPlugin)
 
 Global / onChangedBuildSource := ReloadOnSourceChanges

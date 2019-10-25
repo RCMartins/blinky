@@ -1,4 +1,4 @@
-package mutators
+package blinky.internal
 
 import play.api.libs.json.{Json, OWrites}
 
