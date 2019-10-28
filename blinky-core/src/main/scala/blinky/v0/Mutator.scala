@@ -1,6 +1,6 @@
-package blinky.internal
+package blinky.v0
 
-import Mutator._
+import blinky.v0.Mutator._
 import scalafix.v1._
 
 import scala.meta._

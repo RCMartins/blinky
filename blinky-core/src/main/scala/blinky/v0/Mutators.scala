@@ -1,6 +1,5 @@
 package blinky.v0
 
-import blinky.internal.Mutator
 import blinky.v0
 import metaconfig.{Conf, ConfDecoder, ConfError, Configured}
 

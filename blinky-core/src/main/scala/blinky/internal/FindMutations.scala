@@ -1,5 +1,6 @@
 package blinky.internal
 
+import blinky.v0.Mutator
 import scalafix.v1.SemanticDocument
 
 import scala.meta._

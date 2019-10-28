@@ -1,6 +1,5 @@
 package blinky.v0
 
-import blinky.internal.Mutator
 import metaconfig.annotation.Description
 import metaconfig.generic.Surface
 import metaconfig.{ConfDecoder, generic}
