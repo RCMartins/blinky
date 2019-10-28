@@ -14,7 +14,7 @@ jobs:
       name: running unit tests
       if: (type = pull_request) OR (branch = master AND type = push)
       script:
-        - sbt clean "set mutators/coverageEnabled:=true" tests/test coverageReport \
+        - sbt clean "set core/coverageEnabled:=true" tests/test coverageReport \
             && sbt coverageAggregate codacyCoverage
 
     - name: formatting check

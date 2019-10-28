@@ -1,6 +1,6 @@
 /*
-rule = MutateCode
-MutateCode.enabledMutators = [ArithmeticOperators, ScalaOptions, LiteralBooleans]
+rule = Blinky
+Blinky.enabledMutators = [ArithmeticOperators, ScalaOptions, LiteralBooleans]
  */
 package test
 

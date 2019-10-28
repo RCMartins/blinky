@@ -1,6 +1,6 @@
 /*
-rule = MutateCode
-MutateCode.enabledMutators = LiteralStrings
+rule = Blinky
+Blinky.enabledMutators = LiteralStrings
  */
 package test
 
