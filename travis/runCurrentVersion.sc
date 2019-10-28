@@ -11,6 +11,6 @@ def main(): Unit = {
 
   val conf = read(path / "travis" / ".mutations.conf")
   val tmpConf = tmp.dir() / ".mutations.conf"
-  write(tmpConf, conf + "\nmutateCodeVersion = \"" + versionNumber + "\"")
+  write(tmpConf, conf + "\nblinkyVersion = \"" + versionNumber + "\"")
   run.main(tmpConf)
 }
