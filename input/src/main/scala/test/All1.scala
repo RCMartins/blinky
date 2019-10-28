@@ -1,5 +1,5 @@
 /*
-rule = MutateCode
+rule = Blinky
  */
 package test
 

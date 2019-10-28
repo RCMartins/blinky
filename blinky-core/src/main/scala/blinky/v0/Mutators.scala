@@ -1,5 +1,6 @@
-package mutators
+package blinky.v0
 
+import blinky.v0
 import metaconfig.{Conf, ConfDecoder, ConfError, Configured}
 
 case class Mutators(mutations: List[Mutator])
@@ -15,7 +16,7 @@ object Mutators {
         case Conf.Str(mutatorName) =>
           Mutator.findMutators(path + mutatorName) match {
             case Nil  => Configured.notOk(ConfError.message(s"$path$mutatorName was not found!"))
-            case list => Configured.Ok(Mutators(list))
+            case list => Configured.Ok(v0.Mutators(list))
           }
         case Conf.Lst(values) =>
           val list = values.map(readerMutationsAux(path).read)

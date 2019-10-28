@@ -1,6 +1,6 @@
 /*
-rule = MutateCode
-MutateCode.enabledMutators = [LiteralBooleans]
+rule = Blinky
+Blinky.enabledMutators = [LiteralBooleans]
  */
 package test
 
