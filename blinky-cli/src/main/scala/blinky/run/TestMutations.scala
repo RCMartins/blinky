@@ -1,7 +1,6 @@
-package mutation.run
+package blinky.run
 
 import ammonite.ops._
-import mutators.Mutant
 import play.api.libs.json.Json
 
 import scala.util.{Failure, Random, Success, Try}

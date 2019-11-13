@@ -1,4 +1,4 @@
-package mutation.run
+package blinky.run
 
 import metaconfig.generic.Surface
 import metaconfig.{Conf, ConfDecoder, Configured, generic}
