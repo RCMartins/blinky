@@ -1,3 +1,5 @@
+# Blinky
+
 [![Build Status](https://travis-ci.com/RCMartins/blinky.svg?branch=master)](https://travis-ci.com/RCMartins/blinky)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9bc5c989d1464a6ca94da021ee43d8f6)](https://www.codacy.com/manual/RCMartins/blinky?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RCMartins/blinky&amp;utm_campaign=Badge_Grade)
 [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/9bc5c989d1464a6ca94da021ee43d8f6)](https://www.codacy.com/manual/RCMartins/blinky?utm_source=github.com&utm_medium=referral&utm_content=RCMartins/blinky&utm_campaign=Badge_Coverage)
@@ -25,7 +27,7 @@ In order to have this semantic information about the types **Blinky**
 needs the [semanticdb](https://scalameta.org/docs/semanticdb/guide.html)
 data of all files that we want to mutate.
 
-# Generating semanticdb files for your sbt project
+## Generating semanticdb files for your sbt project
 Before sbt 1.3.0:
 ```scala
 libraryDependencies += "org.scalameta" % "semanticdb-scalac" % "4.2.3" cross CrossVersion.full
@@ -38,13 +40,13 @@ ThisBuild / semanticdbVersion := "4.1.9"
 ThisBuild / semanticdbIncludeInJar := false
 ```
 
-# How to run Blinky
+## How to run Blinky
 
 First, install the [Coursier](https://get-coursier.io/docs/cli-overview) command-line interface.
 
-Next, write `.blinky.conf` config file with the path of the project you want to run blinky, e.g
-```
-projectPath = "/users/Ricardo/project"
+Next, write `.blinky.conf` config file with the path of the project you want to run **Blinky**, e.g
+```hocon
+projectPath = "/project"
 filesToMutate = "src"
 testCommand = "tests"
 options = {
@@ -61,50 +63,50 @@ coursier launch com.github.rcmartins:blinky-cli_2.12:0.2.0 --main blinky.cli.Cli
 Blinky cli will compile the project, generating the necessary semanticdb files
 before applying the mutations to the code.
 
-# Configuration
+## Configuration
 
 Blinky reads configuration from a file `.blinky.conf`, usually in the root directly of your project.
 Configuration is written using [HOCON](https://github.com/lightbend/config) syntax.
 
-## projectPath (required)
+### projectPath (required)
 The path to the project 
 
-## filesToMutate (required)
+### filesToMutate (required)
 Files or directories (recursively visited) to apply mutations (used directly in scalafix --files= param)
 
-## testCommand (required)
+### testCommand (required)
 Command used by **Blinky** to test the code in each run.
 
 If using Bloop, **Blinky** will run: `bloop test <testCommand>`
 
 If using SBT, **Blinky** will run: `sbt <testCommand>`
 
-## options (optional)
+### options (optional)
 Advanced options to configure how **Blinky** will run tests.
 
-### verbose
+#### verbose
 Boolean flag to show additional information useful for debugging.
 
 Default: `false`
 
-### dryRun
+#### dryRun
 Will not run the tests, useful to check if everything is working without starting
 to actually run the long and compute intensive part of running the tests.
 
 Default: `false`
 
-### compileCommand
+#### compileCommand
 Command used by Blinky to do the first compile before starting to runs the tests.
 This is useful to calculate the time that the first test takes without counting compiling.
 
 Default: `compile`
 
-### maxRunningTime
+#### maxRunningTime
 Maximum time to run tests.
 
 Default: `60 minutes`
 
-### mutationMinimum
+#### mutationMinimum
 Minimum mutation score to fail (only useful if failOnMinimum is `true`).
 Value must be between 0 and 100.
 
@@ -113,20 +115,20 @@ E.g. If we test `200` mutations and `90` are killed by the tests the mutation sc
 
 Default: `25.0`
 
-### failOnMinimum
+#### failOnMinimum
 Exits with non-zero code if the mutation score is below `mutationMinimum` value.
 
 Default: `false`
 
-## conf (optional)
+### conf (optional)
 Configuration for applying the mutations.
 
-### enabledMutators (optional)
+#### enabledMutators (optional)
 List of mutators that will be enabled. Most mutators are in groups, the whole group can be enabled,
 or just single mutators.
 
-e.g.
-```
+example:
+```hocon
 conf {
   enabledMutators = [ArithmeticOperators, LiteralStrings.EmptyToMutated]
 }
@@ -136,11 +138,11 @@ This configuration will enable all mutators from `ArithmeticOperators` group and
 
 Default value: `[all]` 
 
-### disabledMutators (optional)
+#### disabledMutators (optional)
 List of mutators that will be disabled, can be used together with `enabledMutators`.
 
-e.g.
-```
+example:
+```hocon
 conf {
   disabledMutators = [
     LiteralBooleans
@@ -154,8 +156,8 @@ of `LiteralBooleans`, `IntMulToDiv` and `OrElse`.
  
 Default value: `[]`
 
-Example of a more complete .blinky.conf file:
-```
+Example of a more complete `.blinky.conf` file:
+```hocon
 projectPath = "."
 filesToMutate = "blinky-core/src"
 testCommand = "tests"
@@ -181,15 +183,15 @@ conf = {
 }
 ```
 
-# Mutators
+## Mutators
 
 Mutators are the transformations to the code that we want to apply.
 Because of several factors like time to run or importance we may want to enable/disable some
 of the available mutators.
 
-# Available Mutators
+## Available Mutators
 
-## Literal Booleans
+### Literal Booleans
 
 name: LiteralBooleans
 
@@ -202,11 +204,11 @@ example:
 + val bool = false
 ```
 
-## Arithmetic Operators
+### Arithmetic Operators
 
-### group name: ArithmeticOperators
+group name: ArithmeticOperators
 
-### Int - Plus into Minus
+#### Int - Plus into Minus
 
 name: IntPlusToMinus
 
@@ -219,43 +221,43 @@ example:
 + val value = list.size - 5
 ```
 
-(Note that it only applies to `int` types)
+(Note that it only applies to `int` type)
 
-### Int - Minus into Plus
+#### Int - Minus into Plus
 
 name: IntMinusToPlus
 
 description: Changes the arithmetic operator `-` into `+` when operating on `int` types.
 
-### Int - Multiply into Divide
+#### Int - Multiply into Divide
 
 name: IntMulToDiv
 
 description: Changes the arithmetic operator `*` into `/` when operating on `int` types.
 
-### Int - Divide into Multiply
+#### Int - Divide into Multiply
 
 name: IntDivToMul
 
 description: Changes the arithmetic operator `/` into `*` when operating on `int` types.
 
-## Conditional Expressions
+### Conditional Expressions
 
-### group name: ConditionalExpressions
+group name: ConditionalExpressions
 
-### Boolean - And into Or
+#### Boolean - And into Or
 
 name: AndToOr
 
 description: Changes the conditional operator `&&` to `||` on `boolean` types.
 
-### Boolean - Or into And
+#### Boolean - Or into And
 
 name: OrToAnd
 
 description: Changes the conditional operator `||` to `&&` on `boolean` types.
 
-### Boolean - Remove negation
+#### Boolean - Remove negation
 
 name: RemoveUnaryNot
 
@@ -268,11 +270,11 @@ example:
 + if (value) 10 else 20
 ```
 
-## Literal Strings
+### Literal Strings
 
-### group name: LiteralStrings
+group name: LiteralStrings
 
-### String - Change empty string
+#### String - Change empty string
 
 name: EmptyToMutated
 
@@ -285,7 +287,7 @@ example:
 + val name = "mutated!"
 ```
 
-### String - Change non-empty string
+#### String - Change non-empty string
 
 name: NonEmptyToMutated
 
@@ -305,7 +307,7 @@ example mutation 2:
 + val name = "mutated!"
 ```
 
-### String - Concat into mutated
+#### String - Concat into mutated
 
 name: ConcatToMutated
 
@@ -325,11 +327,11 @@ example mutation 2:
 + val name = "mutated!"
 ```
 
-## Scala Options
+### Scala Options
 
-### group name: ScalaOptions
+group name: ScalaOptions
 
-### GetOrElse
+#### GetOrElse
 
 name: GetOrElse
 
@@ -343,31 +345,31 @@ example:
 + val value = 10
 ```
 
-### Exists
+#### Exists
 
 name: Exists
 
 description: Changes the scala.Option `exists` into `forall`.
 
-### Forall
+#### Forall
 
 name: Forall
 
 description: Changes the scala.Option `forall` into `exists`.
 
-### IsEmpty
+#### IsEmpty
 
 name: IsEmpty
 
 description: Changes the scala.Option `isEmpty` into `nonEmpty`.
 
-### NonEmpty
+#### NonEmpty
 
 name: NonEmpty
 
 description: Changes the scala.Option `nonEmpty` and `isDefined` into `isEmpty`.
 
-### Fold
+#### Fold
 
 name: Fold
 
@@ -381,7 +383,7 @@ example:
 + val value = 10
 ```
 
-### OrElse
+#### OrElse
 
 name: OrElse
 
@@ -403,7 +405,7 @@ example mutation 2:
 + val value = Some(0)
 ```
 
-### OrNull
+#### OrNull
 
 name: OrNull
 
@@ -417,7 +419,7 @@ example:
 + val value = null
 ```
 
-### Filter
+#### Filter
 
 name: Filter
 
@@ -439,7 +441,7 @@ example mutation 2:
 + val value = option
 ```
 
-### FilterNot
+#### FilterNot
 
 name: FilterNot
 
@@ -461,7 +463,7 @@ example mutation 2:
 + val value = option
 ```
 
-### Contains
+#### Contains
 
 name: Contains
 
