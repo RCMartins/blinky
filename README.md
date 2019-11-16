@@ -15,17 +15,17 @@ It is a type of White Box Testing which is mainly used for Unit Testing.
 We use **Blinky** to test itself and to improve the test code quality.
 
 Similar projects:
-* https://github.com/sugakandrey/scalamu
-* https://github.com/stryker-mutator/stryker4s
+* [scalamu](https://github.com/sugakandrey/scalamu)
+* [stryker4s](https://github.com/stryker-mutator/stryker4s)
 
-The main difference in this project is that the mutations are semantic.
-Meaning that when using a rule like `ScalaOptions.filter` we only change calls to
+The main difference in this project is that the mutations are semantic instead of just syntactic.
+Meaning that when using a rule like `ScalaOptions.filter` we only mutate calls to
 the method `filter` of objects of type `scala.Option`.
-In order to have this information about the types blinky 
-it needs the [semanticdb](https://scalameta.org/docs/semanticdb/guide.html)
-data for all the files that we want to mutate.
+In order to have this semantic information about the types **Blinky** 
+needs the [semanticdb](https://scalameta.org/docs/semanticdb/guide.html)
+data of all files that we want to mutate.
 
-## How to generate semanticdb files for your sbt project:
+# Generating semanticdb files for your sbt project
 Before sbt 1.3.0:
 ```scala
 libraryDependencies += "org.scalameta" % "semanticdb-scalac" % "4.2.3" cross CrossVersion.full
@@ -38,7 +38,7 @@ ThisBuild / semanticdbVersion := "4.1.9"
 ThisBuild / semanticdbIncludeInJar := false
 ```
 
-# How to run blinky
+# How to run Blinky
 
 First, install the [Coursier](https://get-coursier.io/docs/cli-overview) command-line interface.
 
@@ -55,7 +55,7 @@ options = {
 Next, launch **Blinky** (it will use .blinky.conf file by default)
 
 ```
-coursier launch com.github.rcmartins:blinky:0.2.0 --main blinky.cli.Cli
+coursier launch com.github.rcmartins:blinky-cli_2.12:0.2.0 --main blinky.cli.Cli
 ```
 
 Blinky cli will compile the project, generating the necessary semanticdb files
@@ -66,45 +66,45 @@ before applying the mutations to the code.
 Blinky reads configuration from a file `.blinky.conf`, usually in the root directly of your project.
 Configuration is written using [HOCON](https://github.com/lightbend/config) syntax.
 
-### projectPath (required)
+## projectPath (required)
 The path to the project 
 
-### filesToMutate (required)
+## filesToMutate (required)
 Files or directories (recursively visited) to apply mutations (used directly in scalafix --files= param)
 
-### testCommand (required)
+## testCommand (required)
 Command used by **Blinky** to test the code in each run.
 
 If using Bloop, **Blinky** will run: `bloop test <testCommand>`
 
 If using SBT, **Blinky** will run: `sbt <testCommand>`
 
-### options (optional)
+## options (optional)
 Advanced options to configure how **Blinky** will run tests.
 
-#### verbose
+### verbose
 Boolean flag to show additional information useful for debugging.
 
 Default: `false`
 
-#### dryRun
+### dryRun
 Will not run the tests, useful to check if everything is working without starting
 to actually run the long and compute intensive part of running the tests.
 
 Default: `false`
 
-#### compileCommand
+### compileCommand
 Command used by Blinky to do the first compile before starting to runs the tests.
 This is useful to calculate the time that the first test takes without counting compiling.
 
 Default: `compile`
 
-#### maxRunningTime
+### maxRunningTime
 Maximum time to run tests.
 
 Default: `60 minutes`
 
-#### mutationMinimum
+### mutationMinimum
 Minimum mutation score to fail (only useful if failOnMinimum is `true`).
 Value must be between 0 and 100.
 
@@ -113,15 +113,15 @@ E.g. If we test `200` mutations and `90` are killed by the tests the mutation sc
 
 Default: `25.0`
 
-#### failOnMinimum
+### failOnMinimum
 Exits with non-zero code if the mutation score is below `mutationMinimum` value.
 
 Default: `false`
 
-### conf (optional)
+## conf (optional)
 Configuration for applying the mutations.
 
-#### enabledMutators (optional)
+### enabledMutators (optional)
 List of mutators that will be enabled. Most mutators are in groups, the whole group can be enabled,
 or just single mutators.
 
@@ -136,7 +136,7 @@ This configuration will enable all mutators from `ArithmeticOperators` group and
 
 Default value: `[all]` 
 
-#### disaledMutators (optional)
+### disabledMutators (optional)
 List of mutators that will be disabled, can be used together with `enabledMutators`.
 
 e.g.
@@ -190,10 +190,12 @@ of the available mutators.
 # Available Mutators
 
 ## Literal Booleans
-#### name: LiteralBooleans
-#### description: change true into false and false into true.  
 
-#### example:
+name: LiteralBooleans
+
+description: change true into false and false into true.  
+
+example:
 
 ```diff
 - val bool = true
@@ -205,10 +207,12 @@ of the available mutators.
 ### group name: ArithmeticOperators
 
 ### Int - Plus into Minus
-#### name: IntPlusToMinus
-#### description: Changes the arithmetic operator `+` into `-` when operating on `int` types.
 
-#### example:
+name: IntPlusToMinus
+
+description: Changes the arithmetic operator `+` into `-` when operating on `int` types.
+
+example:
 
 ```diff
 - val value = list.size + 5
@@ -218,34 +222,46 @@ of the available mutators.
 (Note that it only applies to `int` types)
 
 ### Int - Minus into Plus
-#### name: IntMinusToPlus
-#### description: Changes the arithmetic operator `-` into `+` when operating on `int` types.
+
+name: IntMinusToPlus
+
+description: Changes the arithmetic operator `-` into `+` when operating on `int` types.
 
 ### Int - Multiply into Divide
-#### name: IntMulToDiv
-#### description: Changes the arithmetic operator `*` into `/` when operating on `int` types.
+
+name: IntMulToDiv
+
+description: Changes the arithmetic operator `*` into `/` when operating on `int` types.
 
 ### Int - Divide into Multiply
-#### name: IntDivToMul
-#### description: Changes the arithmetic operator `/` into `*` when operating on `int` types.
+
+name: IntDivToMul
+
+description: Changes the arithmetic operator `/` into `*` when operating on `int` types.
 
 ## Conditional Expressions
 
 ### group name: ConditionalExpressions
 
 ### Boolean - And into Or
-#### name: AndToOr
-#### description: Changes the conditional operator `&&` to `||` on `boolean` types.
+
+name: AndToOr
+
+description: Changes the conditional operator `&&` to `||` on `boolean` types.
 
 ### Boolean - Or into And
-#### name: OrToAnd
-#### description: Changes the conditional operator `||` to `&&` on `boolean` types.
+
+name: OrToAnd
+
+description: Changes the conditional operator `||` to `&&` on `boolean` types.
 
 ### Boolean - Remove negation
-#### name: RemoveUnaryNot
-#### description: Removes the `!` operator on `boolean` types.
 
-#### example:
+name: RemoveUnaryNot
+
+description: Removes the `!` operator on `boolean` types.
+
+example:
 
 ```diff
 - if (!value) 10 else 20
@@ -257,10 +273,12 @@ of the available mutators.
 ### group name: LiteralStrings
 
 ### String - Change empty string
-#### name: EmptyToMutated
-#### description: Changes empty strings `""` into `"mutated!"`.
 
-#### example:
+name: EmptyToMutated
+
+description: Changes empty strings `""` into `"mutated!"`.
+
+example:
 
 ```diff
 - val name = ""
@@ -268,17 +286,19 @@ of the available mutators.
 ```
 
 ### String - Change non-empty string
-#### name: NonEmptyToMutated
-#### description: Changes non-empty strings into two mutations. One with empty `""` and another with `"mutated!"`.
 
-#### example mutation 1:
+name: NonEmptyToMutated
+
+description: Changes non-empty strings into two mutations. One with empty `""` and another with `"mutated!"`.
+
+example mutation 1:
 
 ```diff
 - val name = "foobar"
 + val name = ""
 ```
 
-#### example mutation 2:
+example mutation 2:
 
 ```diff
 - val name = "foobar"
@@ -286,17 +306,19 @@ of the available mutators.
 ```
 
 ### String - Concat into mutated
-#### name: ConcatToMutated
-#### description: Changes the string concat operator `+` and both left and right expressions into two mutations. One with empty `""` and another with `"mutated!"`.
 
-#### example mutation 1:
+name: ConcatToMutated
+
+description: Changes the string concat operator `+` and both left and right expressions into two mutations. One with empty `""` and another with `"mutated!"`.
+
+example mutation 1:
 
 ```diff
 - val name = "foo" + "bar"
 + val name = ""
 ```
 
-#### example mutation 2:
+example mutation 2:
 
 ```diff
 - val name = "foo" + "bar"
@@ -309,10 +331,11 @@ of the available mutators.
 
 ### GetOrElse
 
-#### name: GetOrElse
-#### description: Changes the scala.Option `getOrElse` function call into the default value.
+name: GetOrElse
 
-#### example:
+description: Changes the scala.Option `getOrElse` function call into the default value.
+
+example:
 
 ```diff
   // option: Option[Int]
@@ -322,30 +345,35 @@ of the available mutators.
 
 ### Exists
 
-#### name: Exists
-#### description: Changes the scala.Option `exists` into `forall`.
+name: Exists
+
+description: Changes the scala.Option `exists` into `forall`.
 
 ### Forall
 
-#### name: Forall
-#### description: Changes the scala.Option `forall` into `exists`.
+name: Forall
+
+description: Changes the scala.Option `forall` into `exists`.
 
 ### IsEmpty
 
-#### name: IsEmpty
-#### description: Changes the scala.Option `isEmpty` into `nonEmpty`.
+name: IsEmpty
+
+description: Changes the scala.Option `isEmpty` into `nonEmpty`.
 
 ### NonEmpty
 
-#### name: NonEmpty
-#### description: Changes the scala.Option `nonEmpty` and `isDefined` into `isEmpty`.
+name: NonEmpty
+
+description: Changes the scala.Option `nonEmpty` and `isDefined` into `isEmpty`.
 
 ### Fold
 
-#### name: Fold
-#### description: Changes the scala.Option `fold` function call into the default value.
+name: Fold
 
-#### example:
+description: Changes the scala.Option `fold` function call into the default value.
+
+example:
 
 ```diff
   // option: Option[Int]
@@ -355,10 +383,11 @@ of the available mutators.
 
 ### OrElse
 
-#### name: OrElse
-#### description: Changes the scala.Option `orElse` function into two mutations. One with just the call expression (left side) and another with the orElse argument (right side).
+name: OrElse
 
-#### example mutation 1:
+description: Changes the scala.Option `orElse` function into two mutations. One with just the call expression (left side) and another with the orElse argument (right side).
+
+example mutation 1:
 
 ```diff
   // option: Option[Int]
@@ -366,7 +395,7 @@ of the available mutators.
 + val value = option.map(x => x * 3)
 ```
 
-#### example mutation 2:
+example mutation 2:
 
 ```diff
   // option: Option[Int]
@@ -376,10 +405,11 @@ of the available mutators.
 
 ### OrNull
 
-#### name: OrNull
-#### description: Changes the scala.Option `orNull` function into the value null.
+name: OrNull
 
-#### example:
+description: Changes the scala.Option `orNull` function into the value null.
+
+example:
 
 ```diff
   // option: Option[Int]
@@ -389,10 +419,11 @@ of the available mutators.
 
 ### Filter
 
-#### name: Filter
-#### description: Changes the scala.Option `filter` function into two mutations. One that calls `filterNot` and another that doesn't call anything (does not filter)
+name: Filter
 
-#### example mutation 1:
+description: Changes the scala.Option `filter` function into two mutations. One that calls `filterNot` and another that doesn't call anything (does not filter)
+
+example mutation 1:
 
 ```diff
   // option: Option[Int]
@@ -400,7 +431,7 @@ of the available mutators.
 + val value = option.filterNot(v => v > 2)
 ```
 
-#### example mutation 2:
+example mutation 2:
 
 ```diff
   // option: Option[Int]
@@ -410,11 +441,11 @@ of the available mutators.
 
 ### FilterNot
 
-#### name: FilterNot
-#### description: Changes the scala.Option `filterNot` function into two mutations. One that calls `filter` and another that doesn't call anything (does not filter)
+name: FilterNot
 
+description: Changes the scala.Option `filterNot` function into two mutations. One that calls `filter` and another that doesn't call anything (does not filter)
 
-#### example mutation 1:
+example mutation 1:
 
 ```diff
   // option: Option[Int]
@@ -422,7 +453,7 @@ of the available mutators.
 + val value = option.filter(v => v > 2)
 ```
 
-#### example mutation 2:
+example mutation 2:
 
 ```diff
   // option: Option[Int]
@@ -432,10 +463,11 @@ of the available mutators.
 
 ### Contains
 
-#### name: Contains
-#### description: Changes the scala.Option `contains` function into two mutations. One with `true` and another with `false`.
+name: Contains
 
-#### example mutation 1:
+description: Changes the scala.Option `contains` function into two mutations. One with `true` and another with `false`.
+
+example mutation 1:
 
 ```diff
   // option: Option[Int]
@@ -443,7 +475,7 @@ of the available mutators.
 + val value = true
 ```
 
-#### example mutation 2:
+example mutation 2:
 
 ```diff
   // option: Option[Int]
