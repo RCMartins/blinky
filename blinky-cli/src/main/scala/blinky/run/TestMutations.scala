@@ -87,7 +87,7 @@ object TestMutations {
                     s"Mutation score is below minimum [$scoreFormatted% < ${options.mutationMinimum}%]"
                   )
                 )
-                System.exit(1)
+                System.exit(-1)
               } else {
                 println(
                   green(

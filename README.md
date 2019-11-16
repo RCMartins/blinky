@@ -3,29 +3,27 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/9bc5c989d1464a6ca94da021ee43d8f6)](https://www.codacy.com/manual/RCMartins/blinky?utm_source=github.com&utm_medium=referral&utm_content=RCMartins/blinky&utm_campaign=Badge_Coverage)
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.rcmartins/blinky_2.12.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.github.rcmartins%22%20AND%20a:%22blinky_2.12%22)
 
-
-
 Mutation testing is a type of software testing where we mutate (change) certain expressions in the source code 
 and check if the test cases are able to find the errors.
 It is a type of White Box Testing which is mainly used for Unit Testing.
 
-This tool has 3 main steps:
-* Copy the git project to a temporary folder (where the source code can be safelly modified)
-* Run the scalafix tool with the *Blinky* rule (on the copy project)
+**Blinky** has 3 main steps:
+* Copy the git project to a temporary folder (where the source code can be safely modified)
+* Run the scalafix tool with the **Blinky** rule (on the copy project)
 * Run the tests on mutated code (usually with only 1 mutation active each time)
 
-We use mutation testing to test the tool itself and to improve the code quality.
+We use **Blinky** to test itself and to improve the test code quality.
 
 Similar projects:
 * https://github.com/sugakandrey/scalamu
 * https://github.com/stryker-mutator/stryker4s
 
 The main difference in this project is that the mutations are semantic.
-Meaning that when using a rule like *ScalaOptions.filter* we only change calls to
-the method *filter* of objects of type *scala.Option*.
+Meaning that when using a rule like `ScalaOptions.filter` we only change calls to
+the method `filter` of objects of type `scala.Option`.
 In order to have this information about the types blinky 
 it needs the [semanticdb](https://scalameta.org/docs/semanticdb/guide.html)
-data for all the files that we want to add mutations to.
+data for all the files that we want to mutate.
 
 ## How to generate semanticdb files for your sbt project:
 Before sbt 1.3.0:
@@ -40,7 +38,148 @@ ThisBuild / semanticdbVersion := "4.1.9"
 ThisBuild / semanticdbIncludeInJar := false
 ```
 
-Blinky-cli will compile the project, so  
+# How to run blinky
+
+First, install the [Coursier](https://get-coursier.io/docs/cli-overview) command-line interface.
+
+Next, write `.blinky.conf` config file with the path of the project you want to run blinky, e.g
+```
+projectPath = "/users/Ricardo/project"
+filesToMutate = "src"
+testCommand = "tests"
+options = {
+  maxRunningTime = 10 minutes
+}
+```
+
+Next, launch **Blinky** (it will use .blinky.conf file by default)
+
+```
+coursier launch com.github.rcmartins:blinky:0.2.0 --main blinky.cli.Cli
+```
+
+Blinky cli will compile the project, generating the necessary semanticdb files
+before applying the mutations to the code.
+
+# Configuration
+
+Blinky reads configuration from a file `.blinky.conf`, usually in the root directly of your project.
+Configuration is written using [HOCON](https://github.com/lightbend/config) syntax.
+
+### projectPath (required)
+The path to the project 
+
+### filesToMutate (required)
+Files or directories (recursively visited) to apply mutations (used directly in scalafix --files= param)
+
+### testCommand (required)
+Command used by **Blinky** to test the code in each run.
+
+If using Bloop, **Blinky** will run: `bloop test <testCommand>`
+
+If using SBT, **Blinky** will run: `sbt <testCommand>`
+
+### options (optional)
+Advanced options to configure how **Blinky** will run tests.
+
+#### verbose
+Boolean flag to show additional information useful for debugging.
+
+Default: `false`
+
+#### dryRun
+Will not run the tests, useful to check if everything is working without starting
+to actually run the long and compute intensive part of running the tests.
+
+Default: `false`
+
+#### compileCommand
+Command used by Blinky to do the first compile before starting to runs the tests.
+This is useful to calculate the time that the first test takes without counting compiling.
+
+Default: `compile`
+
+#### maxRunningTime
+Maximum time to run tests.
+
+Default: `60 minutes`
+
+#### mutationMinimum
+Minimum mutation score to fail (only useful if failOnMinimum is `true`).
+Value must be between 0 and 100.
+
+The mutation score is `mutations killed / total mutations tested`.
+E.g. If we test `200` mutations and `90` are killed by the tests the mutation score will be `45.0`.
+
+Default: `25.0`
+
+#### failOnMinimum
+Exits with non-zero code if the mutation score is below `mutationMinimum` value.
+
+Default: `false`
+
+### conf (optional)
+Configuration for applying the mutations.
+
+#### enabledMutators (optional)
+List of mutators that will be enabled. Most mutators are in groups, the whole group can be enabled,
+or just single mutators.
+
+e.g.
+```
+conf {
+  enabledMutators = [ArithmeticOperators, LiteralStrings.EmptyToMutated]
+}
+``` 
+This configuration will enable all mutators from `ArithmeticOperators` group and also the mutator
+`EmptyToMutated` from the group `LiteralStrings`.
+
+Default value: `[all]` 
+
+#### disaledMutators (optional)
+List of mutators that will be disabled, can be used together with `enabledMutators`.
+
+e.g.
+```
+conf {
+  disabledMutators = [
+    LiteralBooleans
+    ArithmeticOperators.IntMulToDiv
+    ScalaOptions.OrElse
+  ]
+}
+```
+This configuration will allow all mutators with the exception 
+of `LiteralBooleans`, `IntMulToDiv` and `OrElse`.
+ 
+Default value: `[]`
+
+Example of a more complete .blinky.conf file:
+```
+projectPath = "."
+filesToMutate = "blinky-core/src"
+testCommand = "tests"
+options = {
+  verbose = false
+  dryRun = false
+  compileCommand = compile
+
+  maxRunningTime = 40 minutes
+
+  failOnMinimum = true
+  mutationMinimum = 50
+}
+conf = {
+  enabledMutators = [
+    ArithmeticOperators
+    LiteralStrings.EmptyToMutated
+    ScalaOptions
+  ]
+  disabledMutators = [
+    { ScalaOptions = [GetOrElse, Contains] }
+  ]
+}
+```
 
 # Mutators
 

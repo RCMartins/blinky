@@ -10,7 +10,7 @@ object Run {
 
   val path: Path = pwd
 
-  def run(confFilePath: Path = pwd / ".mutations.conf"): Unit = {
+  def run(confFilePath: Path = pwd / ".blinky.conf"): Unit = {
     run(MutationsConfig.read(read(confFilePath)))
   }
 
