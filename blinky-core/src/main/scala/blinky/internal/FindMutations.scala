@@ -6,7 +6,6 @@ import scalafix.v1.SemanticDocument
 import scala.meta._
 
 class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocument) {
-
   def findAllMutations(
       term: Term
   ): (Seq[Term], Boolean) = {
@@ -46,7 +45,6 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
     termMutations(term, mainTermsOnly = true).flatMap { case (_, mutations) => mutations.mutated }
 
   def termMutations(mainTerm: Term, mainTermsOnly: Boolean): Seq[(Term, MutatedTerms)] = {
-
     def selectSmallerMutation(
         term: Term,
         subMutationsWithMain: => Seq[Term],

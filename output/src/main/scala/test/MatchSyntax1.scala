@@ -1,7 +1,6 @@
 package test
 
 object MatchSyntax1 {
-
   val value1: Option[Int] = Some(20)
   val value2: Option[Int] = Some(30)
   val value3 =
@@ -31,5 +30,4 @@ object MatchSyntax1 {
   case Some(v) =>
     v
 }) + 10
-
 }

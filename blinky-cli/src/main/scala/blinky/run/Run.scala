@@ -7,7 +7,6 @@ import metaconfig.{Conf, ConfEncoder, generic}
 import scala.util.Try
 
 object Run {
-
   val path: Path = pwd
 
   def run(confFilePath: Path = pwd / ".blinky.conf"): Unit = {
@@ -15,7 +14,7 @@ object Run {
   }
 
   def run(config: MutationsConfig): Unit = {
-    val ruleName = "blinky"
+    val ruleName = "Blinky"
     val projectPath = Try(Path(config.projectPath)).getOrElse(pwd / RelPath(config.projectPath))
 
     val mutatedProjectPath = {
@@ -52,9 +51,11 @@ object Run {
       cloneProjectPath
     }
 
-    implicit val mutatorEncoder: ConfEncoder[Mutator] = (value: Mutator) => Conf.Str(value.name)
+    implicit val mutatorEncoder: ConfEncoder[Mutator] =
+      (value: Mutator) => Conf.Str(value.name)
 
-    implicit val mutatorsEncoder: ConfEncoder[Mutators] = generic.deriveEncoder[Mutators]
+    implicit val mutatorsEncoder: ConfEncoder[Mutators] =
+      (value: Mutators) => ConfEncoder[List[Mutator]].write(value.mutations)
 
     val blinkyConfigEncoder: ConfEncoder[BlinkyConfig] = generic.deriveEncoder[BlinkyConfig]
 
@@ -99,5 +100,4 @@ object Run {
 
     TestMutations.run(mutatedProjectPath, config.testCommand, config.options)
   }
-
 }

@@ -1,7 +1,6 @@
 package test
 
 object ScalaOptions {
-
   val op: Option[String] = Some("string")
   val op1 = if (???) "" else op.getOrElse("")
   val op2 = if (???) op.forall(str => str.startsWith("str")) else op.exists(str => str.startsWith("str"))
@@ -17,5 +16,4 @@ object ScalaOptions {
   val op12 = if (???) op else if (???) op.filterNot(str => str.length < 3) else op.filter(str => str.length < 3)
   val op13 = if (???) op else if (???) op.filter(str => str.length >= 5) else op.filterNot(str => str.length >= 5)
   val op14 = if (???) true else if (???) false else op.contains("test")
-
 }

@@ -6,26 +6,25 @@ import scalafix.v1._
 import scala.meta._
 
 trait MutatorGroup {
-
-  def name: String
+  def groupName: String
 
   def getSubMutators: List[Mutator]
 
+  abstract class SimpleMutator(simpleName: String) extends Mutator {
+    override val name = s"$groupName.$simpleName"
+  }
 }
 
 trait Mutator {
-
   def name: String
 
   def getMutator(implicit doc: SemanticDocument): MutationResult
 
   override def toString: String = name
-
 }
 
 object Mutator {
-
-  abstract class SimpleMutator(override val name: String) extends Mutator
+  abstract class NonGroupedMutator(override val name: String) extends Mutator
 
   type MutationResult = PartialFunction[Term, (Iterable[Term], Boolean)]
 
@@ -42,7 +41,7 @@ object Mutator {
       LiteralBooleans.name -> LiteralBooleans
     ) ++
       allGroups.flatMap(
-        group => group.getSubMutators.map(mutator => (s"${group.name}.${mutator.name}", mutator))
+        group => group.getSubMutators.map(mutator => (mutator.name, mutator))
       )
 
   def findMutators(str: String): List[Mutator] = {
@@ -52,7 +51,7 @@ object Mutator {
     }.toList
   }
 
-  case object LiteralBooleans extends SimpleMutator("LiteralBooleans") {
+  case object LiteralBooleans extends NonGroupedMutator("LiteralBooleans") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case Lit.Boolean(value) =>
         default(Lit.Boolean(!value))
@@ -60,8 +59,7 @@ object Mutator {
   }
 
   object ArithmeticOperators extends MutatorGroup {
-
-    override val name: String = "ArithmeticOperators"
+    override val groupName: String = "ArithmeticOperators"
 
     override val getSubMutators: List[Mutator] =
       List(IntPlusToMinus, IntMinusToPlus, IntMulToDiv, IntDivToMul)
@@ -97,12 +95,10 @@ object Mutator {
           default(Term.ApplyInfix(left, Term.Name("*"), targs, right))
       }
     }
-
   }
 
   object ConditionalExpressions extends MutatorGroup {
-
-    override val name: String = "ConditionalExpressions"
+    override val groupName: String = "ConditionalExpressions"
 
     override val getSubMutators: List[Mutator] =
       List(AndToOr, OrToAnd, RemoveUnaryNot)
@@ -130,12 +126,10 @@ object Mutator {
           default(arg)
       }
     }
-
   }
 
   object LiteralStrings extends MutatorGroup {
-
-    override val name: String = "LiteralStrings"
+    override val groupName: String = "LiteralStrings"
 
     override val getSubMutators: List[Mutator] =
       List(EmptyToMutated, NonEmptyToMutated, ConcatToMutated)
@@ -162,12 +156,10 @@ object Mutator {
           fullReplace(Lit.String("mutated!"), Lit.String(""))
       }
     }
-
   }
 
   object ScalaOptions extends MutatorGroup {
-
-    override val name: String = "ScalaOptions"
+    override val groupName: String = "ScalaOptions"
 
     override val getSubMutators: List[Mutator] =
       List(
@@ -272,11 +264,9 @@ object Mutator {
           default(Lit.Boolean(true), Lit.Boolean(false))
       }
     }
-
   }
 
   def default(terms: Term*): (List[Term], Boolean) = (terms.toList, false)
 
   def fullReplace(terms: Term*): (List[Term], Boolean) = (terms.toList, true)
-
 }

@@ -7,7 +7,6 @@ import scalafix.testkit.SemanticRuleSuite
 import scala.meta.io.AbsolutePath
 
 class RuleSuite extends SemanticRuleSuite() {
-
   val outputFiles: Map[AbsolutePath, String] = testsToRun.flatMap { test =>
     test.path.resolveOutput(props) match {
       case Right(path) =>

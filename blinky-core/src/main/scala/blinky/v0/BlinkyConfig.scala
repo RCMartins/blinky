@@ -14,10 +14,8 @@ case class BlinkyConfig(
     @Description("The mutator types to disable from the enabledMutators list, defaults to empty")
     disabledMutators: Mutators = Mutators(Nil)
 ) {
-
   val activeMutators: List[Mutator] =
     (enabledMutators.mutations.toSet -- disabledMutators.mutations.toSet).toList
-
 }
 
 object BlinkyConfig {

@@ -10,7 +10,7 @@ case class MutationsConfig(
     sourceCodePath: String,
     filesToMutate: String,
     conf: BlinkyConfig,
-    blinkyVersion: String = "0.1.0",
+    blinkyVersion: String = "0.2.0",
     testCommand: String = "test",
     options: OptionsConfig = OptionsConfig()
 )

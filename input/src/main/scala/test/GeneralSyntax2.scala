@@ -5,7 +5,6 @@ Blinky.enabledMutators = [ArithmeticOperators, LiteralBooleans]
 package test
 
 object GeneralSyntax2 {
-
   def str1: String = (1 + 2) + ""
 
   def str2: String = (1 + 2).toString
@@ -19,5 +18,4 @@ object GeneralSyntax2 {
   }
 
   val if1: Int = if (true) 1 + 1 else 6 / 2
-
 }

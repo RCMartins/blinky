@@ -6,7 +6,6 @@ import play.api.libs.json.Json
 import scala.util.{Failure, Random, Success, Try}
 
 object TestMutations {
-
   def main(
       projectPath: Path,
       testCommand: String = "test"
@@ -147,7 +146,6 @@ object TestMutations {
     }
 
     def runInBloop(mutantId: Int): Try[CommandResult] = {
-
       if (options.verbose)
         println(
           s"""bash -c "bloop test \"$testCommand\"""""
@@ -175,9 +173,7 @@ object TestMutations {
         case MinusRegex(line) => red(line)
         case PlusRegex(line)  => green(line)
         case line             => line.stripPrefix(projectPath)
-
       }
       .mkString("\n")
   }
-
 }
