@@ -1,5 +1,4 @@
 import ammonite.ops._
-import $file.run
 
 val path = pwd
 
@@ -12,5 +11,14 @@ def main(): Unit = {
   val conf = read(path / "travis" / ".blinky.conf")
   val tmpConf = tmp.dir() / ".blinky.conf"
   write(tmpConf, conf + "\nblinkyVersion = \"" + versionNumber + "\"")
-  run.main(tmpConf)
+
+  %(
+    "./coursier",
+    'launch,
+    s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
+    "--main",
+    "blinky.cli.Cli",
+    "--",
+    tmpConf
+  )(path)
 }
