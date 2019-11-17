@@ -13,7 +13,7 @@ def main(): Unit = {
   write(tmpConf, conf + "\nblinkyVersion = \"" + versionNumber + "\"")
 
   %(
-    'coursier,
+    "./coursier",
     'launch,
     s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
     "--main",
