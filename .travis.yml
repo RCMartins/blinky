@@ -28,7 +28,7 @@ jobs:
     - name: mutation testing
       if: type = pull_request
       script:
-        - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.8.1./2.12-1.8.1) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
+        - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/1.8.1/2.12-1.8.1) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
         - curl -L https://github.com/scalacenter/bloop/releases/download/v1.3.2/install.py | python
         - export PATH="$PATH:$HOME/.bloop"
         - systemctl --user enable $HOME/.bloop/systemd/bloop.service
