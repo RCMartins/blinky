@@ -19,6 +19,6 @@ def main(): Unit = {
     "--main",
     "blinky.cli.Cli",
     "--",
-    "travis/.blinky.conf"
+    tmpConf
   )(path)
 }
