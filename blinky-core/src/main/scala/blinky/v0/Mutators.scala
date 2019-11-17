@@ -6,11 +6,9 @@ import metaconfig.{Conf, ConfDecoder, ConfError, Configured}
 case class Mutators(mutations: List[Mutator])
 
 object Mutators {
-
   val all: Mutators = Mutators(Mutator.all.values.toList)
 
   implicit val readerMutations: ConfDecoder[Mutators] = {
-
     def readerMutationsAux(path: String): ConfDecoder[Mutators] = {
       ConfDecoder.instanceF[Mutators] {
         case Conf.Str(mutatorName) =>
@@ -38,5 +36,4 @@ object Mutators {
 
     readerMutationsAux("")
   }
-
 }

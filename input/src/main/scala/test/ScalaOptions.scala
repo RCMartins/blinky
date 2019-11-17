@@ -5,7 +5,6 @@ Blinky.enabledMutators = [ScalaOptions]
 package test
 
 object ScalaOptions {
-
   val op: Option[String] = Some("string")
   val op1 = op.getOrElse("")
   val op2 = op.exists(str => str.startsWith("str"))
@@ -21,5 +20,4 @@ object ScalaOptions {
   val op12 = op.filter(str => str.length < 3)
   val op13 = op.filterNot(str => str.length >= 5)
   val op14 = op.contains("test")
-
 }

@@ -5,7 +5,6 @@ Blinky.enabledMutators = [LiteralBooleans]
 package test
 
 object GeneralSyntax1 {
-
   case class Foo(bool: Boolean = true)
 
   def validate(bool: Boolean = true): Boolean = !bool
@@ -27,5 +26,4 @@ object GeneralSyntax1 {
   val list2 = list.map(_ => true)
 
   val callWithNamedParams = validate(bool = false)
-
 }

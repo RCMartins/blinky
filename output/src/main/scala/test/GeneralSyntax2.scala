@@ -1,7 +1,6 @@
 package test
 
 object GeneralSyntax2 {
-
   def str1: String = (if (???) 1 - 2 else 1 + 2) + ""
 
   def str2: String = (if (???) 1 - 2 else 1 + 2).toString
@@ -15,5 +14,4 @@ object GeneralSyntax2 {
   }
 
   val if1: Int = if (if (???) false else true) if (???) 1 - 1 else 1 + 1 else if (???) 6 * 2 else 6 / 2
-
 }

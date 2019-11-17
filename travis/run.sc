@@ -8,7 +8,7 @@ import scala.util.Try
 val path = pwd
 
 @main
-def main(confFilePath: Path = pwd / ".mutations.conf"): Unit = {
+def main(confFilePath: Path = pwd / ".blinky.conf"): Unit = {
   run(MutationsConfig.read(read(confFilePath)))
 }
 

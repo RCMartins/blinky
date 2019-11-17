@@ -1,7 +1,6 @@
 package test
 
 object GeneralSyntax3 {
-
   class Foo(value: Boolean)
 
   val foo1 = new Foo(if (???) false else true)
@@ -25,5 +24,4 @@ object GeneralSyntax3 {
   def fun2(args: Boolean*): Boolean = args.forall(identity)
 
   val call3 = fun2(Seq(if (???) false else true, if (???) true else false): _*)
-
 }

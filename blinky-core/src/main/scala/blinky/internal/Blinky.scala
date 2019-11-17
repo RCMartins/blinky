@@ -12,7 +12,6 @@ import scala.meta._
 import scala.meta.inputs.Input.VirtualFile
 
 class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
-
   private val mutationId: AtomicInteger = new AtomicInteger(1)
   private val mutationsPathOption: Option[File] =
     if (config.mutatorsPath.nonEmpty) Some(new File(config.mutatorsPath))
@@ -29,7 +28,6 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       .map(new Blinky(_))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
-
     val findMutations: FindMutations = new FindMutations(config.activeMutators, doc)
 
     val fileName =
@@ -130,5 +128,4 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       }
     }
   }
-
 }

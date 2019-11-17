@@ -1,7 +1,6 @@
 package test
 
 object GeneralSyntax1 {
-
   case class Foo(bool: Boolean = if (???) false else true)
 
   def validate(bool: Boolean = if (???) false else true): Boolean = !bool
@@ -23,5 +22,4 @@ object GeneralSyntax1 {
   val list2 = list.map(_ => if (???) false else true)
 
   val callWithNamedParams = validate(bool = if (???) true else false)
-
 }

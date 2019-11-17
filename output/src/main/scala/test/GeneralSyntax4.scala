@@ -1,7 +1,6 @@
 package test
 
 object GeneralSyntax4 {
-
   case class Foo(value1: Int, value2: Int)(value3: Int, value4: Int)
 
   val foo1 = if (???) true ///
@@ -24,5 +23,4 @@ object GeneralSyntax4 {
   val applyType2 = if (???) Some(3 + 4).asInstanceOf[Option[Int]].isEmpty ///
               else if (???) Some(3 - 4).asInstanceOf[Option[Int]].nonEmpty ///
                        else Some(3 + 4).asInstanceOf[Option[Int]].nonEmpty
-
 }
