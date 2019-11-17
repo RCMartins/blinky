@@ -17,6 +17,8 @@ def main(): Unit = {
     'launch,
     s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
     "--main",
-    "blinky.cli.Cli"
+    "blinky.cli.Cli",
+    "--",
+    "travis/.blinky.conf"
   )(path)
 }
