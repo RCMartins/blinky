@@ -1,12 +1,14 @@
 package blinky.cli
 
+import ammonite.ops._
 import blinky.run.Run
-import os.Path
+
+import scala.util.Try
 
 object Cli {
   def main(args: Array[String]): Unit = {
-    args match {
-      case confPath +: _ => Run.run(Path(confPath))
+    args.toSeq match {
+      case confPath +: _ => Run.run(Try(Path(confPath)).getOrElse(pwd / RelPath(confPath)))
       case _             => Run.run()
     }
   }
