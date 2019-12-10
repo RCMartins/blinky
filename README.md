@@ -28,15 +28,15 @@ needs the [semanticdb](https://scalameta.org/docs/semanticdb/guide.html)
 data of all files that we want to mutate.
 
 ## Generating semanticdb files for your sbt project
-Before sbt 1.3.0:
+Before sbt 1.3.4:
 ```scala
-libraryDependencies += "org.scalameta" % "semanticdb-scalac" % "4.2.3" cross CrossVersion.full
+libraryDependencies += "org.scalameta" % "semanticdb-scalac" % "4.3.0" cross CrossVersion.full
 scalacOptions += "-Yrangepos"
 ```
-After sbt 1.3.0:
+After sbt 1.3.4:
 ```scala
 ThisBuild / semanticdbEnabled := true
-ThisBuild / semanticdbVersion := "4.1.9"
+ThisBuild / semanticdbVersion := "4.3.0"
 ThisBuild / semanticdbIncludeInJar := false
 ```
 
