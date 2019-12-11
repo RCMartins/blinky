@@ -33,7 +33,8 @@ object Mutator {
       ArithmeticOperators,
       ConditionalExpressions,
       LiteralStrings,
-      ScalaOptions
+      ScalaOptions,
+      ScalaTry
     )
 
   val all: Map[String, Mutator] =
@@ -178,9 +179,9 @@ object Mutator {
 
     object GetOrElse extends SimpleMutator("GetOrElse") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-        case getOrElse @ Term.Apply(Term.Select(_, Term.Name("getOrElse")), List(arg))
+        case getOrElse @ Term.Apply(Term.Select(termName, Term.Name("getOrElse")), List(arg))
             if SymbolMatcher.exact("scala/Option#getOrElse().").matches(getOrElse.symbol) =>
-          default(arg)
+          default(Term.Select(termName, Term.Name("get")), arg)
       }
     }
 
@@ -262,6 +263,32 @@ object Mutator {
         case contains @ Term.Apply(Term.Select(_, Term.Name("contains")), _)
             if SymbolMatcher.exact("scala/Option#contains().").matches(contains.symbol) =>
           default(Lit.Boolean(true), Lit.Boolean(false))
+      }
+    }
+  }
+
+  object ScalaTry extends MutatorGroup {
+    override val groupName: String = "ScalaTry"
+
+    override val getSubMutators: List[Mutator] =
+      List(
+        GetOrElse,
+        OrElse
+      )
+
+    object GetOrElse extends SimpleMutator("GetOrElse") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case getOrElse @ Term.Apply(Term.Select(termName, Term.Name("getOrElse")), List(arg))
+            if SymbolMatcher.exact("scala/util/Try#getOrElse().").matches(getOrElse.symbol) =>
+          default(Term.Select(termName, Term.Name("get")), arg)
+      }
+    }
+
+    object OrElse extends SimpleMutator("OrElse") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case orElse @ Term.Apply(Term.Select(termName, Term.Name("orElse")), List(arg))
+            if SymbolMatcher.exact("scala/util/Try#orElse().").matches(orElse.symbol) =>
+          default(termName, arg)
       }
     }
   }

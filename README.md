@@ -28,15 +28,15 @@ needs the [semanticdb](https://scalameta.org/docs/semanticdb/guide.html)
 data of all files that we want to mutate.
 
 ## Generating semanticdb files for your sbt project
-Before sbt 1.3.0:
+Before sbt 1.3.4:
 ```scala
-libraryDependencies += "org.scalameta" % "semanticdb-scalac" % "4.2.3" cross CrossVersion.full
+libraryDependencies += "org.scalameta" % "semanticdb-scalac" % "4.3.0" cross CrossVersion.full
 scalacOptions += "-Yrangepos"
 ```
-After sbt 1.3.0:
+After sbt 1.3.4:
 ```scala
 ThisBuild / semanticdbEnabled := true
-ThisBuild / semanticdbVersion := "4.1.9"
+ThisBuild / semanticdbVersion := "4.3.0"
 ThisBuild / semanticdbIncludeInJar := false
 ```
 
@@ -335,9 +335,18 @@ group name: ScalaOptions
 
 name: GetOrElse
 
-description: Changes the scala.Option `getOrElse` function call into the default value.
+description: Changes the scala.Option `getOrElse` function into two mutations. 
+One with the `getOrElse` function replaced by `get` and another with just the default value.
 
-example:
+example mutation 1: (is the 'get' part tested?)
+
+```diff
+  // option: Option[Int]
+- val value = option.getOrElse(10)
++ val value = option.get
+```
+
+example mutation 2: (is the 'orElse' part tested?)
 
 ```diff
   // option: Option[Int]
@@ -387,7 +396,8 @@ example:
 
 name: OrElse
 
-description: Changes the scala.Option `orElse` function into two mutations. One with just the call expression (left side) and another with the orElse argument (right side).
+description: Changes the scala.Option `orElse` function into two mutations.
+One with just the call expression (left side) and another with the orElse argument (right side).
 
 example mutation 1:
 
@@ -483,4 +493,56 @@ example mutation 2:
   // option: Option[Int]
 - val value = option.contains(10)
 + val value = false
+```
+
+### Scala Try
+
+classpath: scala.util.Try
+
+group name: ScalaTry
+
+#### GetOrElse
+
+name: GetOrElse
+
+description: Changes the scala.util.Try `getOrElse` function into two mutations. 
+One with the `getOrElse` function replaced by `get` and another with just the default value.
+
+example mutation 1: (is the 'get' part tested?)
+
+```diff
+  // tryValue: Try[Int]
+- val value = tryValue.getOrElse(10)
++ val value = tryValue.get
+```
+
+example mutation 2: (is the 'orElse' part tested?)
+
+```diff
+  // tryValue: Try[Int]
+- val value = tryValue.getOrElse(10)
++ val value = 10
+```
+
+#### OrElse
+
+name: OrElse
+
+description: Changes the scala.util.Try `orElse` function into two mutations.
+One with just the call expression (left side) and another with the orElse argument (right side).
+
+example mutation 1:
+
+```diff
+  // tryValue: Try[Int]
+- val value = tryValue.orElse(Try(0))
++ val value = tryValue
+```
+
+example mutation 2:
+
+```diff
+  // tryValue: Try[Int]
+- val value = tryValue.orElse(Try(0))
++ val value = Try(0)
 ```
