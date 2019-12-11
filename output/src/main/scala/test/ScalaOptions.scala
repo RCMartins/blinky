@@ -2,7 +2,7 @@ package test
 
 object ScalaOptions {
   val op: Option[String] = Some("string")
-  val op1 = if (???) "" else op.getOrElse("")
+  val op1 = if (???) op.get else if (???) "" else op.getOrElse("")
   val op2 = if (???) op.forall(str => str.startsWith("str")) else op.exists(str => str.startsWith("str"))
   val op3 = if (???) op.exists(str => str.contains("ing")) else op.forall(str => str.contains("ing"))
   val op4 = op.map(str => str + "!")
