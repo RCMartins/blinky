@@ -33,7 +33,7 @@ lazy val core =
     .settings(
       moduleName := "blinky",
       libraryDependencies += "ch.epfl.scala"     %% "scalafix-core" % V.scalafixVersion,
-      libraryDependencies += "com.typesafe.play" %% "play-json"     % "2.7.3",
+      libraryDependencies += "com.typesafe.play" %% "play-json"     % "2.7.4",
       coverageMinimum := 81,
       coverageFailOnMinimum := true
     )
