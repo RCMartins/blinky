@@ -1,4 +1,4 @@
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix"        % "0.9.7")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix"        % "0.9.11")
 addSbtPlugin("com.geirsson"  % "sbt-ci-release"      % "1.4.31")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt"        % "2.0.6")
 addSbtPlugin("org.scoverage" % "sbt-scoverage"       % "1.6.0")
