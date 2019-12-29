@@ -65,7 +65,7 @@ lazy val cli =
     .in(file("blinky-cli"))
     .settings(
       moduleName := "blinky-cli",
-      libraryDependencies += "com.lihaoyi"  %% "ammonite-ops"               % "1.7.4",
+      libraryDependencies += "com.lihaoyi"  %% "ammonite-ops"               % "1.9.9",
       libraryDependencies += "com.geirsson" %% "metaconfig-core"            % "0.8.1",
       libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "0.8.1"
     )
