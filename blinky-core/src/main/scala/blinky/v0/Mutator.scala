@@ -41,9 +41,7 @@ object Mutator {
     Map(
       LiteralBooleans.name -> LiteralBooleans
     ) ++
-      allGroups.flatMap(
-        group => group.getSubMutators.map(mutator => (mutator.name, mutator))
-      )
+      allGroups.flatMap(group => group.getSubMutators.map(mutator => (mutator.name, mutator)))
 
   def findMutators(str: String): List[Mutator] = {
     all.collect {
