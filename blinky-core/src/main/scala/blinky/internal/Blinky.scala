@@ -37,22 +37,22 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       }
 
     def createPatch(
-        mutationSeq: Seq[Mutant],
+        mutantSeq: Seq[Mutant],
         needsParens: Boolean
     ): Option[(Patch, Seq[Mutant])] = {
-      mutationSeq match {
+      mutantSeq match {
         case Mutant(_, _, original, _, _) +: _ =>
           val (_, mutatedStr) =
-            mutationSeq.map(mutation => (mutation.id, mutation.mutated)).foldRight((0, original)) {
-              case ((id, mutated), (_, originalTerm)) =>
-                val mutationName = Lit.String(s"SCALA_MUTATION_$id")
+            mutantSeq.map(mutant => (mutant.id, mutant.mutated)).foldRight((0, original)) {
+              case ((id, mutatedTerm), (_, originalTerm)) =>
+                val mutantId = Lit.String(s"SCALA_MUTATION_$id")
                 val result =
-                  q"""if (_root_.scala.sys.env.contains($mutationName)) ($mutated) else ($originalTerm)"""
+                  q"""if (_root_.scala.sys.env.contains($mutantId)) ($mutatedTerm) else ($originalTerm)"""
                 (0, result)
             }
 
           val finalSyntax = if (needsParens) "(" + mutatedStr.syntax + ")" else mutatedStr.syntax
-          Some(Patch.replaceTree(original, finalSyntax), mutationSeq)
+          Some(Patch.replaceTree(original, finalSyntax), mutantSeq)
         case _ =>
           None
       }
@@ -62,10 +62,12 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       findMutations
         .topTreeMutations(doc.tree)
         .flatMap {
-          case (term, MutatedTerms(mutationsFound, needsParens)) =>
-            val mutationSeq =
-              mutationsFound.map(mutated => createMutant(term, mutated, fileName))
-            createPatch(mutationSeq, needsParens = needsParens)
+          case (original, MutatedTerms(mutationsFound, needsParens)) =>
+            val mutantSeq =
+              mutationsFound
+                .filterNot(_.syntax == original.syntax)
+                .map(mutated => createMutant(original, mutated, fileName))
+            createPatch(mutantSeq, needsParens = needsParens)
         }
         .unzip
 
