@@ -30,7 +30,7 @@ data of all files that we want to mutate.
 ## Generating semanticdb files for your sbt project
 Before sbt 1.3.4:
 ```scala
-libraryDependencies += "org.scalameta" % "semanticdb-scalac" % "4.3.0" cross CrossVersion.full
+libraryDependencies += "org.scalameta" % "semanticdb-scalac" % "4.3.7" cross CrossVersion.full
 scalacOptions += "-Yrangepos"
 ```
 After sbt 1.3.4:
