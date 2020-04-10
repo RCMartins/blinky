@@ -1,6 +1,6 @@
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix"        % "0.9.11")
 addSbtPlugin("com.geirsson"  % "sbt-ci-release"      % "1.5.0")
-addSbtPlugin("org.scalameta" % "sbt-scalafmt"        % "2.3.0")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt"        % "2.3.3")
 addSbtPlugin("org.scoverage" % "sbt-scoverage"       % "1.6.1")
 addSbtPlugin("com.codacy"    % "sbt-codacy-coverage" % "3.0.3")
 addSbtPlugin("ch.epfl.scala" % "sbt-bloop"           % "1.3.4")
