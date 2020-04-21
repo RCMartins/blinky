@@ -4,6 +4,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9bc5c989d1464a6ca94da021ee43d8f6)](https://www.codacy.com/manual/RCMartins/blinky?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RCMartins/blinky&amp;utm_campaign=Badge_Grade)
 [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/9bc5c989d1464a6ca94da021ee43d8f6)](https://www.codacy.com/manual/RCMartins/blinky?utm_source=github.com&utm_medium=referral&utm_content=RCMartins/blinky&utm_campaign=Badge_Coverage)
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.rcmartins/blinky_2.12.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.github.rcmartins%22%20AND%20a:%22blinky_2.12%22)
+[![Scala Steward badge](https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org)
 
 Mutation testing is a type of software testing where we mutate (change) certain expressions in the source code 
 and check if the test cases are able to find the errors.
