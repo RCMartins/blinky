@@ -40,8 +40,8 @@ jobs:
         - systemctl --user start bloop
         - amm travis/runCurrentVersion.sc "travis/.blinky.conf"
 
-    - name: integration
     - stage: release
+    - name: integration
       if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
       script:
         - sbt ci-release
