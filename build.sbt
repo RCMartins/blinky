@@ -57,7 +57,7 @@ lazy val tests = project
     scalafixTestkitInputClasspath :=
       fullClasspath.in(input, Compile).value
   )
-  .dependsOn(core)
+  .dependsOn(core, cli)
   .enablePlugins(ScalafixTestkitPlugin)
 
 lazy val cli =
@@ -65,9 +65,10 @@ lazy val cli =
     .in(file("blinky-cli"))
     .settings(
       moduleName := "blinky-cli",
-      libraryDependencies += "com.lihaoyi"  %% "ammonite-ops"               % "2.0.4",
-      libraryDependencies += "com.geirsson" %% "metaconfig-core"            % "0.9.10",
-      libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "0.9.10"
+      libraryDependencies += "com.lihaoyi"      %% "ammonite-ops"               % "2.0.4",
+      libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.10",
+      libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.10",
+      libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.0.0-RC2"
     )
     .dependsOn(core)
 

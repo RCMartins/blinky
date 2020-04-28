@@ -9,18 +9,15 @@ import scala.util.Try
 object Run {
   val path: Path = pwd
 
-  def run(confFilePath: Path = pwd / ".blinky.conf"): Unit = {
-    run(MutationsConfig.read(read(confFilePath)))
-  }
-
   def run(config: MutationsConfig): Unit = {
     val ruleName = "Blinky"
     val projectPath = Try(Path(config.projectPath)).getOrElse(pwd / RelPath(config.projectPath))
 
-    val mutatedProjectPath = {
+    val (mutatedProjectPath, coursier) = {
       val tempFolder = tmp.dir()
       val cloneProjectPath = tempFolder / 'project
-      println(tempFolder)
+      if (config.options.verbose)
+        println(s"Temporary project folder: $tempFolder")
 
       val filesToCopy =
         %%("git", "ls-files", "--others", "--exclude-standard", "--cached")(projectPath).out.string.trim
@@ -32,15 +29,26 @@ object Run {
         cp.into(projectPath / fileToCopy, cloneProjectPath / fileToCopy / up)
       }
 
-      %('sbt, "compile")(cloneProjectPath)
+      %(
+        'sbt,
+        "set ThisBuild / semanticdbEnabled := true",
+        "set ThisBuild / semanticdbVersion := \"4.3.0\"",
+        "compile"
+      )(cloneProjectPath)
 
-      %("curl", "-Lo", "coursier", "https://git.io/coursier-cli")(cloneProjectPath)
-      %("chmod", "+x", "coursier")(cloneProjectPath)
+      val coursier =
+        if (Try(%%('coursier, "--help")(cloneProjectPath)).isSuccess) {
+          "coursier"
+        } else {
+          %("curl", "-Lo", "coursier", "https://git.io/coursier-cli")(cloneProjectPath)
+          %("chmod", "+x", "coursier")(cloneProjectPath)
+          "./coursier"
+        }
 
       %(
-        "./coursier",
+        coursier,
         "bootstrap",
-        "ch.epfl.scala:scalafix-cli_2.12.10:0.9.7",
+        "ch.epfl.scala:scalafix-cli_2.12.10:0.9.9",
         "-f",
         "--main",
         "scalafix.cli.Cli",
@@ -48,7 +56,7 @@ object Run {
         "scalafix"
       )(cloneProjectPath)
 
-      cloneProjectPath
+      (cloneProjectPath, coursier)
     }
 
     implicit val mutatorEncoder: ConfEncoder[Mutator] =
@@ -76,7 +84,7 @@ object Run {
     val semanticDbPath = "target"
 
     val toolPath = %%(
-      "./coursier",
+      coursier,
       "fetch",
       s"com.github.rcmartins:${ruleName.toLowerCase}_2.12:${config.blinkyVersion}",
       "-p",
@@ -98,6 +106,6 @@ object Run {
       semanticDbPath
     )(mutatedProjectPath)
 
-    TestMutations.run(mutatedProjectPath, config.testCommand, config.options)
+    TestMutations.run(mutatedProjectPath, config.options)
   }
 }
