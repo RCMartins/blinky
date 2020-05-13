@@ -30,12 +30,16 @@ skip in publish := true
 lazy val core =
   project
     .in(file("blinky-core"))
+    .enablePlugins(BuildInfoPlugin)
     .settings(
       moduleName := "blinky",
-      libraryDependencies += "ch.epfl.scala"     %% "scalafix-core" % V.scalafixVersion,
-      libraryDependencies += "com.typesafe.play" %% "play-json"     % "2.8.1",
+      libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
+      libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.8.1",
+      libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.8.0",
       coverageMinimum := 81,
-      coverageFailOnMinimum := true
+      coverageFailOnMinimum := true,
+      buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+      buildInfoPackage := "blinky"
     )
 
 lazy val input = project.settings(

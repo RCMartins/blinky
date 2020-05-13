@@ -1,8 +1,8 @@
 package blinky.internal
 
-import java.io.{File, FileWriter}
 import java.util.concurrent.atomic.AtomicInteger
 
+import better.files.File
 import blinky.v0.BlinkyConfig
 import metaconfig.Configured
 import play.api.libs.json.Json
@@ -14,8 +14,8 @@ import scala.meta.inputs.Input.VirtualFile
 class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
   private val mutationId: AtomicInteger = new AtomicInteger(1)
   private val mutationsPathOption: Option[File] =
-    if (config.mutatorsPath.nonEmpty) Some(new File(config.mutatorsPath))
-    else if (config.projectPath.nonEmpty) Some(new File(config.projectPath))
+    if (config.mutatorsPath.nonEmpty) Some(File(config.mutatorsPath))
+    else if (config.projectPath.nonEmpty) Some(File(config.projectPath))
     else None
 
   private def nextIndex: Int = mutationId.getAndIncrement()
@@ -123,10 +123,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
     mutationsPathOption.foreach { mutatorsPath =>
       if (mutantsFound.nonEmpty) {
         val jsonMutationReport = mutantsFound.map(Json.toJson(_)).mkString("", "\n", "\n")
-        new FileWriter(new File(mutatorsPath, "mutations.json"), true) {
-          write(jsonMutationReport)
-          close()
-        }
+        (mutatorsPath / "mutations.json").append(jsonMutationReport)
       }
     }
   }

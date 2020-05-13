@@ -11,7 +11,7 @@ object Run {
 
   def run(config: MutationsConfig): Unit = {
     val ruleName = "Blinky"
-    val projectPath = Try(Path(config.projectPath)).getOrElse(pwd / RelPath(config.projectPath))
+    val projectPath = Try(Path(config.projectPath)).getOrElse(path / RelPath(config.projectPath))
 
     val (mutatedProjectPath, coursier) = {
       val tempFolder = tmp.dir()
@@ -32,7 +32,7 @@ object Run {
       %(
         'sbt,
         "set ThisBuild / semanticdbEnabled := true",
-        "set ThisBuild / semanticdbVersion := \"4.3.0\"",
+        "set ThisBuild / semanticdbVersion := \"4.3.10\"",
         "compile"
       )(cloneProjectPath)
 

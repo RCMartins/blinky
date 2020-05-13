@@ -1,9 +1,10 @@
 package blinky.run
 
+import blinky.BuildInfo.version
+import blinky.v0.BlinkyConfig
 import metaconfig.generic.Surface
 import metaconfig.typesafeconfig._
 import metaconfig.{Conf, ConfDecoder, generic}
-import blinky.v0.BlinkyConfig
 
 case class MutationsConfig(
     projectPath: String,
@@ -15,12 +16,12 @@ case class MutationsConfig(
 )
 
 object MutationsConfig {
-  val default = MutationsConfig(
+  val default: MutationsConfig = MutationsConfig(
     projectPath = ".",
     projectName = "",
     filesToMutate = "src/main/scala",
     conf = BlinkyConfig(""),
-    blinkyVersion = "0.2.0",
+    blinkyVersion = version,
     options = OptionsConfig()
   )
   implicit val surface: Surface[MutationsConfig] =

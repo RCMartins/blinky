@@ -1,24 +1,29 @@
 package blinky.run
 
-import java.io.File
-
-import ammonite.ops._
-import scopt.{OParser, OParserBuilder}
+import blinky.BuildInfo
+import better.files.File
+import scopt.{OParser, OParserBuilder, Read}
 
 object Parser {
+
+  private implicit val readFile: Read[File] = new Read[File] {
+    override def arity: Int = 1
+    override def reads: String => File = File(_)
+  }
+
   private val builder: OParserBuilder[MutationsConfig] = OParser.builder[MutationsConfig]
   val parser: OParser[Unit, MutationsConfig] = {
     import builder._
     OParser.sequence(
       programName("blinky"),
-      head("blinky", "v0.2.0"),
+      head("blinky", s"v${BuildInfo.version}"),
       help("help")
         .text("prints this usage text"),
       version('v', "version")
         .text("prints blinky version"),
       arg[File]("<blinkyConfFile>")
-        .action((confFilePath, _) => {
-          MutationsConfig.read(read(Path(confFilePath.getAbsolutePath)))
+        .action((confFile, _) => {
+          MutationsConfig.read(confFile.contentAsString)
         })
         .required(),
       opt[String]("projectName")
@@ -43,13 +48,13 @@ object Parser {
         .action((filesToMutate, config) => {
           config.copy(filesToMutate = filesToMutate)
         })
-        .text("The relative path to the scala folder or files to mutate"),
+        .text("The relative path to the scala src folder or files to mutate"),
       opt[String]("blinkyVersion")
         .valueName("<version>")
         .action((blinkyVersion, config) => {
           config.copy(blinkyVersion = blinkyVersion)
         })
-        .text("The Blinky version to use to mutate the code"),
+        .text("The Blinky version to be used to mutate the code"),
       opt[String]("compileCommand")
         .valueName("<command>")
         .action((compileCommand, config) => {

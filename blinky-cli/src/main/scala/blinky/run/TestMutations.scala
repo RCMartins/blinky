@@ -26,13 +26,11 @@ object TestMutations {
       compileResult match {
         case Failure(error) =>
           val newIssueLink = "https://github.com/RCMartins/blinky/issues/new"
-          println(error)
-          println(
-            red(
-              s"""There are compile errors after applying the Blinky rule.
-                 |This is likely due to a bug in Blinky.
-                 |If you want to report it use $newIssueLink""".stripMargin
-            )
+          Console.err.println(error)
+          Console.err.println(
+            s"""There are compile errors after applying the Blinky rule.
+               |This is likely due to a bug in Blinky.
+               |If you want to report it use $newIssueLink""".stripMargin
           )
           System.exit(1)
         case Success(_) =>
@@ -42,8 +40,8 @@ object TestMutations {
           )
           vanillaResult match {
             case Failure(error) =>
-              println("Tests failed... No mutations will run until this is fixed...")
-              println(error)
+              Console.err.println("Tests failed... No mutations will run until this is fixed...")
+              Console.err.println(error)
               System.exit(1)
             case Success(result) =>
               println(green("Original tests passed..."))
@@ -95,15 +93,15 @@ object TestMutations {
                   if (score < options.mutationMinimum) {
                     println(
                       red(
-                        s"Mutation score is below minimum " +
+                        "Mutation score is below minimum " +
                           s"[$scoreFormatted% < ${options.mutationMinimum}%]"
                       )
                     )
-                    System.exit(-1)
+                    System.exit(1)
                   } else {
                     println(
                       green(
-                        s"Mutation score is above minimum " +
+                        "Mutation score is above minimum " +
                           s"[$scoreFormatted% \u2265 ${options.mutationMinimum}%]"
                       )
                     )
@@ -167,7 +165,6 @@ object TestMutations {
       if (options.verbose)
         println(
           s"""> [SCALA_MUTATION_$mutantId=1] bash -c "bloop test ${escapeString(testCommand)}""""
-//          s"""> bloop test "$testCommand" -- -DSCALA_MUTATION_$mutantId=1"""
         )
 
       Try(
@@ -176,13 +173,6 @@ object TestMutations {
           "-c",
           s"bloop test ${escapeString(testCommand)}"
         )(projectPath)
-//        %%(
-//          "bloop",
-//          "test",
-//          testCommand,
-//          "--",
-//          s"-DSCALA_MUTATION_$mutantId=1"
-//        )(projectPath)
       )
     }
   }
