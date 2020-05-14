@@ -32,7 +32,7 @@ jobs:
       script:
         - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/2.1.2/2.12-2.1.2) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
         - ./coursier install bloop --only-prebuilt=true
-        #- export PATH="$PATH:$HOME/.local/share/coursier/bin"
+        - export PATH="$PATH:$HOME/.local/share/coursier/bin"
         #- systemctl --user enable $HOME/.bloop/systemd/bloop.service
         #- systemctl --user start bloop
         - amm travis/runCurrentVersion.sc "travis/.blinky.conf"
@@ -42,7 +42,7 @@ jobs:
       script:
         - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/2.1.2/2.12-2.1.2) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
         - ./coursier install bloop --only-prebuilt=true
-        #- export PATH="$PATH:HOME/.local/share/coursier/bin"
+        - export PATH="$PATH:$HOME/.local/share/coursier/bin"
         #- systemctl --user enable $HOME/.bloop/systemd/bloop.service
         #- systemctl --user start bloop
         - amm travis/runExamples.sc"
@@ -56,7 +56,7 @@ cache:
   directories:
     - "$HOME/.ivy2/cache"
     - "$HOME/.sbt/boot/"
-    - "$HOME/.coursier/cache"
+    - "$HOME/.cache/coursier"
 env:
   global:
     secure: T3HdurQNcKxoZP53SzFWrKe8xEmdY/w43sB4rnMRg4ETgE+jQzfPP78XGKAC6J56O4BmijHP6j/aiEA+CTddG9HtIal4WWMVI5wxIONzDtNdUf+TKpx1GDyN6UslGAyJdN671cL/9f36lN56wKj5BQBWwqBNaM/92qzfyeSWp88TMcUA+ItSAYt3CD/vkdw96kSIMdVuTIlCuhurF6Zn8hILtEVGFwFZElsroGHdBQCL33ddoCKr4tXlx/Id2b8Oa2T8vbwlMH6sm/RfwIlO8273/B3CoP/V783eVlYZmqcy3f/FhJ6AwrhvHHwJTX13zc1R1o7IUCf/NZ5c5xk4GpFSRYAD5EKYZIop56+NNDgzJMf6HfYzV7iyEEVsGrHxX1PYyl7eK/b0Uj30gVCOaVray9R5QLNfmP3s6RRBoKgDT0mcxrPUt6yYq41WB7uAYlnBgSUUdoFwvHvMn+IkC/v2f0f0GVQ+Ukigpcb4hDyxLjTZaLCd+AhXbcDpbYC83PVqC5hwKs2jGt0LTeE1Op7GfUX1fxV0GxmCJV5bRH5mdow+LFku+mOE7R9LVYypn9/kVSS1fz+lfY8Ehm6yp3gJECNS9meE9bWuEV0sv1o+9yTgzm95tGfnZx2jxn5brx1iQq4tPmeQ0/OL8ELZqDpOILtUFniYplYr4CBixDc=

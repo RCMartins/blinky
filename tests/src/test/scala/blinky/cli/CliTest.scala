@@ -15,7 +15,9 @@ class CliTest extends fixture.WordSpec with MustMatchers {
     "-version" should {
 
       "return the version number of blinky" in { test =>
-        Cli.parse(Array(getFilePath("empty.blinky.conf"), "--version"), test.oParser)
+        val filePath = getFilePath("empty.blinky.conf")
+        println(filePath)
+        Cli.parse(Array(filePath, "--version"), test.oParser)
 
         test.outLines mustEqual Seq(s"blinky v$version")
       }
