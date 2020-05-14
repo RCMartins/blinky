@@ -36,7 +36,13 @@ object Run {
         "compile"
       )(cloneProjectPath)
 
-      val coursier = s"$path/bin/coursier"
+      val coursier =
+        if (Try(%%('coursier, "--help")(cloneProjectPath)).isSuccess)
+          "coursier"
+        else if (Try(%%('cs, "--help")(cloneProjectPath)).isSuccess)
+          "cs"
+        else
+          Setup.setupCoursier(cloneProjectPath)
 
       %(
         coursier,

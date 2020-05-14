@@ -9,6 +9,7 @@ before_script:
   - shopt -s expand_aliases
   - alias sbt="sbt -Dsbt.color=always"
   - chmod +x ./bin/coursier
+  - export PATH="$PATH:$(pwd)/bin"
 jobs:
   include:
     - stage: pull request testing
@@ -32,7 +33,7 @@ jobs:
       script:
         - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/2.1.2/2.12-2.1.2) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
         - export PATH="$PATH:$HOME/.local/share/coursier/bin"
-        - ./bin/coursier install bloop --only-prebuilt=true
+        - coursier install bloop --only-prebuilt=true
         #- systemctl --user enable $HOME/.bloop/systemd/bloop.service
         #- systemctl --user start bloop
         - amm travis/runCurrentVersion.sc "travis/.blinky.conf"
@@ -42,7 +43,7 @@ jobs:
       script:
         - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/2.1.2/2.12-2.1.2) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
         - export PATH="$PATH:$HOME/.local/share/coursier/bin"
-        - ./bin/coursier install bloop --only-prebuilt=true
+        - coursier install bloop --only-prebuilt=true
         #- systemctl --user enable $HOME/.bloop/systemd/bloop.service
         #- systemctl --user start bloop
         - amm travis/runExamples.sc

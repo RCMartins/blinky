@@ -8,7 +8,7 @@ def main(confPath: Path): Unit = {
   val versionNumber = ExtractVersion.findFirstMatchIn(command.out.string).get.group(1)
 
   %(
-    "./coursier",
+    "coursier",
     "launch",
     s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
     "--main",
