@@ -14,7 +14,7 @@ def main(): Unit = {
       println(s"Testing $examplePath:")
       val confPath = examplePath / ".blinky.conf"
       %(
-        s"./$basePath/coursier",
+        s".$basePath/coursier",
         "launch",
         s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
         "--main",
