@@ -1,26 +1,56 @@
 package blinky.cli
 
-import java.io.{ByteArrayOutputStream, PrintStream}
-
 import blinky.BuildInfo.version
-import org.scalatest.{MustMatchers, WordSpec}
+import org.scalatest.{MustMatchers, Outcome, fixture}
+import scopt.{OParserSetup, RenderingMode}
 
-class CliTest extends WordSpec with MustMatchers {
-  "Cli --version" should {
-    "print the correct version" in {
-      val systemOut = System.out
+class CliTest extends fixture.WordSpec with MustMatchers {
 
-      val baos: ByteArrayOutputStream = new ByteArrayOutputStream()
-      val ps: PrintStream = new PrintStream(baos)
-
-      println(ammonite.ops.%%("pwd")(ammonite.ops.pwd).out.string)
-      Console.setOut(ps)
-      blinky.cli.Cli.main(Array("../.blinky.conf", "--version"))
-
-      ps.flush()
-      Console.setOut(systemOut)
-
-      baos.toString mustEqual version
-    }
+  override def withFixture(test: OneArgTest): Outcome = {
+    test(new FixtureParam)
   }
+
+  "Cli general parsing" when {
+
+    "-version" should {
+
+      "return the version number of blinky" in { test =>
+        Cli.parse(Array(getFilePath("empty.blinky.conf"), "--version"), test.oParser)
+
+        test.outLines mustEqual Seq(s"blinky v$version")
+      }
+
+    }
+
+  }
+
+  class FixtureParam {
+
+    var outLines: Seq[String] = Seq.empty
+
+    val oParser: OParserSetup = new OParserSetup {
+      override def renderingMode: RenderingMode = RenderingMode.OneColumn
+
+      override def errorOnUnknownArgument: Boolean = true
+
+      override def showUsageOnError: Option[Boolean] = Some(false)
+
+      override def displayToOut(msg: String): Unit = {
+        outLines = outLines :+ msg
+      }
+
+      override def displayToErr(msg: String): Unit = ???
+
+      override def reportError(msg: String): Unit = ???
+
+      override def reportWarning(msg: String): Unit = ???
+
+      override def terminate(exitState: Either[String, Unit]): Unit = ()
+    }
+
+  }
+
+  private def getFilePath(fileName: String): String =
+    getClass.getResource(s"/$fileName").getPath.stripPrefix("/")
+
 }

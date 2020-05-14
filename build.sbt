@@ -50,6 +50,18 @@ lazy val output = project.settings(
   skip in publish := true
 )
 
+lazy val cli =
+  project
+    .in(file("blinky-cli"))
+    .settings(
+      moduleName := "blinky-cli",
+      libraryDependencies += "com.lihaoyi"      %% "ammonite-ops"               % "2.1.2",
+      libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.10",
+      libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.10",
+      libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.0.0-RC2"
+    )
+    .dependsOn(core)
+
 lazy val tests = project
   .settings(
     skip in publish := true,
@@ -63,17 +75,5 @@ lazy val tests = project
   )
   .dependsOn(core, cli)
   .enablePlugins(ScalafixTestkitPlugin)
-
-lazy val cli =
-  project
-    .in(file("blinky-cli"))
-    .settings(
-      moduleName := "blinky-cli",
-      libraryDependencies += "com.lihaoyi"      %% "ammonite-ops"               % "2.1.2",
-      libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.10",
-      libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.10",
-      libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.0.0-RC2"
-    )
-    .dependsOn(core)
 
 Global / onChangedBuildSource := ReloadOnSourceChanges

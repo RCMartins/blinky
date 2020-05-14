@@ -36,15 +36,7 @@ object Run {
         "compile"
       )(cloneProjectPath)
 
-      val coursier =
-        if (Try(%%('coursier, "--help")(cloneProjectPath)).isSuccess) {
-          "coursier"
-        } else {
-          %("curl", "-Lo", "coursier", "https://git.io/coursier-cli")(cloneProjectPath)
-          %("chmod", "+x", "coursier")(cloneProjectPath)
-          "./coursier"
-        }
-
+      val coursier = "./coursier"
       %(
         coursier,
         "bootstrap",
