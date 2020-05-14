@@ -41,7 +41,7 @@ object Run {
       %(
         coursier,
         "bootstrap",
-        "ch.epfl.scala:scalafix-cli_2.12.10:0.9.9",
+        "ch.epfl.scala:scalafix-cli_2.12.11:0.9.15",
         "-f",
         "--main",
         "scalafix.cli.Cli",
