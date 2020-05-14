@@ -36,7 +36,8 @@ object Run {
         "compile"
       )(cloneProjectPath)
 
-      val coursier = "./coursier"
+      val coursier = s"$path/bin/coursier"
+
       %(
         coursier,
         "bootstrap",
