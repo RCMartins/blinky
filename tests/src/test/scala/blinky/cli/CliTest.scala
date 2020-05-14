@@ -39,11 +39,14 @@ class CliTest extends fixture.WordSpec with MustMatchers {
         outLines = outLines :+ msg
       }
 
-      override def displayToErr(msg: String): Unit = { println(s"displayToErr: $msg"); ??? }
+      override def displayToErr(msg: String): Unit =
+        fail(s"displayToErr: $msg")
 
-      override def reportError(msg: String): Unit = { println(s"reportError: $msg"); ??? }
+      override def reportError(msg: String): Unit =
+        fail(s"reportError: $msg")
 
-      override def reportWarning(msg: String): Unit = { println(s"reportWarning: $msg"); ??? }
+      override def reportWarning(msg: String): Unit =
+        fail(s"reportWarning: $msg")
 
       override def terminate(exitState: Either[String, Unit]): Unit = ()
     }
