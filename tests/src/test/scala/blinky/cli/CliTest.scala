@@ -53,6 +53,6 @@ class CliTest extends fixture.WordSpec with MustMatchers {
   }
 
   private def getFilePath(fileName: String): String =
-    getClass.getResource(s"/$fileName").getPath.stripPrefix("/")
+    getClass.getResource(s"/$fileName").getPath
 
 }
