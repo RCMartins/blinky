@@ -8,7 +8,6 @@ before_install:
 before_script:
   - shopt -s expand_aliases
   - alias sbt="sbt -Dsbt.color=always"
-  - chmod +x coursier
 jobs:
   include:
     - stage: pull request testing
