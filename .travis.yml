@@ -12,7 +12,7 @@ before_script:
   - export PATH="$PATH:$(pwd)/bin"
 jobs:
   include:
-    - stage: pull request testing
+    - stage: testing
       name: running unit tests
       if: (type = pull_request) OR (branch = master AND type = push)
       script:
@@ -49,7 +49,7 @@ jobs:
         - amm travis/runExamples.sc
 
     - stage: release
-      name: integration
+      name: release
       if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
       script:
         - sbt ci-release
