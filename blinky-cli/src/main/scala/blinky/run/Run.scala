@@ -20,7 +20,9 @@ object Run {
         println(s"Temporary project folder: $tempFolder")
 
       val filesToCopy =
-        %%("git", "ls-files", "--others", "--exclude-standard", "--cached")(projectPath).out.string.trim
+        %%("git", "ls-files", "--others", "--exclude-standard", "--cached")(
+          projectPath
+        ).out.string.trim
           .split("\n")
           .toList
       filesToCopy.foreach { fileToCopyStr =>

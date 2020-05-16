@@ -12,7 +12,7 @@ before_script:
   - export PATH="$PATH:$(pwd)/bin"
 jobs:
   include:
-    - stage: pull request testing
+    - stage: testing
       name: running unit tests
       if: (type = pull_request) OR (branch = master AND type = push)
       script:
@@ -34,8 +34,6 @@ jobs:
         - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/2.1.2/2.12-2.1.2) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
         - export PATH="$PATH:$HOME/.local/share/coursier/bin"
         - coursier install bloop --only-prebuilt=true
-        #- systemctl --user enable $HOME/.bloop/systemd/bloop.service
-        #- systemctl --user start bloop
         - amm travis/runCurrentVersion.sc "travis/.blinky.conf"
 
     - name: mutation testing
@@ -44,12 +42,10 @@ jobs:
         - sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/Ammonite/releases/download/2.1.2/2.12-2.1.2) > /usr/local/bin/amm && chmod +x /usr/local/bin/amm'
         - export PATH="$PATH:$HOME/.local/share/coursier/bin"
         - coursier install bloop --only-prebuilt=true
-        #- systemctl --user enable $HOME/.bloop/systemd/bloop.service
-        #- systemctl --user start bloop
         - amm travis/runExamples.sc
 
     - stage: release
-      name: integration
+      name: release
       if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
       script:
         - sbt ci-release
