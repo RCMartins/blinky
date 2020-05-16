@@ -48,6 +48,7 @@ jobs:
       name: release
       if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
       script:
+        - git reset --hard HEAD
         - sbt ci-release
 cache:
   directories:
