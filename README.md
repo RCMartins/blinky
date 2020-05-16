@@ -55,7 +55,7 @@ First, install the [Coursier](https://get-coursier.io/docs/cli-overview) command
 Next, write `.blinky.conf` config file with the path of the project you want to run **Blinky**, e.g
 ```hocon
 projectPath = "/project"
-filesToMutate = "src"
+filesToMutate = "src/main"
 testCommand = "tests"
 options = {
   maxRunningTime = 10 minutes

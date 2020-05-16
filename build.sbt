@@ -30,12 +30,16 @@ skip in publish := true
 lazy val core =
   project
     .in(file("blinky-core"))
+    .enablePlugins(BuildInfoPlugin)
     .settings(
       moduleName := "blinky",
-      libraryDependencies += "ch.epfl.scala"     %% "scalafix-core" % V.scalafixVersion,
-      libraryDependencies += "com.typesafe.play" %% "play-json"     % "2.8.1",
+      libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
+      libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.8.1",
+      libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.8.0",
       coverageMinimum := 81,
-      coverageFailOnMinimum := true
+      coverageFailOnMinimum := true,
+      buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+      buildInfoPackage := "blinky"
     )
 
 lazy val input = project.settings(
@@ -45,6 +49,18 @@ lazy val input = project.settings(
 lazy val output = project.settings(
   skip in publish := true
 )
+
+lazy val cli =
+  project
+    .in(file("blinky-cli"))
+    .settings(
+      moduleName := "blinky-cli",
+      libraryDependencies += "com.lihaoyi"      %% "ammonite-ops"               % "2.1.2",
+      libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.10",
+      libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.10",
+      libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.0.0-RC2"
+    )
+    .dependsOn(core)
 
 lazy val tests = project
   .settings(
@@ -57,18 +73,7 @@ lazy val tests = project
     scalafixTestkitInputClasspath :=
       fullClasspath.in(input, Compile).value
   )
-  .dependsOn(core)
+  .dependsOn(core, cli)
   .enablePlugins(ScalafixTestkitPlugin)
-
-lazy val cli =
-  project
-    .in(file("blinky-cli"))
-    .settings(
-      moduleName := "blinky-cli",
-      libraryDependencies += "com.lihaoyi"  %% "ammonite-ops"               % "2.1.2",
-      libraryDependencies += "com.geirsson" %% "metaconfig-core"            % "0.9.10",
-      libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "0.9.10"
-    )
-    .dependsOn(core)
 
 Global / onChangedBuildSource := ReloadOnSourceChanges

@@ -8,7 +8,8 @@ import scala.concurrent.duration._
 case class OptionsConfig(
     verbose: Boolean = false,
     dryRun: Boolean = false,
-    compileCommand: String = "compile",
+    compileCommand: String = "",
+    testCommand: String = "",
     maxRunningTime: Duration = 60.minutes,
     failOnMinimum: Boolean = false,
     mutationMinimum: Double = 25.0
@@ -23,7 +24,7 @@ object OptionsConfig {
     case Conf.Num(number) if number.isExactDouble => Configured.Ok(number.toDouble)
   }
 
-  val default = OptionsConfig()
+  val default: OptionsConfig = OptionsConfig()
   implicit val surface: Surface[OptionsConfig] =
     generic.deriveSurface[OptionsConfig]
   implicit val decoder: ConfDecoder[OptionsConfig] =

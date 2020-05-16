@@ -1,6 +1,5 @@
 package blinky.v0
 
-import metaconfig.annotation.Description
 import metaconfig.generic.Surface
 import metaconfig.{ConfDecoder, generic}
 
@@ -15,7 +14,7 @@ case class BlinkyConfig(
 }
 
 object BlinkyConfig {
-  val default = BlinkyConfig("")
+  val default: BlinkyConfig = BlinkyConfig("")
   implicit val surface: Surface[BlinkyConfig] =
     generic.deriveSurface[BlinkyConfig]
   implicit val decoder: ConfDecoder[BlinkyConfig] =
