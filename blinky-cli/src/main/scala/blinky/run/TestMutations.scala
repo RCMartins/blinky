@@ -29,8 +29,10 @@ object TestMutations {
           Console.err.println(error)
           Console.err.println(
             s"""There are compile errors after applying the Blinky rule.
-               |This is likely due to a bug in Blinky.
-               |If you want to report it use $newIssueLink""".stripMargin
+               |This could be because Blinky is not configured correctly.
+               |Make sure compileCommand is set.
+               |If you think it's due to a bug in Blinky please to report in:
+               |$newIssueLink""".stripMargin
           )
           System.exit(1)
         case Success(_) =>
@@ -40,7 +42,11 @@ object TestMutations {
           )
           vanillaResult match {
             case Failure(error) =>
-              Console.err.println("Tests failed... No mutations will run until this is fixed...")
+              Console.err.println(
+                """Tests failed. No mutations will run until this is fixed.
+                  |This could be because Blinky is not configured correctly.
+                  |Make sure testCommand is set.""".stripMargin
+              )
               Console.err.println(error)
               System.exit(1)
             case Success(result) =>
@@ -62,18 +68,19 @@ object TestMutations {
                 )
 
                 val initialTime = System.currentTimeMillis()
-
                 val results = runMutations(mutationsToTest, initialTime)
+                val totalTime = System.currentTimeMillis() - initialTime
 
                 val mutantsToTestSize = results.size
                 val mutantsToTestPerc = mutantsToTestSize * 100 / numberOfMutants
                 val totalKilled = results.count(_._2)
                 val totalNotKilled = mutantsToTestSize - results.count(_._2)
-                val score = (totalKilled * 100.0) / mutantsToTestSize
+                val score = (totalKilled * 1000.0 / mutantsToTestSize).ceil / 10.0
                 val scoreFormatted = "%4.1f".format(score)
-                val totalTime = System.currentTimeMillis() - initialTime
-                val avgTime = totalTime / 1000.0 / mutantsToTestSize
-                val avgTimeFormatted = "%3.1f".format(avgTime)
+                val avgTimeFormatted = {
+                  val avgTime = totalTime / 1000.0 / mutantsToTestSize
+                  "%3.1f".format(avgTime)
+                }
                 println(
                   s"""
                      |Mutation Results:
@@ -90,20 +97,15 @@ object TestMutations {
                 )
 
                 if (options.failOnMinimum) {
-                  if (score < options.mutationMinimum) {
+                  val minimum = (options.mutationMinimum * 10.0).floor / 10.0
+                  if (score < minimum) {
                     println(
-                      red(
-                        "Mutation score is below minimum " +
-                          s"[$scoreFormatted% < ${options.mutationMinimum}%]"
-                      )
+                      red(s"Mutation score is below minimum [$scoreFormatted% < $minimum%]")
                     )
                     System.exit(1)
                   } else {
                     println(
-                      green(
-                        "Mutation score is above minimum " +
-                          s"[$scoreFormatted% \u2265 ${options.mutationMinimum}%]"
-                      )
+                      green(s"Mutation score is above minimum [$scoreFormatted% >= $minimum%]")
                     )
                   }
                 }

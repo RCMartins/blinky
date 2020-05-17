@@ -10,21 +10,21 @@ Mutation testing is a type of software testing where we mutate (change) certain 
 and check if the test cases are able to find the errors.
 It is a type of White Box Testing which is mainly used for Unit Testing.
 
-**Blinky** has 3 main steps:
+_Blinky_ has 3 main steps:
 * Copy the git project to a temporary folder (where the source code can be safely modified)
-* Run the scalafix tool with the **Blinky** rule (on the copy project)
-* Run the tests on mutated code (usually with only 1 mutation active each time)
+* Run the scalafix tool with the _Blinky_ rule (on the copy project)
+* Run the project tests on the mutated code (usually with only 1 mutation active each time)
 
-We use **Blinky** to test itself and to improve the test code quality.
+We use _Blinky_ to test itself and to improve the test code quality.
 
 Similar projects:
 * [scalamu](https://github.com/sugakandrey/scalamu)
 * [stryker4s](https://github.com/stryker-mutator/stryker4s)
 
-The main difference in this project is that the mutations are semantic instead of just syntactic.
-Meaning that when using a rule like `ScalaOptions.filter` we only mutate calls to
+The main difference is that in _Blinky_ the mutations are semantic instead of just syntactic.
+Meaning when using a rule like `ScalaOptions.filter` we only mutate calls to
 the method `filter` of objects of type `scala.Option`.
-In order to have this semantic information about the types **Blinky** 
+In order to have this semantic information about the types _Blinky_ 
 needs the [semanticdb](https://scalameta.org/docs/semanticdb/guide.html)
 data of all files that we want to mutate.
 
@@ -35,7 +35,7 @@ your project at [Maven](https://mvnrepository.com/artifact/org.scalameta/semanti
 
 Before sbt 1.3.4:
 ```scala
-libraryDependencies += "org.scalameta" % "semanticdb-scalac" % "4.3.9" cross CrossVersion.full
+libraryDependencies += "org.scalameta" % "semanticdb-scalac" % "4.3.10" cross CrossVersion.full
 scalacOptions += "-Yrangepos"
 ```
 After sbt 1.3.4:
@@ -43,7 +43,7 @@ After sbt 1.3.4:
 inThisBuild(
   List(
     semanticdbEnabled := true,
-    semanticdbVersion := "4.3.9"
+    semanticdbVersion := "4.3.10"
   )
 )
 ```
@@ -52,7 +52,7 @@ inThisBuild(
 
 First, install the [Coursier](https://get-coursier.io/docs/cli-overview) command-line interface.
 
-Next, write `.blinky.conf` config file with the path of the project you want to run **Blinky**, e.g
+Next, write `.blinky.conf` config file with the path of the project you want to run _Blinky_, e.g
 ```hocon
 projectPath = "/project"
 filesToMutate = "src/main"
@@ -62,10 +62,10 @@ options = {
 }
 ```
 
-Next, launch **Blinky** (it will use .blinky.conf file by default)
+Next, launch _Blinky_ (it will use .blinky.conf file by default)
 
 ```
-coursier launch com.github.rcmartins:blinky-cli_2.12:0.2.0 --main blinky.cli.Cli
+coursier launch com.github.rcmartins:blinky-cli_2.12:0.2.0 --main cli.Cli
 ```
 
 Blinky cli will compile the project, generating the necessary semanticdb files
@@ -74,26 +74,23 @@ before applying the mutations to the code.
 ## Configuration
 
 Blinky reads configuration from a file `.blinky.conf`, usually in the root directly of your project.
-Configuration is written using [HOCON](https://github.com/lightbend/config) syntax.
+Configuration uses [HOCON](https://github.com/lightbend/config/blob/master/HOCON.md) syntax.
 
-### projectPath (required)
-The path to the project 
+### projectPath (optional)
+The path to the project. 
 
-### filesToMutate (required)
-Files or directories (recursively visited) to apply mutations (used directly in scalafix --files= param)
+Default: `.` (current directory)
 
-### testCommand (required)
-Command used by **Blinky** to test the code in each run.
+### filesToMutate (optional)
+Files or directories (recursively visited) to apply mutations (used directly in scalafix --files= param).
 
-If using Bloop, **Blinky** will run: `bloop test <testCommand>`
-
-If using SBT, **Blinky** will run: `sbt <testCommand>`
+Default: `src/main/scala`
 
 ### options (optional)
-Advanced options to configure how **Blinky** will run tests.
+Advanced options to configure how _Blinky_ will run tests.
 
 #### verbose
-Boolean flag to show additional information useful for debugging.
+A boolean flag to show additional information useful for debugging.
 
 Default: `false`
 
@@ -107,7 +104,17 @@ Default: `false`
 Command used by Blinky to do the first compile before starting to runs the tests.
 This is useful to calculate the time that the first test takes without counting compiling.
 
-Default: `compile`
+Default: `""`
+
+#### testCommand
+Command used by _Blinky_ to test the code in each run.
+
+If using Bloop, _Blinky_ will run: `bloop test <testCommand>`
+
+(Not implemented)
+If using SBT, _Blinky_ will run: `sbt <testCommand>`
+
+Default: `""`
 
 #### maxRunningTime
 Maximum time to run tests.
@@ -168,11 +175,11 @@ Example of a more complete `.blinky.conf` file:
 ```hocon
 projectPath = "."
 filesToMutate = "blinky-core/src"
-testCommand = "tests"
 options = {
   verbose = false
   dryRun = false
-  compileCommand = compile
+  compileCommand = "tests"
+  testCommand = "tests"
 
   maxRunningTime = 40 minutes
 
@@ -194,8 +201,7 @@ conf = {
 ## Mutators
 
 Mutators are the transformations to the code that we want to apply.
-Because of several factors like time to run or importance we may want to enable/disable some
-of the available mutators.
+Because of several factors like time to run or importance we may want to enable/disable some available mutators.
 
 ## Available Mutators
 
@@ -220,7 +226,7 @@ group name: ArithmeticOperators
 
 name: IntPlusToMinus
 
-description: Changes the arithmetic operator `+` into `-` when operating on `int` types.
+description: Changes the arithmetic operator `+` into `-` when operating on `Int` type.
 
 example:
 
@@ -229,25 +235,25 @@ example:
 + val value = list.size - 5
 ```
 
-(Note that it only applies to `int` type)
+(Note that it only applies to `Int` type)
 
 #### Int - Minus into Plus
 
 name: IntMinusToPlus
 
-description: Changes the arithmetic operator `-` into `+` when operating on `int` types.
+description: Changes the arithmetic operator `-` into `+` when operating on `Int` type.
 
 #### Int - Multiply into Divide
 
 name: IntMulToDiv
 
-description: Changes the arithmetic operator `*` into `/` when operating on `int` types.
+description: Changes the arithmetic operator `*` into `/` when operating on `Int` type.
 
 #### Int - Divide into Multiply
 
 name: IntDivToMul
 
-description: Changes the arithmetic operator `/` into `*` when operating on `int` types.
+description: Changes the arithmetic operator `/` into `*` when operating on `Int` type.
 
 ### Conditional Expressions
 
@@ -257,19 +263,19 @@ group name: ConditionalExpressions
 
 name: AndToOr
 
-description: Changes the conditional operator `&&` to `||` on `boolean` types.
+description: Changes the conditional operator `&&` to `||` on `Boolean` type.
 
 #### Boolean - Or into And
 
 name: OrToAnd
 
-description: Changes the conditional operator `||` to `&&` on `boolean` types.
+description: Changes the conditional operator `||` to `&&` on `Boolean` type.
 
 #### Boolean - Remove negation
 
 name: RemoveUnaryNot
 
-description: Removes the `!` operator on `boolean` types.
+description: Removes the `!` operator on `Boolean` type.
 
 example:
 

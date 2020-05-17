@@ -1,8 +1,7 @@
 package blinky.run
 
 import ammonite.ops._
-import blinky.v0.{BlinkyConfig, Mutator, Mutators}
-import metaconfig.{Conf, ConfEncoder, generic}
+import blinky.v0.BlinkyConfig
 
 import scala.util.Try
 
@@ -60,24 +59,17 @@ object Run {
       (cloneProjectPath, coursier)
     }
 
-    implicit val mutatorEncoder: ConfEncoder[Mutator] =
-      (value: Mutator) => Conf.Str(value.name)
-
-    implicit val mutatorsEncoder: ConfEncoder[Mutators] =
-      (value: Mutators) => ConfEncoder[List[Mutator]].write(value.mutations)
-
-    val blinkyConfigEncoder: ConfEncoder[BlinkyConfig] = generic.deriveEncoder[BlinkyConfig]
-
     val scalafixConfFile = {
       val scalaFixConf =
-        blinkyConfigEncoder
+        BlinkyConfig.blinkyConfigEncoder
           .write(config.conf.copy(projectPath = mutatedProjectPath.toString))
           .show
           .trim
 
       val tempFolder = tmp.dir()
-      write(tempFolder / ".scalafix.conf", s"Blinky $scalaFixConf")
-      tempFolder / ".scalafix.conf"
+      val confFile = tempFolder / ".scalafix.conf"
+      write(confFile, s"Blinky $scalaFixConf")
+      confFile
     }
 
     val fileName = config.filesToMutate

@@ -1,6 +1,6 @@
 package blinky.run
 
-import blinky.BuildInfo.version
+import blinky.BuildInfo
 import blinky.v0.BlinkyConfig
 import metaconfig.generic.Surface
 import metaconfig.typesafeconfig._
@@ -20,14 +20,15 @@ object MutationsConfig {
     projectPath = ".",
     projectName = "",
     filesToMutate = "src/main/scala",
-    conf = BlinkyConfig(""),
-    blinkyVersion = version,
-    options = OptionsConfig()
+    conf = BlinkyConfig.default,
+    blinkyVersion = BuildInfo.version,
+    options = OptionsConfig.default
   )
+
   implicit val surface: Surface[MutationsConfig] =
     generic.deriveSurface[MutationsConfig]
   implicit val decoder: ConfDecoder[MutationsConfig] =
-    generic.deriveDecoder(default)
+    generic.deriveDecoder(default).noTypos
 
   def read(conf: String): MutationsConfig = {
     val original = decoder.read(Conf.parseString(conf)).get
