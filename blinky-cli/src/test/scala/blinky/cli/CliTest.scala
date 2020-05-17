@@ -34,10 +34,6 @@ class CliTest extends FixtureAnyWordSpec with Matchers with OptionValues {
       "return the version number of blinky" in { test =>
         Cli.parse(Array("--help"), test.oParser)
 
-        println("-" * 100)
-        println(test.outLines.mkString)
-        println("-" * 100)
-
         test.outLines.mkString mustEqual
           s"""blinky v$version
              |Usage: blinky [options] [<blinkyConfFile>]
