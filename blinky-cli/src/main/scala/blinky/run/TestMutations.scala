@@ -68,18 +68,19 @@ object TestMutations {
                 )
 
                 val initialTime = System.currentTimeMillis()
-
                 val results = runMutations(mutationsToTest, initialTime)
+                val totalTime = System.currentTimeMillis() - initialTime
 
                 val mutantsToTestSize = results.size
                 val mutantsToTestPerc = mutantsToTestSize * 100 / numberOfMutants
                 val totalKilled = results.count(_._2)
                 val totalNotKilled = mutantsToTestSize - results.count(_._2)
-                val score = (totalKilled * 100.0) / mutantsToTestSize
+                val score = (totalKilled * 1000.0 / mutantsToTestSize).ceil / 10.0
                 val scoreFormatted = "%4.1f".format(score)
-                val totalTime = System.currentTimeMillis() - initialTime
-                val avgTime = totalTime / 1000.0 / mutantsToTestSize
-                val avgTimeFormatted = "%3.1f".format(avgTime)
+                val avgTimeFormatted = {
+                  val avgTime = totalTime / 1000.0 / mutantsToTestSize
+                  "%3.1f".format(avgTime)
+                }
                 println(
                   s"""
                      |Mutation Results:
@@ -96,20 +97,15 @@ object TestMutations {
                 )
 
                 if (options.failOnMinimum) {
-                  if (score < options.mutationMinimum) {
+                  val minimum = (options.mutationMinimum * 10.0).floor / 10.0
+                  if (score < minimum) {
                     println(
-                      red(
-                        "Mutation score is below minimum " +
-                          s"[$scoreFormatted% < ${options.mutationMinimum}%]"
-                      )
+                      red(s"Mutation score is below minimum [$scoreFormatted% < $minimum%]")
                     )
                     System.exit(1)
                   } else {
                     println(
-                      green(
-                        "Mutation score is above minimum " +
-                          s"[$scoreFormatted% \u2265 ${options.mutationMinimum}%]"
-                      )
+                      green(s"Mutation score is above minimum [$scoreFormatted% >= $minimum%]")
                     )
                   }
                 }
