@@ -25,7 +25,9 @@ def main(): Unit = {
           "--",
           confPath,
           "--blinkyVersion",
-          versionNumber
+          versionNumber,
+          "--verbose",
+          "true"
         )(examplePath)
         println(result.out.string)
         (examplePath, result)
