@@ -17,9 +17,9 @@ inThisBuild(
     scalaVersion := V.scala212,
     addCompilerPlugin(scalafixSemanticdb),
     scalacOptions ++= List(
-      "-Yrangepos"
+      "-Yrangepos",
+      "-deprecation"
     ),
-    classLoaderLayeringStrategy in Compile := ClassLoaderLayeringStrategy.Flat,
     coverageEnabled := false,
     fork in Test := true
   )
@@ -58,7 +58,10 @@ lazy val cli =
       libraryDependencies += "com.lihaoyi"      %% "ammonite-ops"               % "2.1.2",
       libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.10",
       libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.10",
-      libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.0.0-RC2"
+      libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.0.0-RC2",
+      libraryDependencies += "org.scalatest"    %% "scalatest"                  % "3.1.1" % "test",
+      coverageMinimum := 20,
+      coverageFailOnMinimum := true
     )
     .dependsOn(core)
 

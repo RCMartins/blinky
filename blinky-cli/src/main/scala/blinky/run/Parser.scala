@@ -25,7 +25,7 @@ object Parser {
         .action((confFile, _) => {
           MutationsConfig.read(confFile.contentAsString)
         })
-        .required(),
+        .optional(),
       opt[String]("projectName")
         .valueName("<path>")
         .action((projectName, config) => {

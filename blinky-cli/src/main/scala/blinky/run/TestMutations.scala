@@ -29,8 +29,10 @@ object TestMutations {
           Console.err.println(error)
           Console.err.println(
             s"""There are compile errors after applying the Blinky rule.
-               |This is likely due to a bug in Blinky.
-               |If you want to report it use $newIssueLink""".stripMargin
+               |This could be because Blinky is not configured correctly.
+               |Make sure compileCommand is set.
+               |If you think it's due to a bug in Blinky please to report in:
+               |$newIssueLink""".stripMargin
           )
           System.exit(1)
         case Success(_) =>
@@ -40,7 +42,11 @@ object TestMutations {
           )
           vanillaResult match {
             case Failure(error) =>
-              Console.err.println("Tests failed... No mutations will run until this is fixed...")
+              Console.err.println(
+                """Tests failed. No mutations will run until this is fixed.
+                  |This could be because Blinky is not configured correctly.
+                  |Make sure testCommand is set.""".stripMargin
+              )
               Console.err.println(error)
               System.exit(1)
             case Success(result) =>
