@@ -1,4 +1,3 @@
-import $file.utils, utils._
 import ammonite.ops._
 
 def publishLocalBlinky(): String = {

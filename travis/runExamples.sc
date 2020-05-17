@@ -1,3 +1,4 @@
+import $file.utils, utils._
 import ammonite.ops._
 
 @main
