@@ -1,3 +1,3 @@
 object Utils {
-  val Number = 3 + 2
+  val Number = 5 + 0
 }
