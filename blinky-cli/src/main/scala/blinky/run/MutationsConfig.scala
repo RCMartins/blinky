@@ -10,6 +10,7 @@ case class MutationsConfig(
     projectPath: String,
     projectName: String,
     filesToMutate: String,
+    filesToExclude: String,
     conf: BlinkyConfig,
     blinkyVersion: String,
     options: OptionsConfig
@@ -20,6 +21,7 @@ object MutationsConfig {
     projectPath = ".",
     projectName = "",
     filesToMutate = "src/main/scala",
+    filesToExclude = "",
     conf = BlinkyConfig.default,
     blinkyVersion = BuildInfo.version,
     options = OptionsConfig.default

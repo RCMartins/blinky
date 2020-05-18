@@ -1,40 +1,40 @@
 package blinky.cli
 
+import java.io.ByteArrayOutputStream
+
 import blinky.BuildInfo
 import blinky.BuildInfo.version
 import blinky.run.{MutationsConfig, OptionsConfig}
 import blinky.v0.{BlinkyConfig, Mutators}
 import org.scalatest.matchers.must.Matchers
-import org.scalatest.wordspec.FixtureAnyWordSpec
-import org.scalatest.{OptionValues, Outcome}
-import scopt.{OParserSetup, RenderingMode}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{AppendedClues, OptionValues}
+import scopt.DefaultOParserSetup
 
 import scala.concurrent.duration._
 
-class CliTest extends FixtureAnyWordSpec with Matchers with OptionValues {
-
-  override def withFixture(test: OneArgTest): Outcome = {
-    test(new FixtureParam)
-  }
+class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedClues {
 
   "Cli general parsing" when {
 
     "--version" should {
 
-      "return the version number of blinky" in { test =>
-        Cli.parse(Array("--version"), test.oParser)
+      "return the version number of blinky" in {
+        val (_, out, _) = parse("--version")
 
-        test.outLines mustEqual Seq(s"blinky v$version")
+        out mustEqual
+          s"""blinky v$version
+             |""".stripMargin
       }
 
     }
 
     "--help" should {
 
-      "return the version number of blinky" in { test =>
-        Cli.parse(Array("--help"), test.oParser)
+      "return the version number of blinky" in {
+        val (_, out, _) = parse("--help")
 
-        test.outLines.mkString mustEqual
+        out mustEqual
           s"""blinky v$version
              |Usage: blinky [options] [<blinkyConfFile>]
              |
@@ -44,25 +44,26 @@ class CliTest extends FixtureAnyWordSpec with Matchers with OptionValues {
              |  --projectName <path>     The project name, used for bloop compile and test commands
              |  --projectPath <path>     The project directory, can be an absolute or relative path
              |  --filesToMutate <path>   The relative path to the scala src folder or files to mutate
-             |  --blinkyVersion <version>
-             |                           The Blinky version to be used to mutate the code
-             |  --compileCommand <command>
-             |                           The compile command to be executed by sbt/bloop before the first run
-             |  --testCommand <command>  The test command to be executed by sbt/bloop
-             |  --verbose <bool>         If set, prints out debug information. Defaults to false""".stripMargin
+             |  --filesToExclude <path>  The relative path to the folder or files to exclude from mutation
+             |  --blinkyVersion <ver>    The Blinky version to be used to mutate the code
+             |  --compileCommand <cmd>   The compile command to be executed by sbt/bloop before the first run
+             |  --testCommand <cmd>      The test command to be executed by sbt/bloop
+             |  --verbose <bool>         If set, prints out debug information. Defaults to false
+             |""".stripMargin
       }
 
     }
 
     "empty.conf" should {
 
-      "return the default config options" in { test =>
-        val mutationsConfig = Cli.parse(Array(getFilePath("empty.conf")), test.oParser).value
+      "return the default config options" in {
+        val (mutationsConfig, _, _) = parse(getFilePath("empty.conf"))
 
-        mutationsConfig mustEqual MutationsConfig(
+        mutationsConfig.value mustEqual MutationsConfig(
           projectPath = ".",
           projectName = "",
           filesToMutate = "src/main/scala",
+          filesToExclude = "",
           conf = BlinkyConfig(
             projectPath = "",
             mutatorsPath = "",
@@ -86,10 +87,10 @@ class CliTest extends FixtureAnyWordSpec with Matchers with OptionValues {
 
     "options1.conf" should {
 
-      "return the correct options" in { test =>
-        val mutationsConfig = Cli.parse(Array(getFilePath("options1.conf")), test.oParser).value
+      "return the correct options" in {
+        val (mutationsConfig, _, _) = parse(getFilePath("options1.conf"))
 
-        mutationsConfig.options mustEqual OptionsConfig(
+        mutationsConfig.value.options mustEqual OptionsConfig(
           verbose = false,
           dryRun = false,
           compileCommand = "",
@@ -104,8 +105,9 @@ class CliTest extends FixtureAnyWordSpec with Matchers with OptionValues {
 
     "simple1.conf" should {
 
-      "return the correct projectName, compileCommand and testCommand" in { test =>
-        val mutationsConfig = Cli.parse(Array(getFilePath("simple1.conf")), test.oParser).value
+      "return the correct projectName, compileCommand and testCommand" in {
+        val (mutationsConfigOpt, _, _) = parse(getFilePath("simple1.conf"))
+        val mutationsConfig = mutationsConfigOpt.value
 
         mutationsConfig.projectPath mustEqual "examples/example1"
         mutationsConfig.projectName mustEqual "example1"
@@ -118,26 +120,30 @@ class CliTest extends FixtureAnyWordSpec with Matchers with OptionValues {
 
     "using overrides parameters" should {
 
-      "return the changed parameters" in { test =>
-        val params: Array[String] = Array(
+      "return the changed parameters" in {
+        val params: Seq[String] = Seq(
           "--projectPath",
           "examples/example2",
           "--projectName",
           "example2",
           "--filesToMutate",
           "src/main/scala/Example.scala",
+          "--filesToExclude",
+          "src/main/scala/Utils.scala",
           "--blinkyVersion",
           "0.2.0",
           "--verbose",
           "true"
         )
 
-        val mutationsConfig =
-          Cli.parse(Array[String](getFilePath("empty.conf")) ++ params, test.oParser).value
+        val (mutationsConfigOpt, _, err) = parse(getFilePath("empty.conf") +: params: _*)
+        mutationsConfigOpt mustBe defined withClue err
+        val mutationsConfig = mutationsConfigOpt.value
 
         mutationsConfig.projectPath mustEqual "examples/example2"
         mutationsConfig.projectName mustEqual ""
         mutationsConfig.filesToMutate mustEqual "src/main/scala/Example.scala"
+        mutationsConfig.filesToExclude mustEqual "src/main/scala/Utils.scala"
         mutationsConfig.blinkyVersion mustEqual "0.2.0"
 
         mutationsConfig.options.compileCommand mustEqual "example2"
@@ -149,33 +155,24 @@ class CliTest extends FixtureAnyWordSpec with Matchers with OptionValues {
 
   }
 
-  class FixtureParam {
-
-    var outLines: Seq[String] = Seq.empty
-
-    val oParser: OParserSetup = new OParserSetup {
-      override def renderingMode: RenderingMode = RenderingMode.TwoColumns
-
-      override def errorOnUnknownArgument: Boolean = true
-
-      override def showUsageOnError: Option[Boolean] = Some(false)
-
-      override def displayToOut(msg: String): Unit = {
-        outLines = outLines :+ msg
-      }
-
-      override def displayToErr(msg: String): Unit =
-        fail(s"displayToErr: $msg")
-
-      override def reportError(msg: String): Unit =
-        fail(s"reportError: $msg")
-
-      override def reportWarning(msg: String): Unit =
-        fail(s"reportWarning: $msg")
-
+  private val _parser =
+    new DefaultOParserSetup() {
       override def terminate(exitState: Either[String, Unit]): Unit = ()
     }
 
+  private def parse(args: String*): (Option[MutationsConfig], String, String) = {
+    val outCapture = new ByteArrayOutputStream
+    val errCapture = new ByteArrayOutputStream
+    Console.withOut(outCapture) {
+      Console.withErr(errCapture) {
+        val mutationsConfig = Cli.parse(args.toArray, _parser)
+        (
+          mutationsConfig,
+          outCapture.toString,
+          errCapture.toString
+        )
+      }
+    }
   }
 
   private def inWindows: Boolean =
