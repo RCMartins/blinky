@@ -93,6 +93,8 @@ object Run {
       ruleName,
       "--files",
       fileName,
+      "--exclude",
+      config.filesToExclude,
       "--config",
       scalafixConfFile,
       "--auto-classpath",

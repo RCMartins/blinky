@@ -25,7 +25,8 @@ object Parser {
         .action((confFile, _) => {
           MutationsConfig.read(confFile.contentAsString)
         })
-        .optional(),
+        .optional()
+        .maxOccurs(1),
       opt[String]("projectName")
         .valueName("<path>")
         .action((projectName, config) => {
@@ -36,43 +37,57 @@ object Parser {
             )
           )
         })
-        .text("The project name, used for bloop compile and test commands"),
+        .text("The project name, used for bloop compile and test commands")
+        .maxOccurs(1),
       opt[String]("projectPath")
         .valueName("<path>")
         .action((projectPath, config) => {
           config.copy(projectPath = projectPath)
         })
-        .text("The project directory, can be an absolute or relative path"),
+        .text("The project directory, can be an absolute or relative path")
+        .maxOccurs(1),
       opt[String]("filesToMutate")
         .valueName("<path>")
         .action((filesToMutate, config) => {
           config.copy(filesToMutate = filesToMutate)
         })
-        .text("The relative path to the scala src folder or files to mutate"),
+        .text("The relative path to the scala src folder or files to mutate")
+        .maxOccurs(1),
+      opt[String]("filesToExclude")
+        .valueName("<path>")
+        .action((filesToExclude, config) => {
+          config.copy(filesToExclude = filesToExclude)
+        })
+        .text("The relative path to the folder or files to exclude from mutation")
+        .maxOccurs(1),
       opt[String]("blinkyVersion")
-        .valueName("<version>")
+        .valueName("<ver>")
         .action((blinkyVersion, config) => {
           config.copy(blinkyVersion = blinkyVersion)
         })
-        .text("The Blinky version to be used to mutate the code"),
+        .text("The Blinky version to be used to mutate the code")
+        .maxOccurs(1),
       opt[String]("compileCommand")
-        .valueName("<command>")
+        .valueName("<cmd>")
         .action((compileCommand, config) => {
           config.copy(options = config.options.copy(compileCommand = compileCommand))
         })
-        .text("The compile command to be executed by sbt/bloop before the first run"),
+        .text("The compile command to be executed by sbt/bloop before the first run")
+        .maxOccurs(1),
       opt[String]("testCommand")
-        .valueName("<command>")
+        .valueName("<cmd>")
         .action((testCommand, config) => {
           config.copy(options = config.options.copy(testCommand = testCommand))
         })
-        .text("The test command to be executed by sbt/bloop"),
+        .text("The test command to be executed by sbt/bloop")
+        .maxOccurs(1),
       opt[Boolean]("verbose")
         .valueName("<bool>")
         .action((verbose, config) => {
           config.copy(options = config.options.copy(verbose = verbose))
         })
         .text("If set, prints out debug information. Defaults to false")
+        .maxOccurs(1)
     )
   }
 }

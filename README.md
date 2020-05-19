@@ -86,6 +86,13 @@ Files or directories (recursively visited) to apply mutations (used directly in 
 
 Default: `src/main/scala`
 
+### filesToExclude (optional)
+Unix-style glob for files to exclude from being mutated by `filesToMutate` param.
+The glob syntax is defined by [nio.FileSystem.getPathMatcher](https://docs.oracle.com/javase/8/docs/api/java/nio/file/FileSystem.html#getPathMatcher-java.lang.String-).
+(Used directly in scalafix --exclude= param).
+
+Default: `""`
+
 ### options (optional)
 Advanced options to configure how _Blinky_ will run tests.
 
@@ -166,15 +173,17 @@ conf {
   ]
 }
 ```
-This configuration will allow all mutators with the exception 
-of `LiteralBooleans`, `IntMulToDiv` and `OrElse`.
+This configuration will allow all mutators except `LiteralBooleans`, `IntMulToDiv` and `OrElse`.
  
 Default value: `[]`
+
+---
 
 Example of a more complete `.blinky.conf` file:
 ```hocon
 projectPath = "."
 filesToMutate = "blinky-core/src"
+filesToExclude = "**/internal/*scala"
 options = {
   verbose = false
   dryRun = false

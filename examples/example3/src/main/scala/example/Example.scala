@@ -1,8 +1,10 @@
+import Utils.Number
+
 object Example {
   def calc(nOpt: Option[Int]): String = {
     nOpt
       .map { n =>
-        if (n > 5)
+        if (n > Number)
           "big"
         else
           "small"
