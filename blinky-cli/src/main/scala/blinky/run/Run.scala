@@ -1,6 +1,7 @@
 package blinky.run
 
 import ammonite.ops._
+import blinky.BuildInfo
 import blinky.v0.BlinkyConfig
 
 import scala.util.Try
@@ -67,7 +68,7 @@ object Run {
           .trim
 
       val tempFolder = tmp.dir()
-      val confFile = tempFolder / ".scalafix.conf"
+      val confFile = tempFolder / ".blinky.scalafix.conf"
       write(confFile, s"Blinky $scalaFixConf")
       confFile
     }
@@ -79,7 +80,7 @@ object Run {
     val toolPath = %%(
       coursier,
       "fetch",
-      s"com.github.rcmartins:${ruleName.toLowerCase}_2.12:${config.blinkyVersion}",
+      s"com.github.rcmartins:${ruleName.toLowerCase}_2.12:${BuildInfo.version}",
       "-p",
       COURSIER_REPOSITORIES = "ivy2Local|sonatype:snapshots|sonatype:releases"
     )(mutatedProjectPath).out.string.trim

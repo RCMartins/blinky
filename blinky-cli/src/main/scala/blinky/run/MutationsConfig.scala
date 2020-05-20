@@ -1,6 +1,5 @@
 package blinky.run
 
-import blinky.BuildInfo
 import blinky.v0.BlinkyConfig
 import metaconfig.generic.Surface
 import metaconfig.typesafeconfig._
@@ -12,7 +11,6 @@ case class MutationsConfig(
     filesToMutate: String,
     filesToExclude: String,
     conf: BlinkyConfig,
-    blinkyVersion: String,
     options: OptionsConfig
 )
 
@@ -23,7 +21,6 @@ object MutationsConfig {
     filesToMutate = "src/main/scala",
     filesToExclude = "",
     conf = BlinkyConfig.default,
-    blinkyVersion = BuildInfo.version,
     options = OptionsConfig.default
   )
 

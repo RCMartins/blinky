@@ -24,8 +24,6 @@ def main(): Unit = {
           "blinky.cli.Cli",
           "--",
           confPath,
-          "--blinkyVersion",
-          versionNumber,
           "--verbose",
           "true"
         )(examplePath)

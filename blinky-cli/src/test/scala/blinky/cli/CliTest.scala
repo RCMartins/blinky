@@ -45,7 +45,6 @@ class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedC
              |  --projectPath <path>     The project directory, can be an absolute or relative path
              |  --filesToMutate <path>   The relative path to the scala src folder or files to mutate
              |  --filesToExclude <path>  The relative path to the folder or files to exclude from mutation
-             |  --blinkyVersion <ver>    The Blinky version to be used to mutate the code
              |  --compileCommand <cmd>   The compile command to be executed by sbt/bloop before the first run
              |  --testCommand <cmd>      The test command to be executed by sbt/bloop
              |  --verbose <bool>         If set, prints out debug information. Defaults to false
@@ -70,7 +69,6 @@ class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedC
             enabledMutators = Mutators.all,
             disabledMutators = Mutators(Nil)
           ),
-          blinkyVersion = BuildInfo.version,
           options = OptionsConfig(
             verbose = false,
             dryRun = false,
@@ -130,8 +128,6 @@ class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedC
           "src/main/scala/Example.scala",
           "--filesToExclude",
           "src/main/scala/Utils.scala",
-          "--blinkyVersion",
-          "0.2.0",
           "--verbose",
           "true"
         )
@@ -144,7 +140,6 @@ class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedC
         mutationsConfig.projectName mustEqual ""
         mutationsConfig.filesToMutate mustEqual "src/main/scala/Example.scala"
         mutationsConfig.filesToExclude mustEqual "src/main/scala/Utils.scala"
-        mutationsConfig.blinkyVersion mustEqual "0.2.0"
 
         mutationsConfig.options.compileCommand mustEqual "example2"
         mutationsConfig.options.testCommand mustEqual "example2"

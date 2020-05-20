@@ -60,13 +60,6 @@ object Parser {
         })
         .text("The relative path to the folder or files to exclude from mutation")
         .maxOccurs(1),
-      opt[String]("blinkyVersion")
-        .valueName("<ver>")
-        .action((blinkyVersion, config) => {
-          config.copy(blinkyVersion = blinkyVersion)
-        })
-        .text("The Blinky version to be used to mutate the code")
-        .maxOccurs(1),
       opt[String]("compileCommand")
         .valueName("<cmd>")
         .action((compileCommand, config) => {

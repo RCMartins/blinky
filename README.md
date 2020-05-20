@@ -102,14 +102,14 @@ A boolean flag to show additional information useful for debugging.
 Default: `false`
 
 #### dryRun
-Will not run the tests, useful to check if everything is working without starting
-to actually run the long and compute intensive part of running the tests.
+Will not run the mutation tests, useful to check if everything is working without starting
+to actually run the long and compute-intensive part of running the tests.
 
 Default: `false`
 
 #### compileCommand
-Command used by Blinky to do the first compile before starting to runs the tests.
-This is useful to calculate the time that the first test takes without counting compiling.
+Command used by Blinky to do the first compile before starting to run the tests.
+This is useful to calculate the time the first test takes without counting compiling.
 
 Default: `""`
 
