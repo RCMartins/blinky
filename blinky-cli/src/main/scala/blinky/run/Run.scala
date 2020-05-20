@@ -1,5 +1,6 @@
 package blinky.run
 
+import ammonite.ops.Shellable._
 import ammonite.ops._
 import blinky.BuildInfo
 import blinky.v0.BlinkyConfig
@@ -85,22 +86,25 @@ object Run {
       COURSIER_REPOSITORIES = "ivy2Local|sonatype:snapshots|sonatype:releases"
     )(mutatedProjectPath).out.string.trim
 
-    %(
-      "./scalafix",
-      "--verbose",
-      "--tool-classpath",
-      toolPath,
-      "--rules",
-      ruleName,
-      "--files",
-      fileName,
-      "--exclude",
-      config.filesToExclude,
-      "--config",
-      scalafixConfFile,
-      "--auto-classpath",
-      semanticDbPath
-    )(mutatedProjectPath)
+    val params: Seq[String] =
+      Seq(
+        "--verbose",
+        "--tool-classpath",
+        toolPath,
+        "--rules",
+        ruleName,
+        "--files",
+        fileName,
+        "--config",
+        scalafixConfFile.toString,
+        "--auto-classpath",
+        semanticDbPath
+      ) ++
+        (if (config.filesToExclude.nonEmpty) Seq("--exclude", config.filesToExclude)
+         else Seq.empty) ++
+        (if (config.options.onlyMutateDiff) Seq("--diff") else Seq.empty)
+
+    %.applyDynamic("./scalafix")(params.map(StringShellable): _*)(mutatedProjectPath)
 
     TestMutations.run(mutatedProjectPath, config.options)
   }

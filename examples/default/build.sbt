@@ -1,4 +1,4 @@
-lazy val example2 =
+lazy val example =
   project
     .in(file("."))
     .settings(

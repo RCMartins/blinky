@@ -80,6 +80,15 @@ object Parser {
           config.copy(options = config.options.copy(verbose = verbose))
         })
         .text("If set, prints out debug information. Defaults to false")
+        .maxOccurs(1),
+      opt[Boolean]("onlyMutateDiff")
+        .valueName("<bool>")
+        .action((onlyMutateDiff, config) => {
+          config.copy(options = config.options.copy(onlyMutateDiff = onlyMutateDiff))
+        })
+        .text(
+          "If set, only mutate added and edited files in git diff against the master branch."
+        )
         .maxOccurs(1)
     )
   }
