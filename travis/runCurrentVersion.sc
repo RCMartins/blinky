@@ -13,8 +13,6 @@ def main(confPath: Path): Unit = {
     "--main",
     "blinky.cli.Cli",
     "--",
-    confPath,
-    "--blinkyVersion",
-    versionNumber
+    confPath
   )(path)
 }
