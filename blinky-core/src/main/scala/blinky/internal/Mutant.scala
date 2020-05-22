@@ -8,8 +8,7 @@ case class Mutant(
     id: Int,
     diff: List[String],
     original: Term,
-    mutated: Term,
-    mutationType: String = ""
+    mutated: Term
 )
 
 object Mutant {

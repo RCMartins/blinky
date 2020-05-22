@@ -47,11 +47,10 @@ def main(): Unit = {
 
 private def preProcessDirectory(defaultDirectory: Path, testDirectory: Path): Unit = {
   %("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")(pwd)
-  cp(defaultDirectory, testDirectory)
 
-  val startupScript = testDirectory / "startup.sh"
-  if (exists(startupScript)) {
-    %("chmod", "+x", startupScript)(testDirectory)
-    %(startupScript)(testDirectory)
+  val startupScriptName = "startup.sh"
+  if (exists(testDirectory / startupScriptName)) {
+    %("chmod", "+x", startupScriptName)(testDirectory)
+    %(s"./$startupScriptName")(testDirectory)
   }
 }

@@ -1,5 +1,7 @@
 package blinky.run
 
+import java.nio.file.{Files, Paths}
+
 import ammonite.ops.Shellable._
 import ammonite.ops._
 import blinky.BuildInfo
@@ -8,73 +10,127 @@ import blinky.v0.BlinkyConfig
 import scala.util.Try
 
 object Run {
-  val path: Path = pwd
-
   def run(config: MutationsConfig): Unit = {
     val ruleName = "Blinky"
-    val projectPath = Try(Path(config.projectPath)).getOrElse(path / RelPath(config.projectPath))
+    val originalProjectRoot = pwd
+    val originalProjectRelPath = RelPath(config.projectPath)
+    val originalProjectPath = originalProjectRoot / originalProjectRelPath
 
-    val (mutatedProjectPath, coursier) = {
-      val tempFolder = tmp.dir()
-      val cloneProjectPath = tempFolder / 'project
+    val cloneProjectTempFolder = tmp.dir()
+
+    val (mutatedProjectPath, filesToMutate, coursier) = {
       if (config.options.verbose)
-        println(s"Temporary project folder: $tempFolder")
+        println(s"Temporary project folder: $cloneProjectTempFolder")
 
-      val filesToCopy =
+      val gitFolder: Path =
+        Path(%%("git", "rev-parse", "--show-toplevel")(originalProjectRoot).out.string.trim)
+
+      val cloneProjectBaseFolder: Path =
+        cloneProjectTempFolder / gitFolder.baseName
+      mkdir(cloneProjectBaseFolder)
+
+      val projectRealRelPath: RelPath =
+        originalProjectPath.relativeTo(gitFolder)
+
+      // Copy only the files tracked by git into our temporary folder
+      val filesToCopy: Seq[RelPath] =
         %%("git", "ls-files", "--others", "--exclude-standard", "--cached")(
-          projectPath
-        ).out.string.trim
-          .split("\n")
-          .toList
-      filesToCopy.foreach { fileToCopyStr =>
-        val fileToCopy = RelPath(fileToCopyStr)
-        mkdir(cloneProjectPath / fileToCopy / up)
-        cp.into(projectPath / fileToCopy, cloneProjectPath / fileToCopy / up)
+          originalProjectPath
+        ).out.lines.map(RelPath(_))
+
+      filesToCopy.foreach { fileToCopy =>
+        mkdir(cloneProjectBaseFolder / projectRealRelPath / fileToCopy / up)
+        cp.into(
+          originalProjectRoot / fileToCopy,
+          cloneProjectBaseFolder / projectRealRelPath / fileToCopy / up
+        )
       }
 
+      val projectRealPath =
+        cloneProjectBaseFolder / projectRealRelPath
+
+      // Setup files to mutate ('scalafix --diff' does not work like I want...)
+      val filesToMutate: Seq[String] =
+        if (config.options.onlyMutateDiff) {
+          // maybe copy the .git folder so it can be used by TestMutations, etc?
+          //cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
+
+          val masterHash = %%("git", "rev-parse", "master")(gitFolder).out.string.trim
+          val diffLines =
+            %%.git("--no-pager", 'diff, "--name-only", masterHash)(gitFolder).out.lines
+
+          val base: Seq[String] =
+            diffLines
+              .map(file => cloneProjectBaseFolder / RelPath(file))
+              .filter(file => file.ext == "scala" || file.ext == "sbt")
+              .map(_.toString)
+
+          // This part is just an optimization of 'base'
+          val configFileOrFolderToMutate: Path =
+            Try(Path(config.filesToMutate))
+              .getOrElse(projectRealPath / RelPath(config.filesToMutate))
+
+          val configFileOrFolderToMutateStr =
+            configFileOrFolderToMutate.toString
+
+          if (configFileOrFolderToMutate.isFile)
+            if (base.contains(configFileOrFolderToMutateStr))
+              Seq(configFileOrFolderToMutateStr)
+            else
+              Seq.empty
+          else
+            base.filter(_.startsWith(configFileOrFolderToMutateStr))
+        } else {
+          Seq("all")
+        }
+
+      // Setup semanticdb files with sbt compile.
+      // (there should probably be a better way to do this...)
       %(
         'sbt,
         "set ThisBuild / semanticdbEnabled := true",
-        "set ThisBuild / semanticdbVersion := \"4.3.10\"",
+        "set ThisBuild / semanticdbVersion := \"4.3.12\"",
         "compile"
-      )(cloneProjectPath)
+      )(projectRealPath)
 
+      // Setup coursier
       val coursier =
-        if (Try(%%('coursier, "--help")(cloneProjectPath)).isSuccess)
+        if (Try(%%('coursier, "--help")(projectRealPath)).isSuccess)
           "coursier"
-        else if (Try(%%('cs, "--help")(cloneProjectPath)).isSuccess)
+        else if (Try(%%('cs, "--help")(projectRealPath)).isSuccess)
           "cs"
         else
-          Setup.setupCoursier(cloneProjectPath)
+          Setup.setupCoursier(projectRealPath)
 
-      %(
-        coursier,
-        "bootstrap",
-        "ch.epfl.scala:scalafix-cli_2.12.11:0.9.15",
-        "-f",
-        "--main",
-        "scalafix.cli.Cli",
-        "-o",
-        "scalafix"
-      )(cloneProjectPath)
+      // Setup scalafix
+      Files.copy(
+        getClass.getResource(s"/scalafix").openStream,
+        Paths.get(projectRealPath.toString, "scalafix")
+      )
+      %("chmod", "+x", "scalafix")(projectRealPath)
 
-      (cloneProjectPath, coursier)
+      (projectRealPath, filesToMutate, coursier)
     }
 
+    // Setup BlinkyConfig object
+    val blinkyConf: BlinkyConfig =
+      BlinkyConfig(
+        mutantsOutputFile = (mutatedProjectPath / "mutants.blinky").toString,
+        filesToMutate = filesToMutate,
+        enabledMutators = config.mutators.enabled,
+        disabledMutators = config.mutators.disabled
+      )
+
+    // Setup our .blinky.scalafix.conf file to be used by Blinky rule
     val scalafixConfFile = {
       val scalaFixConf =
-        BlinkyConfig.blinkyConfigEncoder
-          .write(config.conf.copy(projectPath = mutatedProjectPath.toString))
-          .show
-          .trim
+        SimpleBlinkyConfig.blinkyConfigEncoder.write(blinkyConf).show.trim
 
-      val tempFolder = tmp.dir()
-      val confFile = tempFolder / ".blinky.scalafix.conf"
-      write(confFile, s"Blinky $scalaFixConf")
+      val confFile = cloneProjectTempFolder / ".scalafix.conf"
+      write(confFile, s"""rules = $ruleName
+                         |Blinky $scalaFixConf""".stripMargin)
       confFile
     }
-
-    val fileName = config.filesToMutate
 
     val semanticDbPath = "target"
 
@@ -89,23 +145,15 @@ object Run {
     val params: Seq[String] =
       Seq(
         "--verbose",
-        "--tool-classpath",
-        toolPath,
-        "--rules",
-        ruleName,
-        "--files",
-        fileName,
-        "--config",
-        scalafixConfFile.toString,
-        "--auto-classpath",
-        semanticDbPath
-      ) ++
-        (if (config.filesToExclude.nonEmpty) Seq("--exclude", config.filesToExclude)
-         else Seq.empty) ++
-        (if (config.options.onlyMutateDiff) Seq("--diff") else Seq.empty)
+        if (config.filesToExclude.nonEmpty) s"--exclude=${config.filesToExclude}" else "",
+        s"--tool-classpath=$toolPath",
+        s"--files=${config.filesToMutate}",
+        s"--config=$scalafixConfFile",
+        s"--auto-classpath=$semanticDbPath"
+      ).filter(_.nonEmpty)
 
     %.applyDynamic("./scalafix")(params.map(StringShellable): _*)(mutatedProjectPath)
 
-    TestMutations.run(mutatedProjectPath, config.options)
+    TestMutationsBloop.run(mutatedProjectPath, blinkyConf, config.options)
   }
 }

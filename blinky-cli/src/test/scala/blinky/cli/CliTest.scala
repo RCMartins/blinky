@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 
 import blinky.BuildInfo
 import blinky.BuildInfo.version
-import blinky.run.{MutationsConfig, OptionsConfig}
+import blinky.run.{MutationsConfig, OptionsConfig, SimpleBlinkyConfig}
 import blinky.v0.{BlinkyConfig, Mutators}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -64,11 +64,9 @@ class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedC
           projectName = "",
           filesToMutate = "src/main/scala",
           filesToExclude = "",
-          conf = BlinkyConfig(
-            projectPath = "",
-            mutatorsPath = "",
-            enabledMutators = Mutators.all,
-            disabledMutators = Mutators(Nil)
+          mutators = SimpleBlinkyConfig(
+            enabled = Mutators.all,
+            disabled = Mutators(Nil)
           ),
           options = OptionsConfig(
             verbose = false,
