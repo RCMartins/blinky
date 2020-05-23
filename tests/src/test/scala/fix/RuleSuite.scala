@@ -53,7 +53,7 @@ class RuleSuite extends SemanticRuleSuite() {
   }
 
   private val testTempFolder: File = File.newTemporaryDirectory().deleteOnExit()
-  private def mutantsFile(testRelPath: RelativePath): File = {
+  private def mutantsFileResolver(testRelPath: RelativePath): File = {
     val testOutputFileStr =
       testRelPath
         .toAbsolute(AbsolutePath(testTempFolder.toJava))
@@ -63,7 +63,7 @@ class RuleSuite extends SemanticRuleSuite() {
     outputFolder.createDirectories()
     outputFolder / "mutants"
   }
-  private def mutantsFileExpected(testRelPath: RelativePath): File = {
+  private def mutantsExpectedFileResolver(testRelPath: RelativePath): File = {
     props.outputSourceDirectories
       .map { outputFolder => File(outputFolder.toNIO) / ".." / "resources" }
       .find(_.exists) match {
@@ -98,7 +98,8 @@ class RuleSuite extends SemanticRuleSuite() {
         }
 
         def replaceMutantsInputFile(text: String): String = {
-          val path = mutantsFile(ruleTest.path.testPath).toString.replace("\\", "\\\\") // windows
+          val path =
+            mutantsFileResolver(ruleTest.path.testPath).toString.replace("\\", "\\\\") // windows
           text.replaceAllLiterally(
             "Blinky.mutantsOutputFile = ???",
             s"""Blinky.mutantsOutputFile = "$path""""
@@ -127,18 +128,18 @@ class RuleSuite extends SemanticRuleSuite() {
       evaluateTestBody(testData.ruleTest)
     }
 
-    test(testData.ruleTest.path.testName + " (mutants file)") {
-      val mutantOutputFile: File = mutantsFile(testData.ruleTest.path.testPath)
-      if (mutantOutputFile.exists) {
-        val mutantExpected = mutantsFileExpected(testData.ruleTest.path.testPath)
+    val mutantsExpectedFile = mutantsExpectedFileResolver(testData.ruleTest.path.testPath)
+    if (mutantsExpectedFile.exists) {
+      test(testData.ruleTest.path.testName + " (mutants file)") {
+        val mutantsFile: File = mutantsFileResolver(testData.ruleTest.path.testPath)
 
-        if (mutantOutputFile.isSameContentAs(mutantExpected))
+        if (mutantsFile.isSameContentAs(mutantsExpectedFile))
           succeed
         else {
           println(s"""Actual:
-                     |${mutantOutputFile.contentAsString}
+                     |${mutantsFile.contentAsString}
                      |Expected:
-                     |${mutantExpected.contentAsString}
+                     |${mutantsExpectedFile.contentAsString}
                      |""".stripMargin)
           fail("Files mismatch, see above")
         }
