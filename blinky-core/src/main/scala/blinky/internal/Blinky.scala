@@ -121,8 +121,18 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       fileName +:
         addLineNumbers(
           pos.startLine,
-          input.substring(startDiffBefore, endDiffBefore).split("\n").toList.map("-" + _),
-          mutatedInput.substring(startDiffAfter, endDiffAfter).split("\n").toList.map("+" + _)
+          input
+            .substring(startDiffBefore, endDiffBefore)
+            .split("\n")
+            .map(_.stripSuffix("\r"))
+            .toList
+            .map("-" + _),
+          mutatedInput
+            .substring(startDiffAfter, endDiffAfter)
+            .split("\n")
+            .map(_.stripSuffix("\r"))
+            .toList
+            .map("+" + _)
         )
 
     Mutant(mutantIndex, diffLines, original, mutated)
