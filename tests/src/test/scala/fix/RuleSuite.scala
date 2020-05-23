@@ -136,12 +136,11 @@ class RuleSuite extends SemanticRuleSuite() {
         if (mutantsFile.lines == mutantsExpectedFile.lines)
           succeed
         else {
-          println(s"""Actual:
-                     |${mutantsFile.contentAsString}
-                     |Expected:
-                     |${mutantsExpectedFile.contentAsString}
-                     |""".stripMargin)
-          fail("Files mismatch, see above")
+          fail(s"""Actual:
+                  |${mutantsFile.contentAsString}
+                  |Expected:
+                  |${mutantsExpectedFile.contentAsString}
+                  |""".stripMargin)
         }
       }
     }
