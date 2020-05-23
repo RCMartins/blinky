@@ -39,7 +39,7 @@ def main(): Unit = {
   val brokenExamples = examples.filter(_._2.exitCode != 0)
 
   if (brokenExamples.nonEmpty) {
-    println("There were broken tests:")
+    Console.err.println("There were broken tests:")
     println(brokenExamples.map { case (path, _) => s"$path" }.mkString("\n"))
     System.exit(1)
   }
