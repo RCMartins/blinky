@@ -1,11 +1,11 @@
 # Blinky
 
-[![Build Status][Badge-Travis]][Link-Travis]
-[![Codacy Badge][Badge-Codacy]][Link-Codacy]
-[![Codacy Badge][Badge-Coverage]][Link-Coverage]
-[![Maven Central][Badge-Release]][Link-Release]
-[![Maven Central][Badge-Snapshot]][Link-Snapshot]
-[![Scala Steward badge][Badge-ScalaSteward]][Link-ScalaSteward]
+[![Build Status][badge-travis]][link-travis]
+[![Codacy Badge][badge-codacy]][link-codacy]
+[![Codacy Badge][badge-coverage]][link-coverage]
+[![Maven Central][badge-release]][link-release]
+[![Maven Central][badge-snapshot]][link-snapshot]
+[![Scala Steward badge][badge-scalasteward]][link-scalasteward]
 
 Mutation testing is a type of software testing where we mutate (change) certain expressions in the source code 
 and check if the test cases are able to find the errors.
@@ -33,14 +33,14 @@ data of all files that we want to mutate.
 
 _Blinky_ will automatically add semanticdb in your sbt project.
 At the moment this is a limitation that only allows the following scalaVersions:
-* 2.13.2
-* 2.13.1
-* 2.13.0
-* 2.12.11 (fully tested)
-* 2.12.10
-* 2.12.9
-* 2.12.8
-* 2.11.12
+  * 2.13.2
+  * 2.13.1
+  * 2.13.0
+  * 2.12.11 (fully tested)
+  * 2.12.10
+  * 2.12.9
+  * 2.12.8
+  * 2.11.12
 
 SBT has to be >= **1.3.4**
 
@@ -60,9 +60,9 @@ options = {
 
 Next, launch _Blinky_ (it will use .blinky.conf file by default)
 
-Last stable release: [![Maven Central][Badge-Release]][Link-Release]
+Last stable release: [![Maven Central][badge-release]][link-release]
 
-Last unstable release: [![Maven Central][Badge-Snapshot]][Link-Snapshot]
+Last unstable release: [![Maven Central][badge-snapshot]][link-snapshot]
 ```
 coursier launch com.github.rcmartins:blinky-cli_2.12:0.2.1 --main blinky.cli.Cli
 ```
@@ -583,16 +583,16 @@ example mutation 2:
 + val value = Try(0)
 ```
 
-[Badge-Travis]: https://travis-ci.com/RCMartins/blinky.svg?branch=master "build"
-[Badge-Codacy]: https://api.codacy.com/project/badge/Grade/9bc5c989d1464a6ca94da021ee43d8f6 "codacy"
-[Badge-Coverage]: https://api.codacy.com/project/badge/Coverage/9bc5c989d1464a6ca94da021ee43d8f6 "coverage"
-[Badge-Release]: https://img.shields.io/maven-central/v/com.github.rcmartins/blinky_2.12.svg?label=Maven%20Central "release"
-[Badge-Snapshot]: https://img.shields.io/nexus/s/com.github.rcmartins/blinky-cli_2.12?server=https%3A%2F%2Foss.sonatype.org "snapshot"
-[Badge-ScalaSteward]: https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII= "scala steward"
+[badge-travis]: https://travis-ci.com/rcmartins/blinky.svg?branch=master "build"
+[badge-codacy]: https://api.codacy.com/project/badge/grade/9bc5c989d1464a6ca94da021ee43d8f6 "codacy"
+[badge-coverage]: https://api.codacy.com/project/badge/coverage/9bc5c989d1464a6ca94da021ee43d8f6 "coverage"
+[badge-release]: https://img.shields.io/maven-central/v/com.github.rcmartins/blinky_2.12.svg?label=maven%20central "release"
+[badge-snapshot]: https://img.shields.io/nexus/s/com.github.rcmartins/blinky-cli_2.12?server=https%3a%2f%2foss.sonatype.org "snapshot"
+[badge-scalasteward]: https://img.shields.io/badge/scala_steward-helping-blue.svg?style=flat&logo=data:image/png;base64,ivborw0kggoaaaansuheugaaaa4aaaaqcamaaaarsr4iaaaavfbmveuaaachjojloy5nwlrkzcyrkjgfjibp293yycula3pyy2lsqql4f3pcuftgsjnodyrmcxuspd/nttbjrs+2jomhgnznc223cgvzs0hasd0xljbasjelhir+aaaaaxrstlmaqobyzgaaahljrefucndnyosowyaihwhaqs1vt7a77/3fcxxdmv0xwmckutar1nkm4ggbyecg/wwmlgldaa3ol50xi6fk5ffz3e2e3qfzdcccn2ytbewzt+drc6u6rlqv7uk0ldkqqr5rk2ucrxok0vmqkgfc94nojyqjouf9h/wcc9geceyfonoaaaaasuvork5cyii= "scala steward"
 
-[Link-Travis]: https://travis-ci.com/RCMartins/blinky "build"
-[Link-Codacy]: https://www.codacy.com/manual/RCMartins/blinky?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RCMartins/blinky&amp;utm_campaign=Badge_Grade "codacy"
-[Link-Coverage]: https://www.codacy.com/manual/RCMartins/blinky?utm_source=github.com&utm_medium=referral&utm_content=RCMartins/blinky&utm_campaign=Badge_Coverage "coverage"
-[Link-Release]: https://search.maven.org/search?q=g:%22com.github.rcmartins%22%20AND%20a:%22blinky_2.12%22 "release"
-[Link-Snapshot]: https://oss.sonatype.org/content/repositories/snapshots/com/github/rcmartins/blinky-cli_2.12 "snapshot"
-[Link-ScalaSteward]: https://scala-steward.org "scala steward"
+[link-travis]: https://travis-ci.com/rcmartins/blinky "build"
+[link-codacy]: https://www.codacy.com/manual/rcmartins/blinky?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rcmartins/blinky&amp;utm_campaign=badge_grade "codacy"
+[link-coverage]: https://www.codacy.com/manual/rcmartins/blinky?utm_source=github.com&utm_medium=referral&utm_content=rcmartins/blinky&utm_campaign=badge_coverage "coverage"
+[link-release]: https://search.maven.org/search?q=g:%22com.github.rcmartins%22%20and%20a:%22blinky_2.12%22 "release"
+[link-snapshot]: https://oss.sonatype.org/content/repositories/snapshots/com/github/rcmartins/blinky-cli_2.12 "snapshot"
+[link-scalasteward]: https://scala-steward.org "scala steward"
