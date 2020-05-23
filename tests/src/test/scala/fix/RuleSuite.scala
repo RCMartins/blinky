@@ -133,7 +133,7 @@ class RuleSuite extends SemanticRuleSuite() {
       test(testData.ruleTest.path.testName + " (mutants file)") {
         val mutantsFile: File = mutantsFileResolver(testData.ruleTest.path.testPath)
 
-        if (mutantsFile.lines == mutantsExpectedFile.lines)
+        if (mutantsFile.isSimilarContentAs(mutantsExpectedFile))
           succeed
         else {
           fail(s"""Actual:
