@@ -7,7 +7,7 @@ def main(confPath: Path): Unit = {
   val versionNumber = publishLocalBlinky()
 
   %(
-    "coursier",
+    "cs",
     "launch",
     s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
     "--main",

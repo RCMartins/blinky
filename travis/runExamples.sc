@@ -22,7 +22,7 @@ def main(): Unit = {
 
         val confPath = examplePath / ".blinky.conf"
         val result = %%(
-          "coursier",
+          "cs",
           "launch",
           s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
           "--main",
