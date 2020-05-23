@@ -12,7 +12,8 @@ case class OptionsConfig(
     testCommand: String,
     maxRunningTime: Duration,
     failOnMinimum: Boolean,
-    mutationMinimum: Double
+    mutationMinimum: Double,
+    onlyMutateDiff: Boolean
 )
 
 object OptionsConfig {
@@ -23,7 +24,8 @@ object OptionsConfig {
     testCommand = "",
     maxRunningTime = 60.minutes,
     failOnMinimum = false,
-    mutationMinimum = 25.0
+    mutationMinimum = 25.0,
+    onlyMutateDiff = false
   )
 
   implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.instance[Duration] {

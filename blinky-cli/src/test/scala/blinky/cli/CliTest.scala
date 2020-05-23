@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 
 import blinky.BuildInfo
 import blinky.BuildInfo.version
-import blinky.run.{MutationsConfig, OptionsConfig}
+import blinky.run.{MutationsConfig, OptionsConfig, SimpleBlinkyConfig}
 import blinky.v0.{BlinkyConfig, Mutators}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -48,6 +48,7 @@ class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedC
              |  --compileCommand <cmd>   The compile command to be executed by sbt/bloop before the first run
              |  --testCommand <cmd>      The test command to be executed by sbt/bloop
              |  --verbose <bool>         If set, prints out debug information. Defaults to false
+             |  --onlyMutateDiff <bool>  If set, only mutate added and edited files in git diff against the master branch.
              |""".stripMargin
       }
 
@@ -63,11 +64,9 @@ class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedC
           projectName = "",
           filesToMutate = "src/main/scala",
           filesToExclude = "",
-          conf = BlinkyConfig(
-            projectPath = "",
-            mutatorsPath = "",
-            enabledMutators = Mutators.all,
-            disabledMutators = Mutators(Nil)
+          mutators = SimpleBlinkyConfig(
+            enabled = Mutators.all,
+            disabled = Mutators(Nil)
           ),
           options = OptionsConfig(
             verbose = false,
@@ -76,7 +75,8 @@ class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedC
             testCommand = "",
             maxRunningTime = 60.minutes,
             failOnMinimum = false,
-            mutationMinimum = 25.0
+            mutationMinimum = 25.0,
+            onlyMutateDiff = false
           )
         )
       }
@@ -95,7 +95,8 @@ class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedC
           testCommand = "",
           maxRunningTime = 10.minutes,
           failOnMinimum = true,
-          mutationMinimum = 66.7
+          mutationMinimum = 66.7,
+          onlyMutateDiff = false
         )
       }
 
@@ -129,6 +130,8 @@ class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedC
           "--filesToExclude",
           "src/main/scala/Utils.scala",
           "--verbose",
+          "true",
+          "--onlyMutateDiff",
           "true"
         )
 
@@ -144,6 +147,7 @@ class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedC
         mutationsConfig.options.compileCommand mustEqual "example2"
         mutationsConfig.options.testCommand mustEqual "example2"
         mutationsConfig.options.verbose mustEqual true
+        mutationsConfig.options.onlyMutateDiff mustEqual true
       }
 
     }

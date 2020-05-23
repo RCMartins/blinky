@@ -1,5 +1,6 @@
 /*
 rule = Blinky
+Blinky.filesToMutate = [all]
  */
 package test
 

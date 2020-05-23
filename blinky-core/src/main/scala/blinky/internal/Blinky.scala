@@ -13,12 +13,17 @@ import scala.meta.inputs.Input.VirtualFile
 
 class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
   private val mutationId: AtomicInteger = new AtomicInteger(1)
-  private val mutationsPathOption: Option[File] =
-    if (config.mutatorsPath.nonEmpty) Some(File(config.mutatorsPath))
-    else if (config.projectPath.nonEmpty) Some(File(config.projectPath))
-    else None
+  private val mutantsOutputFileOpt: Option[File] =
+    Some(config.mutantsOutputFile).filter(_.nonEmpty).map(File(_))
+  mutantsOutputFileOpt.foreach(_.createFile())
 
   private def nextIndex: Int = mutationId.getAndIncrement()
+
+  private val fileShouldBeMutated: String => Boolean =
+    if (config.filesToMutate == Seq("all"))
+      (_: String) => true
+    else
+      config.filesToMutate.toSet
 
   def this() = this(BlinkyConfig.default)
 
@@ -36,43 +41,47 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
         case _                    => ""
       }
 
-    def createPatch(
-        mutantSeq: Seq[Mutant],
-        needsParens: Boolean
-    ): Option[(Patch, Seq[Mutant])] = {
-      mutantSeq match {
-        case Mutant(_, _, original, _, _) +: _ =>
-          val (_, mutatedStr) =
-            mutantSeq.map(mutant => (mutant.id, mutant.mutated)).foldRight((0, original)) {
-              case ((id, mutatedTerm), (_, originalTerm)) =>
-                val mutantId = Lit.String(s"SCALA_MUTATION_$id")
-                val result =
-                  q"""if (_root_.scala.sys.env.contains($mutantId)) ($mutatedTerm) else ($originalTerm)"""
-                (0, result)
-            }
+    if (!fileShouldBeMutated(fileName))
+      Patch.empty
+    else {
+      def createPatch(
+          mutantSeq: Seq[Mutant],
+          needsParens: Boolean
+      ): Option[(Patch, Seq[Mutant])] = {
+        mutantSeq match {
+          case Mutant(_, _, original, _) +: _ =>
+            val (_, mutatedStr) =
+              mutantSeq.map(mutant => (mutant.id, mutant.mutated)).foldRight((0, original)) {
+                case ((id, mutatedTerm), (_, originalTerm)) =>
+                  val mutantId = Lit.String(s"SCALA_MUTATION_$id")
+                  val result =
+                    q"""if (_root_.scala.sys.env.contains($mutantId)) ($mutatedTerm) else ($originalTerm)"""
+                  (0, result)
+              }
 
-          val finalSyntax = if (needsParens) "(" + mutatedStr.syntax + ")" else mutatedStr.syntax
-          Some(Patch.replaceTree(original, finalSyntax), mutantSeq)
-        case _ =>
-          None
-      }
-    }
-
-    val (finalPatch, mutantsFound): (Seq[Patch], Seq[Seq[Mutant]]) =
-      findMutations
-        .topTreeMutations(doc.tree)
-        .flatMap {
-          case (original, MutatedTerms(mutationsFound, needsParens)) =>
-            val mutantSeq =
-              mutationsFound
-                .filterNot(_.syntax == original.syntax)
-                .map(mutated => createMutant(original, mutated, fileName))
-            createPatch(mutantSeq, needsParens = needsParens)
+            val finalSyntax = if (needsParens) "(" + mutatedStr.syntax + ")" else mutatedStr.syntax
+            Some(Patch.replaceTree(original, finalSyntax), mutantSeq)
+          case _ =>
+            None
         }
-        .unzip
+      }
 
-    saveNewMutantsToFile(mutantsFound.flatten)
-    finalPatch.asPatch
+      val (finalPatch, mutantsFound): (Seq[Patch], Seq[Seq[Mutant]]) =
+        findMutations
+          .topTreeMutations(doc.tree)
+          .flatMap {
+            case (original, MutatedTerms(mutationsFound, needsParens)) =>
+              val mutantSeq =
+                mutationsFound
+                  .filterNot(_.syntax == original.syntax)
+                  .map(mutated => createMutant(original, mutated, fileName))
+              createPatch(mutantSeq, needsParens = needsParens)
+          }
+          .unzip
+
+      saveNewMutantsToFile(mutantsFound.flatten)
+      finalPatch.asPatch
+    }
   }
 
   def createMutant(original: Term, mutated: Term, fileName: String): Mutant = {
@@ -120,10 +129,10 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
   }
 
   def saveNewMutantsToFile(mutantsFound: Seq[Mutant]): Unit = {
-    mutationsPathOption.foreach { mutatorsPath =>
-      if (mutantsFound.nonEmpty) {
+    if (mutantsFound.nonEmpty) {
+      mutantsOutputFileOpt.foreach { mutantsOutputFile =>
         val jsonMutationReport = mutantsFound.map(Json.toJson(_)).mkString("", "\n", "\n")
-        (mutatorsPath / "mutations.json").append(jsonMutationReport)
+        mutantsOutputFile.append(jsonMutationReport)
       }
     }
   }

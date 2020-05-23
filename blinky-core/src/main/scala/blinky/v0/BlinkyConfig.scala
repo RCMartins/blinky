@@ -4,8 +4,8 @@ import metaconfig.generic.Surface
 import metaconfig.{Conf, ConfDecoder, ConfEncoder, generic}
 
 case class BlinkyConfig(
-    projectPath: String,
-    mutatorsPath: String,
+    mutantsOutputFile: String,
+    filesToMutate: Seq[String],
     enabledMutators: Mutators,
     disabledMutators: Mutators
 ) {
@@ -15,8 +15,8 @@ case class BlinkyConfig(
 
 object BlinkyConfig {
   val default: BlinkyConfig = BlinkyConfig(
-    projectPath = "",
-    mutatorsPath = "",
+    mutantsOutputFile = "",
+    filesToMutate = Seq.empty,
     enabledMutators = Mutators.all,
     disabledMutators = Mutators(Nil)
   )
@@ -29,6 +29,4 @@ object BlinkyConfig {
     generic.deriveSurface[BlinkyConfig]
   implicit val decoder: ConfDecoder[BlinkyConfig] =
     generic.deriveDecoder(default)
-  implicit val blinkyConfigEncoder: ConfEncoder[BlinkyConfig] =
-    generic.deriveEncoder[BlinkyConfig]
 }

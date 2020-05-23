@@ -8,6 +8,7 @@ before_install:
 before_script:
   - shopt -s expand_aliases
   - alias sbt="sbt -Dsbt.color=always"
+  - export PATH="$PATH:$HOME/bin:$HOME/.local/share/coursier/bin"
 jobs:
   include:
     - stage: testing
@@ -29,17 +30,17 @@ jobs:
     - name: mutation testing core
       if: type = pull_request
       script:
-        - source travis/setup.sh && amm travis/runCurrentVersion.sc "travis/core.blinky.conf"
+        - ./travis/setup.sh && amm travis/runCurrentVersion.sc "travis/core.blinky.conf"
 
     - name: mutation testing cli
       if: type = pull_request
       script:
-        - source travis/setup.sh && amm travis/runCurrentVersion.sc "travis/cli.blinky.conf"
+        - ./travis/setup.sh && amm travis/runCurrentVersion.sc "travis/cli.blinky.conf"
 
     - name: mutation testing examples
       if: type = pull_request
       script:
-        - source travis/setup.sh && amm travis/runExamples.sc
+        - ./travis/setup.sh && amm travis/runExamples.sc
 
     - stage: release
       name: release

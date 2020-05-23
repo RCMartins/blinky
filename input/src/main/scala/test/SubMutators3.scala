@@ -1,5 +1,6 @@
 /*
 rule = Blinky
+Blinky.filesToMutate = [all]
 Blinky.enabledMutators = [
   { ConditionalExpressions = [AndToOr, OrToAnd, RemoveUnaryNot] }
   { LiteralStrings = [EmptyToMutated, NonEmptyToMutated, ConcatToMutated] }
