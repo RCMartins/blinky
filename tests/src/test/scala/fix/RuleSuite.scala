@@ -1,26 +1,85 @@
 package fix
 
+import java.io.{File => JFile}
 import java.nio.file.Files
 
-import scalafix.testkit.SemanticRuleSuite
+import better.files._
+import scalafix.testkit.{RuleTest, SemanticRuleSuite}
 
-import scala.meta.io.AbsolutePath
+import scala.meta.io.{AbsolutePath, RelativePath}
 
 class RuleSuite extends SemanticRuleSuite() {
-  val outputFiles: Map[AbsolutePath, String] = testsToRun.flatMap { test =>
-    test.path.resolveOutput(props) match {
-      case Right(path) =>
-        val source = new String(path.readAllBytes)
-        Some(path -> source)
-      case Left(_) =>
-        None
+
+  private val only: Option[String] =
+//    Some("All1") // << to run only one test
+    None
+
+  private case class TestData(
+      ruleTest: RuleTest,
+      inputPath: AbsolutePath,
+      outputPath: AbsolutePath,
+      inputSource: String,
+      outputSource: String
+  )
+
+  private val testsData: Seq[TestData] = {
+    val rulesTest: List[RuleTest] =
+      only match {
+        case Some(file) =>
+          testsToRun
+            .filter(_.path.testPath.toNIO.getFileName.toString.stripSuffix(".scala") == file)
+        case None =>
+          testsToRun
+      }
+
+    rulesTest.flatMap { ruleTest =>
+      ruleTest.path.resolveOutput(props) match {
+        case Right(outputPath) =>
+          val inputSource = new String(ruleTest.path.input.readAllBytes)
+          val outputSource = new String(outputPath.readAllBytes)
+          Some(
+            TestData(
+              ruleTest,
+              ruleTest.path.input,
+              outputPath,
+              inputSource,
+              outputSource
+            )
+          )
+        case Left(_) =>
+          None
+      }
     }
-  }.toMap
+  }
+
+  private val testTempFolder: File = File.newTemporaryDirectory().deleteOnExit()
+  private def mutantsFile(testRelPath: RelativePath): File = {
+    val testOutputFileStr =
+      testRelPath
+        .toAbsolute(AbsolutePath(testTempFolder.toJava))
+        .toString
+    val outputFolder: File =
+      File(testOutputFileStr.substring(0, testOutputFileStr.lastIndexOf(".")))
+    outputFolder.createDirectories()
+    outputFolder / "mutants"
+  }
+  private def mutantsFileExpected(testRelPath: RelativePath): File = {
+    props.outputSourceDirectories
+      .map { outputFolder => File(outputFolder.toNIO) / ".." / "resources" }
+      .find(_.exists) match {
+      case None =>
+        fail(s".mutants file was expected to exist in resources folder for '$testRelPath'")
+      case Some(path: File) =>
+        File(
+          path.toString + JFile.separator + testRelPath.toString.replace("scala", "mutants")
+        )
+    }
+  }
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    outputFiles.foreach {
-      case (path, source) =>
+    testsData.foreach {
+      case TestData(ruleTest, inputPath, outputPath, inputSource, outputSource) =>
         def replacedQuestionMarks(before: String, id: Int): String = {
           val after =
             before.replaceFirst(
@@ -38,31 +97,53 @@ class RuleSuite extends SemanticRuleSuite() {
           "//\n".r.replaceAllIn(replaced1, "")
         }
 
-        val sourceReplaced = replaceLongLines(replacedQuestionMarks(source, 1))
-        Files.write(path.toNIO, sourceReplaced.getBytes)
+        def replaceMutantsInputFile(text: String): String = {
+          val path = mutantsFile(ruleTest.path.testPath).toString.replace("\\", "\\\\") // windows
+          text.replaceAllLiterally(
+            "Blinky.mutantsOutputFile = ???",
+            s"""Blinky.mutantsOutputFile = "$path""""
+          )
+        }
+
+        val inputSourceReplaced = replaceMutantsInputFile(inputSource)
+        Files.write(inputPath.toNIO, inputSourceReplaced.getBytes)
+
+        val outputSourceReplaced = replaceLongLines(replacedQuestionMarks(outputSource, 1))
+        Files.write(outputPath.toNIO, outputSourceReplaced.getBytes)
     }
   }
 
   override def afterAll(): Unit = {
     super.afterAll()
-    outputFiles.foreach {
-      case (path, source) =>
-        Files.write(path.toNIO, source.getBytes)
+    testsData.foreach {
+      case TestData(_, inputPath, outputPath, inputSource, outputSource) =>
+        Files.write(inputPath.toNIO, inputSource.getBytes)
+        Files.write(outputPath.toNIO, outputSource.getBytes)
     }
   }
 
-  val only: Option[String] =
-    //Some("Playground") // << to run only one test
-    None
+  testsData.foreach { testData =>
+    test(testData.ruleTest.path.testName) {
+      evaluateTestBody(testData.ruleTest)
+    }
 
-  def testOnly(file: String): Unit = {
-    testsToRun
-      .filter(_.path.testPath.toNIO.getFileName.toString.stripSuffix(".scala") == file)
-      .foreach(runOn)
+    test(testData.ruleTest.path.testName + " (mutants file)") {
+      val mutantOutputFile: File = mutantsFile(testData.ruleTest.path.testPath)
+      if (mutantOutputFile.exists) {
+        val mutantExpected = mutantsFileExpected(testData.ruleTest.path.testPath)
+
+        if (mutantOutputFile.isSameContentAs(mutantExpected))
+          succeed
+        else {
+          println(s"""Actual:
+                     |${mutantOutputFile.contentAsString}
+                     |Expected:
+                     |${mutantExpected.contentAsString}
+                     |""".stripMargin)
+          fail("Files mismatch, see above")
+        }
+      }
+    }
   }
 
-  only match {
-    case Some(file) => testOnly(file)
-    case None       => runAllTests()
-  }
 }

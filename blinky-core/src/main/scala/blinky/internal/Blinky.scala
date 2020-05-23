@@ -15,7 +15,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
   private val mutationId: AtomicInteger = new AtomicInteger(1)
   private val mutantsOutputFileOpt: Option[File] =
     Some(config.mutantsOutputFile).filter(_.nonEmpty).map(File(_))
-  mutantsOutputFileOpt.foreach(_.createFile())
+  mutantsOutputFileOpt.foreach(_.createFileIfNotExists())
 
   private def nextIndex: Int = mutationId.getAndIncrement()
 
