@@ -15,7 +15,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
   private val mutationId: AtomicInteger = new AtomicInteger(1)
   private val mutantsOutputFileOpt: Option[File] =
     Some(config.mutantsOutputFile).filter(_.nonEmpty).map(File(_))
-  mutantsOutputFileOpt.foreach(_.createFile())
+  mutantsOutputFileOpt.foreach(_.createFileIfNotExists())
 
   private def nextIndex: Int = mutationId.getAndIncrement()
 
@@ -121,8 +121,18 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       fileName +:
         addLineNumbers(
           pos.startLine,
-          input.substring(startDiffBefore, endDiffBefore).split("\n").toList.map("-" + _),
-          mutatedInput.substring(startDiffAfter, endDiffAfter).split("\n").toList.map("+" + _)
+          input
+            .substring(startDiffBefore, endDiffBefore)
+            .split("\n")
+            .map(_.stripSuffix("\r"))
+            .toList
+            .map("-" + _),
+          mutatedInput
+            .substring(startDiffAfter, endDiffAfter)
+            .split("\n")
+            .map(_.stripSuffix("\r"))
+            .toList
+            .map("+" + _)
         )
 
     Mutant(mutantIndex, diffLines, original, mutated)

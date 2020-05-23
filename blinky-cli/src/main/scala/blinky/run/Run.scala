@@ -115,7 +115,7 @@ object Run {
     // Setup BlinkyConfig object
     val blinkyConf: BlinkyConfig =
       BlinkyConfig(
-        mutantsOutputFile = (mutatedProjectPath / "mutants.blinky").toString,
+        mutantsOutputFile = (mutatedProjectPath / "blinky.mutants").toString,
         filesToMutate = filesToMutate,
         enabledMutators = config.mutators.enabled,
         disabledMutators = config.mutators.disabled

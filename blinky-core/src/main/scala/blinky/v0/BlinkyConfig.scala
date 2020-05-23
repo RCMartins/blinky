@@ -28,5 +28,5 @@ object BlinkyConfig {
   implicit val surface: Surface[BlinkyConfig] =
     generic.deriveSurface[BlinkyConfig]
   implicit val decoder: ConfDecoder[BlinkyConfig] =
-    generic.deriveDecoder(default)
+    generic.deriveDecoder(default).noTypos
 }
