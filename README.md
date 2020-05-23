@@ -5,7 +5,7 @@
 [![Codacy Badge][badge-coverage]][link-coverage]
 [![Maven Central][badge-release]][link-release]
 [![Maven Central][badge-snapshot]][link-snapshot]
-[![Scala Steward badge][badge-scalasteward]][link-scalasteward]
+[![Scala Steward Badge][badge-scalasteward]][link-scalasteward]
 
 Mutation testing is a type of software testing where we mutate (change) certain expressions in the source code 
 and check if the test cases are able to find the errors.
@@ -588,7 +588,7 @@ example mutation 2:
 [badge-coverage]: https://api.codacy.com/project/badge/coverage/9bc5c989d1464a6ca94da021ee43d8f6 "coverage"
 [badge-release]: https://img.shields.io/maven-central/v/com.github.rcmartins/blinky_2.12.svg?label=maven%20central "release"
 [badge-snapshot]: https://img.shields.io/nexus/s/com.github.rcmartins/blinky-cli_2.12?server=https%3a%2f%2foss.sonatype.org "snapshot"
-[badge-scalasteward]: https://img.shields.io/badge/scala_steward-helping-blue.svg?style=flat&logo=data:image/png;base64,ivborw0kggoaaaansuheugaaaa4aaaaqcamaaaarsr4iaaaavfbmveuaaachjojloy5nwlrkzcyrkjgfjibp293yycula3pyy2lsqql4f3pcuftgsjnodyrmcxuspd/nttbjrs+2jomhgnznc223cgvzs0hasd0xljbasjelhir+aaaaaxrstlmaqobyzgaaahljrefucndnyosowyaihwhaqs1vt7a77/3fcxxdmv0xwmckutar1nkm4ggbyecg/wwmlgldaa3ol50xi6fk5ffz3e2e3qfzdcccn2ytbewzt+drc6u6rlqv7uk0ldkqqr5rk2ucrxok0vmqkgfc94nojyqjouf9h/wcc9geceyfonoaaaaasuvork5cyii= "scala steward"
+[badge-scalasteward]: https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII= "scala steward"
 
 [link-travis]: https://travis-ci.com/rcmartins/blinky "build"
 [link-codacy]: https://www.codacy.com/manual/rcmartins/blinky?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rcmartins/blinky&amp;utm_campaign=badge_grade "codacy"
