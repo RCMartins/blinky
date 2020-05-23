@@ -29,23 +29,17 @@ jobs:
     - name: mutation testing core
       if: type = pull_request
       script:
-        - export PATH="$PATH:$(pwd)/bin:$HOME/.local/share/coursier/bin"
-        - coursier setup --apps ammonite,bloop --yes
-        - amm travis/runCurrentVersion.sc "travis/core.blinky.conf"
+        - source travis/setup.sh && amm travis/runCurrentVersion.sc "travis/core.blinky.conf"
 
     - name: mutation testing cli
       if: type = pull_request
       script:
-        - export PATH="$PATH:$(pwd)/bin:$HOME/.local/share/coursier/bin"
-        - coursier setup --apps ammonite,bloop --yes
-        - amm travis/runCurrentVersion.sc "travis/cli.blinky.conf"
+        - source travis/setup.sh && amm travis/runCurrentVersion.sc "travis/cli.blinky.conf"
 
     - name: mutation testing examples
       if: type = pull_request
       script:
-        - export PATH="$PATH:$(pwd)/bin:$HOME/.local/share/coursier/bin"
-        - coursier setup --apps ammonite,bloop --yes
-        - amm travis/runExamples.sc
+        - source travis/setup.sh && amm travis/runExamples.sc
 
     - stage: release
       name: release
