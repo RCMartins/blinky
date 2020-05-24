@@ -30,7 +30,12 @@ class UtilsTest extends TestSpec {
 
   "prettyDiff" should {
 
-    def testPrettyDiff(diffLinesStr: String, filePath: String, color: Boolean): String =
+    def testPrettyDiff(
+        diffLinesStr: String,
+        fileName: String,
+        projectPath: String,
+        color: Boolean
+    ): String =
       Utils.prettyDiff(
         diffLinesStr
           .split("\n")
@@ -39,14 +44,14 @@ class UtilsTest extends TestSpec {
             case line => line
           }
           .mkString("\n"),
-        filePath,
+        fileName,
+        projectPath,
         color
       )
 
     "return the raw 'git diff' output with line numbers with color on" in {
       val original =
-        """/home/user/blinky/input/src/main/scala/test/GeneralSyntax4.scala
-          |@@ -8,7 +8,7 @@ package test
+        """@@ -8,7 +8,7 @@ package test
           | object GeneralSyntax4 {
           |   case class Foo(value1: Int, value2: Int)(value3: Int, value4: Int)
           |
@@ -59,6 +64,7 @@ class UtilsTest extends TestSpec {
       val actual =
         testPrettyDiff(
           original,
+          "/home/user/blinky/input/src/main/scala/test/GeneralSyntax4.scala",
           "/home/user/blinky",
           color = true
         ).replace("\r", "")
@@ -83,8 +89,7 @@ class UtilsTest extends TestSpec {
 
     "return the raw 'git diff' output with line numbers with color off" in {
       val original =
-        """/home/user/blinky/input/src/main/scala/test/ScalaOptions.scala
-          |@@ -9,7 +9,7 @@ object ScalaOptions {
+        """@@ -9,7 +9,7 @@ object ScalaOptions {
           |   val op: Option[String] = Some("string")
           |   val op1 = op.getOrElse("")
           |   val op2 = op.exists(str => str.startsWith("str"))
@@ -98,6 +103,7 @@ class UtilsTest extends TestSpec {
       val actual =
         testPrettyDiff(
           original,
+          "/home/user/blinky/input/src/main/scala/test/ScalaOptions.scala",
           "/home/user/blinky",
           color = false
         ).replace("\r", "")

@@ -13,8 +13,13 @@ object Utils {
     if (pos == -1) string else string.substring(pos + pathPrefix.length)
   }
 
-  def prettyDiff(diffLinesStr: String, projectPath: String, color: Boolean): String = {
-    val fileName :: header :: diffLines = diffLinesStr.split("\n").toList
+  def prettyDiff(
+      diffLinesStr: String,
+      fileName: String,
+      projectPath: String,
+      color: Boolean
+  ): String = {
+    val header :: diffLines = diffLinesStr.split("\n").toList
     val startLineMinus: Int =
       header.substring(header.indexOf("@@") + 4, header.indexOf(",")).toInt
     val totalLines: Int = diffLines.size

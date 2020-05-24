@@ -51,7 +51,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
           needsParens: Boolean
       ): Option[(Patch, Seq[Mutant])] = {
         mutantSeq match {
-          case Mutant(_, _, original, _) +: _ =>
+          case Mutant(_, _, _, original, _) +: _ =>
             val (_, mutatedStr) =
               mutantSeq.map(mutant => (mutant.id, mutant.mutated)).foldRight((0, original)) {
                 case ((id, mutatedTerm), (_, originalTerm)) =>
@@ -114,7 +114,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
             .drop(5)
             .mkString("\n")
 
-        Mutant(nextIndex, fileName + "\n" + gitDiff, original, mutated)
+        Mutant(nextIndex, gitDiff, fileName, original, mutated)
       }
     }
   }
