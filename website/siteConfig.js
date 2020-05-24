@@ -1,10 +1,10 @@
 const repoUrl = "https://github.com/rcmartins/blinky";
 
 const siteConfig = {
-  title: 'Blinky', // Title for your website.
+  title: 'Blinky',
   tagline: 'Semantic mutation testing for Scala',
-  url: 'https://rcmartins.github.io', // Your website URL
-  baseUrl: '/blinky/', // Base URL for your project
+  url: 'https://rcmartins.github.io',
+  baseUrl: '/blinky/',
 
   customDocsPath: "blinky-docs/target/docs",
 
@@ -12,7 +12,6 @@ const siteConfig = {
   projectName: 'blinky',
   organizationName: 'rcmartins',
 
-  // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
     { doc: "installation", label: "Docs" },
     { href: repoUrl, label: "GitHub", external: true }
@@ -40,19 +39,8 @@ const siteConfig = {
   // No .html extensions for paths.
   cleanUrl: true,
 
-  // Open Graph and Twitter card images.
-  //ogImage: 'img/undraw_online.svg',
-  //twitterImage: 'img/undraw_tweetstorm.svg',
-
-  // Show documentation's last contributor's name.
-  // enableUpdateBy: true,
-
   // Show documentation's last update time.
   enableUpdateTime: true,
-
-  // You may provide arbitrary config keys to be used as needed by your
-  // template. For example, if you need your repo's URL...
-  //   repoUrl: 'https://github.com/facebook/test-site',
 };
 
 module.exports = siteConfig;
