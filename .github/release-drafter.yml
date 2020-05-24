@@ -6,6 +6,9 @@ categories:
   - title: '🐛 Bug Fixes'
     labels:
       - 'bug'
+  - title: '📄 Documentation'
+    labels:
+      - 'docs'
   - title: '🧰 Maintenance'
     label: 'chore'
 
