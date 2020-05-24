@@ -71,7 +71,7 @@ class RuleSuite extends SemanticRuleSuite() {
         fail(s".mutants file was expected to exist in resources folder for '$testRelPath'")
       case Some(path: File) =>
         File(
-          path.toString + JFile.separator + testRelPath.toString.replace("scala", "mutants")
+          path.toString + JFile.separator + testRelPath.toString.stripSuffix("scala") + "mutants"
         )
     }
   }
@@ -133,7 +133,7 @@ class RuleSuite extends SemanticRuleSuite() {
       test(testData.ruleTest.path.testName + " (mutants file)") {
         val mutantsFile: File = mutantsFileResolver(testData.ruleTest.path.testPath)
 
-        if (mutantsFile.isSimilarContentAs(mutantsExpectedFile))
+        if (mutantsFile.lines == mutantsExpectedFile.lines)
           succeed
         else {
           fail(s"""Actual:

@@ -2,6 +2,7 @@ package blinky.internal
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import ammonite.ops._
 import better.files.File
 import blinky.v0.BlinkyConfig
 import metaconfig.Configured
@@ -10,6 +11,7 @@ import scalafix.v1._
 
 import scala.meta._
 import scala.meta.inputs.Input.VirtualFile
+import scala.util.Try
 
 class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
   private val mutationId: AtomicInteger = new AtomicInteger(1)
@@ -49,7 +51,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
           needsParens: Boolean
       ): Option[(Patch, Seq[Mutant])] = {
         mutantSeq match {
-          case Mutant(_, _, original, _) +: _ =>
+          case Mutant(_, _, _, original, _) +: _ =>
             val (_, mutatedStr) =
               mutantSeq.map(mutant => (mutant.id, mutant.mutated)).foldRight((0, original)) {
                 case ((id, mutatedTerm), (_, originalTerm)) =>
@@ -85,57 +87,36 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
   }
 
   def createMutant(original: Term, mutated: Term, fileName: String): Mutant = {
-    val mutantIndex = nextIndex
     val pos = original.pos
     val input = pos.input.text
-
-    val startDiffBefore = pos.start - pos.startColumn
-    val endDiffBefore = {
-      val p = input.indexOf("\n", pos.end)
-      if (p == -1) input.length else p
-    }
     val mutatedInput = input.substring(0, pos.start) + mutated.syntax + input.substring(pos.end)
-    val startDiffAfter = startDiffBefore
-    val endDiffAfter = {
-      val p = mutatedInput.indexOf("\n", pos.start + mutated.syntax.length)
-      if (p == -1) mutatedInput.length else p
-    }
 
-    def addLineNumbers(
-        startLine: Int,
-        linesBefore: List[String],
-        linesAfter: List[String]
-    ): List[String] = {
-      val fileDiffSize = 1 + Math
-        .log10(startLine + Math.max(linesBefore.size, linesAfter.size))
-        .toInt
-      linesBefore.zipWithIndex.map {
-        case (line, index) => ("%" + fileDiffSize + "d: %s").format(startLine + index + 1, line)
-      } ++
-        linesAfter.zipWithIndex.map {
-          case (line, index) => ("%" + fileDiffSize + "d: %s").format(startLine + index + 1, line)
-        }
-    }
+    File.temporaryFile() { originalFile =>
+      originalFile.writeText(original.pos.input.text)
 
-    val diffLines: List[String] =
-      fileName +:
-        addLineNumbers(
-          pos.startLine,
-          input
-            .substring(startDiffBefore, endDiffBefore)
+      File.temporaryFile() { mutatedFile =>
+        mutatedFile.writeText(mutatedInput)
+
+        val gitDiff =
+          Try(
+            %%(
+              'git,
+              'diff,
+              "--no-index",
+              "--minimal",
+              originalFile.toString,
+              mutatedFile.toString
+            )(
+              pwd
+            )
+          ).failed.get.toString
             .split("\n")
-            .map(_.stripSuffix("\r"))
-            .toList
-            .map("-" + _),
-          mutatedInput
-            .substring(startDiffAfter, endDiffAfter)
-            .split("\n")
-            .map(_.stripSuffix("\r"))
-            .toList
-            .map("+" + _)
-        )
+            .drop(5)
+            .mkString("\n")
 
-    Mutant(mutantIndex, diffLines, original, mutated)
+        Mutant(nextIndex, gitDiff, fileName, original, mutated)
+      }
+    }
   }
 
   def saveNewMutantsToFile(mutantsFound: Seq[Mutant]): Unit = {

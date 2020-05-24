@@ -13,7 +13,7 @@ import scopt.DefaultOParserSetup
 
 import scala.concurrent.duration._
 
-class CliTest extends AnyWordSpec with Matchers with OptionValues with AppendedClues {
+class CliTest extends TestSpec {
 
   "Cli general parsing" when {
 

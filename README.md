@@ -63,7 +63,7 @@ Next, launch _Blinky_ (it will use .blinky.conf file by default)
 Last stable release: [![Maven Central][badge-release]][link-release]
 
 Last unstable release: [![Maven Central][badge-snapshot]][link-snapshot]
-```
+```shell
 coursier launch com.github.rcmartins:blinky-cli_2.12:0.2.1 --main blinky.cli.Cli
 ```
 
@@ -71,7 +71,7 @@ Blinky cli will compile the project and generate the necessary semanticdb files
 before applying the mutations to the code.
 
 You can also pass parameters directly to override the .blinky.conf file: 
-```
+```shell
 coursier launch com.github.rcmartins:blinky-cli_2.12:0.2.1 --main blinky.cli.Cli -- --onlyMutateDiff=true
 ```
 

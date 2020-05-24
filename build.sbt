@@ -36,7 +36,8 @@ lazy val core =
       libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.8.1",
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
-      coverageMinimum := 81,
+      libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.1.4",
+      coverageMinimum := 89,
       coverageFailOnMinimum := true,
       buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
       buildInfoPackage := "blinky"
@@ -55,12 +56,11 @@ lazy val cli =
     .in(file("blinky-cli"))
     .settings(
       moduleName := "blinky-cli",
-      libraryDependencies += "com.lihaoyi"      %% "ammonite-ops"               % "2.1.4",
       libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.10",
       libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.10",
       libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.0.0-RC2",
       libraryDependencies += "org.scalatest"    %% "scalatest"                  % "3.1.2" % "test",
-      coverageMinimum := 20,
+      coverageMinimum := 37,
       coverageFailOnMinimum := true
     )
     .dependsOn(core)

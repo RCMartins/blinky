@@ -6,7 +6,8 @@ import scala.meta.Term
 
 case class Mutant(
     id: Int,
-    diff: List[String],
+    diff: String,
+    fileName: String,
     original: Term,
     mutated: Term
 )
@@ -17,6 +18,7 @@ object Mutant {
       Json.obj(
         "id" -> mutant.id,
         "diff" -> mutant.diff,
+        "fileName" -> mutant.fileName,
         "original" -> mutant.original.syntax,
         "mutated" -> mutant.mutated.syntax
       )
