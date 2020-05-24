@@ -37,7 +37,7 @@ lazy val core =
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.8.1",
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
       libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.1.4",
-      coverageMinimum := 81,
+      coverageMinimum := 89,
       coverageFailOnMinimum := true,
       buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
       buildInfoPackage := "blinky"
@@ -60,7 +60,7 @@ lazy val cli =
       libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.10",
       libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.0.0-RC2",
       libraryDependencies += "org.scalatest"    %% "scalatest"                  % "3.1.2" % "test",
-      coverageMinimum := 20,
+      coverageMinimum := 40,
       coverageFailOnMinimum := true
     )
     .dependsOn(core)

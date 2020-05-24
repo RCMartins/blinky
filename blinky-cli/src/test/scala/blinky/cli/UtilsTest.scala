@@ -28,6 +28,19 @@ class UtilsTest extends TestSpec {
     }
   }
 
+  "stripPathPrefix" should {
+    "return the original string if prefix is not found" in {
+      Utils.stripPathPrefix("str/ing1", "strg") mustEqual "str/ing1"
+    }
+
+    "return the striped string if prefix is found" in {
+      Utils.stripPathPrefix(
+        "/home/project/src/main/scala/Code.scala",
+        "/home/project"
+      ) mustEqual "/src/main/scala/Code.scala"
+    }
+  }
+
   "prettyDiff" should {
 
     def testPrettyDiff(
@@ -49,9 +62,9 @@ class UtilsTest extends TestSpec {
         color
       )
 
-    "return the raw 'git diff' output with line numbers with color on" in {
+    "return the raw 'git diff' output with line numbers (when color is on)" in {
       val original =
-        """@@ -8,7 +8,7 @@ package test
+        """@@ -4,7 +4,7 @@ package test
           | object GeneralSyntax4 {
           |   case class Foo(value1: Int, value2: Int)(value3: Int, value4: Int)
           |
@@ -71,15 +84,14 @@ class UtilsTest extends TestSpec {
 
       val expected =
         """/input/src/main/scala/test/GeneralSyntax4.scala
-          |$[36m@@ -8,7 +8,7 @@ package test$[0m
-          |   8        object GeneralSyntax4 {
-          |   9          case class Foo(value1: Int, value2: Int)(value3: Int, value4: Int)
-          |  10########
-          |  11       $[31m-  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 + 4).value1)$[0m
-          |      11   $[32m+  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 - 4).value1)$[0m
-          |  12  12####
-          |  13  13      val some1 = Some("value")
-          |""".stripMargin
+          |$[36m@@ -4,7 +4,7 @@ package test$[0m
+          |  4       object GeneralSyntax4 {
+          |  5         case class Foo(value1: Int, value2: Int)(value3: Int, value4: Int)
+          |  6#######
+          |  7      $[31m-  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 + 4).value1)$[0m
+          |     7   $[32m+  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 - 4).value1)$[0m
+          |  8  8####
+          |  9  9      val some1 = Some("value")""".stripMargin
           .replace("#", " ")
           .replace("$", "\u001B")
           .replace("\r", "")
@@ -87,39 +99,84 @@ class UtilsTest extends TestSpec {
       actual mustEqual expected
     }
 
-    "return the raw 'git diff' output with line numbers with color off" in {
+    "return the raw 'git diff' output with line numbers (when color is off)" in {
       val original =
-        """@@ -9,7 +9,7 @@ object ScalaOptions {
-          |   val op: Option[String] = Some("string")
-          |   val op1 = op.getOrElse("")
-          |   val op2 = op.exists(str => str.startsWith("str"))
-          |-  val op3 = op.forall(str => str.contains("ing"))
-          |+  val op3 = op.exists(str => str.contains("ing"))
-          |   val op4 = op.map(str => str + "!")
-          |   val op5 = op.isEmpty
-          |   val op6 = op.isDefined
-          |""".stripMargin
+        """@@ -14,8 +14,6 @@ package test
+          | object SomeFile {
+          |
+          |   val value =
+          |-    !Some(
+          |-      true || false
+          |-    ).get
+          |+    !Some(true && false).get
+          |
+          | }""".stripMargin
 
       val actual =
         testPrettyDiff(
           original,
-          "/home/user/blinky/input/src/main/scala/test/ScalaOptions.scala",
+          "/home/user/scala-project/src/main/scala/SomeFile.scala",
+          "/home/user/scala-project",
+          color = false
+        ).replace("\r", "")
+
+      val expected =
+        """/src/main/scala/SomeFile.scala
+          |@@ -14,8 +14,6 @@ package test
+          |  14        object SomeFile {
+          |  15########
+          |  16          val value =
+          |  17       -    !Some(
+          |  18       -      true || false
+          |  19       -    ).get
+          |      17   +    !Some(true && false).get
+          |  20  18####
+          |  21  19    }""".stripMargin
+          .replace("#", " ")
+          .replace("\r", "")
+
+      actual mustEqual expected
+    }
+
+    "return the raw 'git diff' output with line numbers (multiple minus and plus lines)" in {
+      val original =
+        """@@ -10,7 +10,9 @@ object MatchSyntax1 {
+          |   val value2: Option[Int] = Some(30)
+          |   val value3 =
+          |     (value1.fold(value2)(x => Some(x + 4)) match {
+          |-      case None    => 2 + 3
+          |-      case Some(v) => v
+          |-    }) + 10
+          |+  case None =>
+          |+    2 + 3
+          |+  case Some(v) =>
+          |+    v
+          |+}) - 10
+          | }""".stripMargin
+
+      val actual =
+        testPrettyDiff(
+          original,
+          "/home/user/blinky/input/src/main/scala/test/MatchSyntax1.scala",
           "/home/user/blinky",
           color = false
         ).replace("\r", "")
 
       val expected =
-        """/input/src/main/scala/test/ScalaOptions.scala
-          |@@ -9,7 +9,7 @@ object ScalaOptions {
-          |   9          val op: Option[String] = Some("string")
-          |  10          val op1 = op.getOrElse("")
-          |  11          val op2 = op.exists(str => str.startsWith("str"))
-          |  12       -  val op3 = op.forall(str => str.contains("ing"))
-          |      12   +  val op3 = op.exists(str => str.contains("ing"))
-          |  13  13      val op4 = op.map(str => str + "!")
-          |  14  14      val op5 = op.isEmpty
-          |  15  15      val op6 = op.isDefined
-          |""".stripMargin
+        """/input/src/main/scala/test/MatchSyntax1.scala
+          |@@ -10,7 +10,9 @@ object MatchSyntax1 {
+          |  10          val value2: Option[Int] = Some(30)
+          |  11          val value3 =
+          |  12            (value1.fold(value2)(x => Some(x + 4)) match {
+          |  13       -      case None    => 2 + 3
+          |  14       -      case Some(v) => v
+          |  15       -    }) + 10
+          |      13   +  case None =>
+          |      14   +    2 + 3
+          |      15   +  case Some(v) =>
+          |      16   +    v
+          |      17   +}) - 10
+          |  16  18    }""".stripMargin
           .replace("#", " ")
           .replace("\r", "")
 

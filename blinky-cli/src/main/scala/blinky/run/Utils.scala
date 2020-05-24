@@ -20,15 +20,14 @@ object Utils {
       color: Boolean
   ): String = {
     val header :: diffLines = diffLinesStr.split("\n").toList
-    val startLineMinus: Int =
-      header.substring(header.indexOf("@@") + 4, header.indexOf(",")).toInt
+    val startLineMinus: Int = header.substring(4, header.indexOf(",")).toInt
     val totalLines: Int = diffLines.size
     val minusLines: Int = diffLines.count(_.startsWith("-"))
     val plusLines: Int = diffLines.count(_.startsWith("+"))
 
-    val startLinePlus: Int = startLineMinus + diffLines.takeWhile(!_.startsWith("+")).length - 1
-    val endLineMinus: Int = startLineMinus + totalLines - plusLines
-    val endLinePlus: Int = startLineMinus + totalLines - minusLines
+    val startLinePlus: Int = startLineMinus + diffLines.takeWhile(!_.startsWith("-")).length
+    val endLineMinus: Int = startLineMinus + totalLines - plusLines - 1
+    val endLinePlus: Int = startLineMinus + totalLines - minusLines - 1
 
     val lineNumbersLength = 3 + Math.log10(Math.max(endLineMinus, endLinePlus)).toInt
     val lineNumbersLengthArgInt = "%" + lineNumbersLength + "d"
@@ -44,7 +43,8 @@ object Utils {
           red(line)
         else if (color && line.startsWith("+"))
           green(line)
-        else line
+        else
+          line
 
       (numberMinusOpt, numberPlusOpt) match {
         case (Some(numberMinus), Some(numberPlus)) =>
@@ -97,7 +97,7 @@ object Utils {
 
     s"""${stripPathPrefix(fileName, projectPath)}
        |${if (color) cyan(header) else header}
-       |${gitDiffLineNumbers.mkString("", "\n", "\n")}""".stripMargin
+       |${gitDiffLineNumbers.mkString("\n")}""".stripMargin
   }
 
   def escapeString(str: String): String = {
