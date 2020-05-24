@@ -89,8 +89,8 @@ class UtilsTest extends TestSpec {
           |  3       object GeneralSyntax4 {
           |  4         case class Foo(value1: Int, value2: Int)(value3: Int, value4: Int)
           |  5   ####
-          |  6      $[31m-  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 + 4).value1)$[0m
-          |     6   $[32m+  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 - 4).value1)$[0m
+          |$[31m  6      -  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 + 4).value1)$[0m
+          |$[32m     6   +  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 - 4).value1)$[0m
           |  7  7####
           |  8  8      val some1 = Some("value")
           |  9  9   #""".stripMargin

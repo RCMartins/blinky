@@ -35,27 +35,27 @@ object Utils {
         numberMinusOpt: Option[Int],
         numberPlusOpt: Option[Int]
     ): String = {
-      val lineUpdated =
-        if (color && line.startsWith("-"))
-          red(line)
-        else if (color && line.startsWith("+"))
-          green(line)
-        else
-          line
+      val lineWithNumbers =
+        (numberMinusOpt, numberPlusOpt) match {
+          case (Some(numberMinus), Some(numberPlus)) =>
+            (lineNumbersLengthArgInt + lineNumbersLengthArgInt + "   %s")
+              .format(numberMinus, numberPlus, line)
+          case (Some(numberMinus), None) =>
+            (lineNumbersLengthArgInt + lineNumbersLengthArgEmpty + "   %s")
+              .format(numberMinus, line)
+          case (None, Some(numberPlus)) =>
+            (lineNumbersLengthArgEmpty + lineNumbersLengthArgInt + "   %s")
+              .format(numberPlus, line)
+          case (None, None) =>
+            ??? // impossible
+        }
 
-      (numberMinusOpt, numberPlusOpt) match {
-        case (Some(numberMinus), Some(numberPlus)) =>
-          (lineNumbersLengthArgInt + lineNumbersLengthArgInt + "   %s")
-            .format(numberMinus, numberPlus, lineUpdated)
-        case (Some(numberMinus), None) =>
-          (lineNumbersLengthArgInt + lineNumbersLengthArgEmpty + "   %s")
-            .format(numberMinus, lineUpdated)
-        case (None, Some(numberPlus)) =>
-          (lineNumbersLengthArgEmpty + lineNumbersLengthArgInt + "   %s")
-            .format(numberPlus, lineUpdated)
-        case (None, None) =>
-          ??? // impossible
-      }
+      if (color && line.startsWith("-"))
+        red(lineWithNumbers)
+      else if (color && line.startsWith("+"))
+        green(lineWithNumbers)
+      else
+        lineWithNumbers
     }
 
     def addLineNumLoop(
