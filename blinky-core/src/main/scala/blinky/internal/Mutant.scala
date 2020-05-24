@@ -6,7 +6,7 @@ import scala.meta.Term
 
 case class Mutant(
     id: Int,
-    diff: List[String],
+    diff: String,
     original: Term,
     mutated: Term
 )

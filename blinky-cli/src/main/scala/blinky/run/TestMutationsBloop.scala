@@ -106,7 +106,7 @@ object TestMutationsBloop {
           val result =
             if (testResult.isSuccess) {
               println(s"Mutant #$id was not killed!")
-              println(prettyDiff(mutant.diff, projectPath.toString))
+              println(prettyDiff(mutant.diff, projectPath.toString, color = true))
               id -> false
             } else {
               println(s"Mutant #$id was killed.")
