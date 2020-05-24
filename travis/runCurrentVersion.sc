@@ -13,6 +13,8 @@ def main(confPath: Path): Unit = {
     "--main",
     "blinky.cli.Cli",
     "--",
-    confPath
+    confPath,
+    "--onlyMutateDiff",
+    "true"
   )(path)
 }
