@@ -10,6 +10,6 @@ categories:
     label: 'chore'
 
 template: |
-  ## Pull Requests
+  ## What’s Changed
 
   $CHANGES

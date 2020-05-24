@@ -46,7 +46,7 @@ jobs:
       name: release
       if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
       script:
-        - sbt ci-release
+        - sbt ci-release docs/docusaurusPublishGhpages
 cache:
   directories:
     - "$HOME/.ivy2/cache"

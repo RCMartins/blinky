@@ -27,6 +27,10 @@ inThisBuild(
 
 skip in publish := true
 
+lazy val stableVersion = Def.setting {
+  version.in(ThisBuild).value.replaceAll("\\+.*", "")
+}
+
 lazy val core =
   project
     .in(file("blinky-core"))
@@ -39,8 +43,13 @@ lazy val core =
       libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.1.4",
       coverageMinimum := 89,
       coverageFailOnMinimum := true,
-      buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-      buildInfoPackage := "blinky"
+      buildInfoPackage := "blinky",
+      buildInfoKeys := Seq[BuildInfoKey](
+        version,
+        "stable" -> stableVersion.value,
+        scalaVersion,
+        sbtVersion
+      )
     )
 
 lazy val input = project.settings(
@@ -65,18 +74,28 @@ lazy val cli =
     )
     .dependsOn(core)
 
-lazy val tests = project
-  .settings(
-    skip in publish := true,
-    libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
-    scalafixTestkitOutputSourceDirectories :=
-      sourceDirectories.in(output, Compile).value,
-    scalafixTestkitInputSourceDirectories :=
-      sourceDirectories.in(input, Compile).value,
-    scalafixTestkitInputClasspath :=
-      fullClasspath.in(input, Compile).value
-  )
-  .dependsOn(core, cli)
-  .enablePlugins(ScalafixTestkitPlugin)
+lazy val tests =
+  project
+    .settings(
+      skip in publish := true,
+      libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
+      scalafixTestkitOutputSourceDirectories :=
+        sourceDirectories.in(output, Compile).value,
+      scalafixTestkitInputSourceDirectories :=
+        sourceDirectories.in(input, Compile).value,
+      scalafixTestkitInputClasspath :=
+        fullClasspath.in(input, Compile).value
+    )
+    .dependsOn(core, cli)
+    .enablePlugins(ScalafixTestkitPlugin)
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
+
+lazy val docs =
+  project
+    .in(file("blinky-docs"))
+    .dependsOn(core)
+    .enablePlugins(MdocPlugin, DocusaurusPlugin)
+    .settings(
+      mdoc := run.in(Compile).evaluated
+    )
