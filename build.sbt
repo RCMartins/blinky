@@ -60,7 +60,7 @@ lazy val cli =
       libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.10",
       libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.0.0-RC2",
       libraryDependencies += "org.scalatest"    %% "scalatest"                  % "3.1.2" % "test",
-      coverageMinimum := 40,
+      coverageMinimum := 37,
       coverageFailOnMinimum := true
     )
     .dependsOn(core)

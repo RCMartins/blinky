@@ -20,20 +20,17 @@ object Utils {
       color: Boolean
   ): String = {
     val header :: diffLines = diffLinesStr.split("\n").toList
-    val startLineMinus: Int = header.substring(4, header.indexOf(",")).toInt
-    val totalLines: Int = diffLines.size
-    val minusLines: Int = diffLines.count(_.startsWith("-"))
-    val plusLines: Int = diffLines.count(_.startsWith("+"))
+    val List(startLineMinus, contextLinesMinus, startLinePlus, contextLinesPlus): List[Int] =
+      header.substring(4, header.lastIndexOf("@@")).split("[,+-]").toList.map(_.trim.toInt)
 
-    val startLinePlus: Int = startLineMinus + diffLines.takeWhile(!_.startsWith("-")).length
-    val endLineMinus: Int = startLineMinus + totalLines - plusLines - 1
-    val endLinePlus: Int = startLineMinus + totalLines - minusLines - 1
+    val endLineMinus: Int = startLineMinus + contextLinesMinus - 1
+    val endLinePlus: Int = startLinePlus + contextLinesPlus - 1
 
-    val lineNumbersLength = 3 + Math.log10(Math.max(endLineMinus, endLinePlus)).toInt
-    val lineNumbersLengthArgInt = "%" + lineNumbersLength + "d"
-    val lineNumbersLengthArgEmpty = " " * lineNumbersLength
+    val lineNumbersLength: Int = 3 + Math.log10(Math.max(endLineMinus, endLinePlus)).toInt
+    val lineNumbersLengthArgInt: String = "%" + lineNumbersLength + "d"
+    val lineNumbersLengthArgEmpty: String = " " * lineNumbersLength
 
-    def addLineNumbers(
+    def addLineNum(
         line: String,
         numberMinusOpt: Option[Int],
         numberPlusOpt: Option[Int]
@@ -61,38 +58,33 @@ object Utils {
       }
     }
 
-    def addLineNumbersLoop(
+    def addLineNumLoop(
         lines: List[String],
         numMinusOpt: Option[Int],
         numPlusOpt: Option[Int],
-        mode: Int
+        afterChanges: Boolean
     ): List[String] = {
       lines match {
         case Nil =>
           Nil
-        case line :: otherLines if mode == 0 && line.startsWith(" ") =>
-          addLineNumbers(line, numMinusOpt, None) ::
-            addLineNumbersLoop(otherLines, numMinusOpt.map(_ + 1), numPlusOpt, mode)
-        case line :: otherLines if mode == 0 && line.startsWith("-") =>
-          addLineNumbers(line, numMinusOpt, None) ::
-            addLineNumbersLoop(otherLines, numMinusOpt.map(_ + 1), numPlusOpt, mode)
-        case line :: _ if mode == 0 && line.startsWith("+") =>
-          addLineNumbersLoop(lines, numMinusOpt, numPlusOpt, mode = 1)
-        case line :: otherLines if mode == 1 && line.startsWith("+") =>
-          addLineNumbers(line, None, numPlusOpt) ::
-            addLineNumbersLoop(otherLines, numMinusOpt, numPlusOpt.map(_ + 1), mode)
-        case line :: otherLines if mode == 1 && line.startsWith(" ") =>
-          addLineNumbers(line, numMinusOpt, numPlusOpt) ::
-            addLineNumbersLoop(otherLines, numMinusOpt.map(_ + 1), numPlusOpt.map(_ + 1), mode)
+        case line :: otherLines if line.startsWith(" ") =>
+          addLineNum(line, numMinusOpt, numPlusOpt.filter(_ => afterChanges)) ::
+            addLineNumLoop(otherLines, numMinusOpt.map(_ + 1), numPlusOpt.map(_ + 1), afterChanges)
+        case line :: otherLines if line.startsWith("-") =>
+          addLineNum(line, numMinusOpt, None) ::
+            addLineNumLoop(otherLines, numMinusOpt.map(_ + 1), numPlusOpt, afterChanges = true)
+        case line :: otherLines if line.startsWith("+") =>
+          addLineNum(line, None, numPlusOpt) ::
+            addLineNumLoop(otherLines, numMinusOpt, numPlusOpt.map(_ + 1), afterChanges = true)
       }
     }
 
     val gitDiffLineNumbers =
-      addLineNumbersLoop(
+      addLineNumLoop(
         lines = diffLines,
         numMinusOpt = Some(startLineMinus),
         numPlusOpt = Some(startLinePlus),
-        mode = 0
+        afterChanges = false
       )
 
     s"""${stripPathPrefix(fileName, projectPath)}

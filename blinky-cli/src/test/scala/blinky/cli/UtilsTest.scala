@@ -51,6 +51,7 @@ class UtilsTest extends TestSpec {
     ): String =
       Utils.prettyDiff(
         diffLinesStr
+          .replace("#", " ")
           .split("\n")
           .map {
             case ""   => " "
@@ -64,7 +65,7 @@ class UtilsTest extends TestSpec {
 
     "return the raw 'git diff' output with line numbers (when color is on)" in {
       val original =
-        """@@ -4,7 +4,7 @@ package test
+        """@@ -3,7 +3,7 @@ package test
           | object GeneralSyntax4 {
           |   case class Foo(value1: Int, value2: Int)(value3: Int, value4: Int)
           |
@@ -72,7 +73,7 @@ class UtilsTest extends TestSpec {
           |+  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 - 4).value1)
           |
           |   val some1 = Some("value")
-          |""".stripMargin
+          |#""".stripMargin
 
       val actual =
         testPrettyDiff(
@@ -84,14 +85,15 @@ class UtilsTest extends TestSpec {
 
       val expected =
         """/input/src/main/scala/test/GeneralSyntax4.scala
-          |$[36m@@ -4,7 +4,7 @@ package test$[0m
-          |  4       object GeneralSyntax4 {
-          |  5         case class Foo(value1: Int, value2: Int)(value3: Int, value4: Int)
-          |  6#######
-          |  7      $[31m-  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 + 4).value1)$[0m
-          |     7   $[32m+  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 - 4).value1)$[0m
-          |  8  8####
-          |  9  9      val some1 = Some("value")""".stripMargin
+          |$[36m@@ -3,7 +3,7 @@ package test$[0m
+          |  3       object GeneralSyntax4 {
+          |  4         case class Foo(value1: Int, value2: Int)(value3: Int, value4: Int)
+          |  5   ####
+          |  6      $[31m-  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 + 4).value1)$[0m
+          |     6   $[32m+  val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 - 4).value1)$[0m
+          |  7  7####
+          |  8  8      val some1 = Some("value")
+          |  9  9   #""".stripMargin
           .replace("#", " ")
           .replace("$", "\u001B")
           .replace("\r", "")
@@ -101,7 +103,7 @@ class UtilsTest extends TestSpec {
 
     "return the raw 'git diff' output with line numbers (when color is off)" in {
       val original =
-        """@@ -14,8 +14,6 @@ package test
+        """@@ -3,8 +3,6 @@ package test
           | object SomeFile {
           |
           |   val value =
@@ -122,16 +124,16 @@ class UtilsTest extends TestSpec {
 
       val expected =
         """/src/main/scala/SomeFile.scala
-          |@@ -14,8 +14,6 @@ package test
-          |  14        object SomeFile {
-          |  15########
-          |  16          val value =
-          |  17       -    !Some(
-          |  18       -      true || false
-          |  19       -    ).get
-          |      17   +    !Some(true && false).get
-          |  20  18####
-          |  21  19    }""".stripMargin
+          |@@ -3,8 +3,6 @@ package test
+          |   3        object SomeFile {
+          |   4########
+          |   5          val value =
+          |   6       -    !Some(
+          |   7       -      true || false
+          |   8       -    ).get
+          |       6   +    !Some(true && false).get
+          |   9   7####
+          |  10   8    }""".stripMargin
           .replace("#", " ")
           .replace("\r", "")
 
@@ -140,7 +142,7 @@ class UtilsTest extends TestSpec {
 
     "return the raw 'git diff' output with line numbers (multiple minus and plus lines)" in {
       val original =
-        """@@ -10,7 +10,9 @@ object MatchSyntax1 {
+        """@@ -92,7 +92,9 @@ object MatchSyntax1 {
           |   val value2: Option[Int] = Some(30)
           |   val value3 =
           |     (value1.fold(value2)(x => Some(x + 4)) match {
@@ -164,19 +166,91 @@ class UtilsTest extends TestSpec {
 
       val expected =
         """/input/src/main/scala/test/MatchSyntax1.scala
-          |@@ -10,7 +10,9 @@ object MatchSyntax1 {
-          |  10          val value2: Option[Int] = Some(30)
-          |  11          val value3 =
-          |  12            (value1.fold(value2)(x => Some(x + 4)) match {
-          |  13       -      case None    => 2 + 3
-          |  14       -      case Some(v) => v
-          |  15       -    }) + 10
-          |      13   +  case None =>
-          |      14   +    2 + 3
-          |      15   +  case Some(v) =>
-          |      16   +    v
-          |      17   +}) - 10
-          |  16  18    }""".stripMargin
+          |@@ -92,7 +92,9 @@ object MatchSyntax1 {
+          |   92           val value2: Option[Int] = Some(30)
+          |   93           val value3 =
+          |   94             (value1.fold(value2)(x => Some(x + 4)) match {
+          |   95        -      case None    => 2 + 3
+          |   96        -      case Some(v) => v
+          |   97        -    }) + 10
+          |        95   +  case None =>
+          |        96   +    2 + 3
+          |        97   +  case Some(v) =>
+          |        98   +    v
+          |        99   +}) - 10
+          |   98  100    }""".stripMargin
+          .replace("#", " ")
+          .replace("\r", "")
+
+      actual mustEqual expected
+    }
+
+    "return the raw 'git diff' output with line numbers (only minus)" in {
+      val original =
+        """@@ -75,7 +75,6 @@
+          | foo
+          | bar
+          | baz
+          |-line1
+          | more context
+          | and more
+          | and still context""".stripMargin
+
+      val actual =
+        testPrettyDiff(
+          original,
+          "/home/user/project/someFile.scala",
+          "/home/user/project",
+          color = false
+        ).replace("\r", "")
+
+      val expected =
+        """/someFile.scala
+          |@@ -75,7 +75,6 @@
+          |  75        foo
+          |  76        bar
+          |  77        baz
+          |  78       -line1
+          |  79  78    more context
+          |  80  79    and more
+          |  81  80    and still context""".stripMargin
+          .replace("#", " ")
+          .replace("\r", "")
+
+      actual mustEqual expected
+    }
+
+    "return the raw 'git diff' output with line numbers (only plus)" in {
+      val original =
+        """@@ -75,6 +75,8 @@
+          | foo
+          | bar
+          | baz
+          |+line1
+          |+line2
+          | more context
+          | and more
+          | and still context""".stripMargin
+
+      val actual =
+        testPrettyDiff(
+          original,
+          "/home/user/project/someFile.scala",
+          "/home/user/project",
+          color = false
+        ).replace("\r", "")
+
+      val expected =
+        """/someFile.scala
+          |@@ -75,6 +75,8 @@
+          |  75        foo
+          |  76        bar
+          |  77        baz
+          |      78   +line1
+          |      79   +line2
+          |  78  80    more context
+          |  79  81    and more
+          |  80  82    and still context""".stripMargin
           .replace("#", " ")
           .replace("\r", "")
 
