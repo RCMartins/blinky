@@ -1,11 +1,13 @@
 package blinky.run
 
+import better.files.File
+import com.softwaremill.quicklens._
 import metaconfig.generic.Surface
 import metaconfig.typesafeconfig._
-import metaconfig.{Conf, ConfDecoder, generic}
+import metaconfig.{Conf, ConfDecoder, ConfEncoder, generic}
 
 case class MutationsConfig(
-    projectPath: String,
+    projectPath: File,
     projectName: String,
     filesToMutate: String,
     filesToExclude: String,
@@ -15,13 +17,16 @@ case class MutationsConfig(
 
 object MutationsConfig {
   val default: MutationsConfig = MutationsConfig(
-    projectPath = ".",
+    projectPath = File("."),
     projectName = "",
     filesToMutate = "src/main/scala",
     filesToExclude = "",
     mutators = SimpleBlinkyConfig.default,
     options = OptionsConfig.default
   )
+
+  private implicit val fileDecoder: ConfDecoder[File] =
+    ConfDecoder.stringConfDecoder.map(File(_))
 
   implicit val surface: Surface[MutationsConfig] =
     generic.deriveSurface[MutationsConfig]
@@ -31,14 +36,8 @@ object MutationsConfig {
   def read(conf: String): MutationsConfig = {
     val original = decoder.read(Conf.parseString(conf)).get
     val projectName = original.projectName
-    if (projectName.isEmpty)
-      original
-    else
-      original.copy(
-        options = original.options.copy(
-          compileCommand = projectName,
-          testCommand = projectName
-        )
-      )
+    original
+      .modifyAll(_.options.compileCommand, _.options.testCommand)
+      .setToIf(projectName.nonEmpty)(projectName)
   }
 }

@@ -1,6 +1,7 @@
 package blinky.cli
 
-import blinky.run.{MutationsConfig, Parser, Run}
+import better.files.File
+import blinky.run._
 import scopt.{DefaultOParserSetup, OParser, OParserSetup}
 
 object Cli {
@@ -16,6 +17,17 @@ object Cli {
     }
   }
 
-  def parse(args: Array[String], setup: OParserSetup): Option[MutationsConfig] =
-    OParser.parse(Parser.parser, args, MutationsConfig.default, setup)
+  def parse(args: Array[String], setup: OParserSetup): Option[MutationsConfigValidated] =
+    OParser.parse(Parser.parser, args, Args(), setup).flatMap { args =>
+      val initialMutationsConf =
+        MutationsConfig.read(args.mainConfFile.getOrElse(File(".blinky.conf")).contentAsString)
+      val config = args.overrides.foldLeft(initialMutationsConf)((conf, over) => over(conf))
+      MutationsConfigValidated.validate(config) match {
+        case Left(errorMessage) =>
+          Console.err.println(errorMessage)
+          None
+        case Right(mutationsConfigValidated) =>
+          Some(mutationsConfigValidated)
+      }
+    }
 }

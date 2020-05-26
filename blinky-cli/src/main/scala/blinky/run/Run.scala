@@ -10,10 +10,10 @@ import blinky.v0.BlinkyConfig
 import scala.util.Try
 
 object Run {
-  def run(config: MutationsConfig): Unit = {
+  def run(config: MutationsConfigValidated): Unit = {
     val ruleName = "Blinky"
     val originalProjectRoot = pwd
-    val originalProjectRelPath = RelPath(config.projectPath)
+    val originalProjectRelPath = RelPath(config.projectPath.pathAsString)
     val originalProjectPath = originalProjectRoot / originalProjectRelPath
 
     val cloneProjectTempFolder = tmp.dir()

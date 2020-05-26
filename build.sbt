@@ -21,11 +21,10 @@ inThisBuild(
       "-deprecation"
     ),
     coverageEnabled := false,
-    fork in Test := true
+    fork in Test := true,
+    skip in publish := true
   )
 )
-
-skip in publish := true
 
 lazy val stableVersion = Def.setting {
   version.in(ThisBuild).value.replaceAll("\\+.*", "")
@@ -36,6 +35,7 @@ lazy val core =
     .in(file("blinky-core"))
     .enablePlugins(BuildInfoPlugin)
     .settings(
+      skip in publish := false,
       moduleName := "blinky",
       libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.8.1",
@@ -52,23 +52,21 @@ lazy val core =
       )
     )
 
-lazy val input = project.settings(
-  skip in publish := true
-)
+lazy val input = project
 
-lazy val output = project.settings(
-  skip in publish := true
-)
+lazy val output = project
 
 lazy val cli =
   project
     .in(file("blinky-cli"))
     .settings(
+      skip in publish := false,
       moduleName := "blinky-cli",
-      libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.10",
-      libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.10",
-      libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.0.0-RC2",
-      libraryDependencies += "org.scalatest"    %% "scalatest"                  % "3.1.2" % "test",
+      libraryDependencies += "com.geirsson"               %% "metaconfig-core"            % "0.9.10",
+      libraryDependencies += "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.10",
+      libraryDependencies += "com.github.scopt"           %% "scopt"                      % "4.0.0-RC2",
+      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.5.0",
+      libraryDependencies += "org.scalatest"              %% "scalatest"                  % "3.1.2" % "test",
       coverageMinimum := 37,
       coverageFailOnMinimum := true
     )
@@ -76,8 +74,8 @@ lazy val cli =
 
 lazy val tests =
   project
+    .enablePlugins(ScalafixTestkitPlugin)
     .settings(
-      skip in publish := true,
       libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
       scalafixTestkitOutputSourceDirectories :=
         sourceDirectories.in(output, Compile).value,
@@ -87,15 +85,14 @@ lazy val tests =
         fullClasspath.in(input, Compile).value
     )
     .dependsOn(core, cli)
-    .enablePlugins(ScalafixTestkitPlugin)
-
-Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val docs =
   project
     .in(file("blinky-docs"))
-    .dependsOn(core)
     .enablePlugins(MdocPlugin, DocusaurusPlugin)
     .settings(
       mdoc := run.in(Compile).evaluated
     )
+    .dependsOn(core)
+
+Global / onChangedBuildSource := ReloadOnSourceChanges

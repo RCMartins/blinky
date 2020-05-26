@@ -2,9 +2,10 @@ package blinky.cli
 
 import java.io.ByteArrayOutputStream
 
+import better.files.File
 import blinky.BuildInfo
 import blinky.BuildInfo.version
-import blinky.run.{MutationsConfig, OptionsConfig, SimpleBlinkyConfig}
+import blinky.run.{MutationsConfig, MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
 import blinky.v0.{BlinkyConfig, Mutators}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -59,9 +60,8 @@ class CliTest extends TestSpec {
       "return the default config options" in {
         val (mutationsConfig, _, _) = parse(getFilePath("empty.conf"))
 
-        mutationsConfig.value mustEqual MutationsConfig(
-          projectPath = ".",
-          projectName = "",
+        mutationsConfig.value mustEqual MutationsConfigValidated(
+          projectPath = File("."),
           filesToMutate = "src/main/scala",
           filesToExclude = "",
           mutators = SimpleBlinkyConfig(
@@ -109,7 +109,6 @@ class CliTest extends TestSpec {
         val mutationsConfig = mutationsConfigOpt.value
 
         mutationsConfig.projectPath mustEqual "examples/example1"
-        mutationsConfig.projectName mustEqual "example1"
         mutationsConfig.filesToMutate mustEqual "src/main/scala/Example.scala"
         mutationsConfig.options.compileCommand mustEqual "example1"
         mutationsConfig.options.testCommand mustEqual "example1"
@@ -140,7 +139,6 @@ class CliTest extends TestSpec {
         val mutationsConfig = mutationsConfigOpt.value
 
         mutationsConfig.projectPath mustEqual "examples/example2"
-        mutationsConfig.projectName mustEqual ""
         mutationsConfig.filesToMutate mustEqual "src/main/scala/Example.scala"
         mutationsConfig.filesToExclude mustEqual "src/main/scala/Utils.scala"
 
@@ -159,7 +157,7 @@ class CliTest extends TestSpec {
       override def terminate(exitState: Either[String, Unit]): Unit = ()
     }
 
-  private def parse(args: String*): (Option[MutationsConfig], String, String) = {
+  private def parse(args: String*): (Option[MutationsConfigValidated], String, String) = {
     val outCapture = new ByteArrayOutputStream
     val errCapture = new ByteArrayOutputStream
     Console.withOut(outCapture) {
