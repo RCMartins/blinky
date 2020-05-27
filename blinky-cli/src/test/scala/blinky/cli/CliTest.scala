@@ -174,8 +174,8 @@ class CliTest extends TestSpec {
           Cli.parse(args.toArray, _parser)(pwd)
         (
           mutationsConfig,
-          removeSlashR(outCapture.toString),
-          removeSlashR(errCapture.toString)
+          removeCarriageReturns(outCapture.toString),
+          removeCarriageReturns(errCapture.toString)
         )
       }
     }
@@ -184,7 +184,7 @@ class CliTest extends TestSpec {
   private final val inWindows: Boolean =
     System.getProperty("os.name").toLowerCase.contains("win")
 
-  private final val removeSlashR: String => String =
+  private final val removeCarriageReturns: String => String =
     if (inWindows) _.replace("\r", "") else identity
 
   private def getFilePath(fileName: String): String =

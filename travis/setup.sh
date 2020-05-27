@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 type cs >/dev/null 2>&1 ||
   (mkdir -p bin &&
