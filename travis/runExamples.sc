@@ -25,8 +25,6 @@ def main(): Unit = {
           "cs",
           "launch",
           s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
-          "--main",
-          "blinky.cli.Cli",
           "--",
           confPath,
           "--verbose",

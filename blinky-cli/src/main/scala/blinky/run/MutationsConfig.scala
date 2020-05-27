@@ -7,7 +7,7 @@ import metaconfig.typesafeconfig._
 import metaconfig.{Conf, ConfDecoder, ConfEncoder, generic}
 
 case class MutationsConfig(
-    projectPath: File,
+    projectPath: String,
     projectName: String,
     filesToMutate: String,
     filesToExclude: String,
@@ -17,7 +17,7 @@ case class MutationsConfig(
 
 object MutationsConfig {
   val default: MutationsConfig = MutationsConfig(
-    projectPath = File("."),
+    projectPath = ".",
     projectName = "",
     filesToMutate = "src/main/scala",
     filesToExclude = "",

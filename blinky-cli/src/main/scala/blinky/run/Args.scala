@@ -1,9 +1,7 @@
 package blinky.run
 
-import better.files.File
-
 case class Args(
-    mainConfFile: Option[File] = None,
+    mainConfFile: Option[String] = None,
     overrides: Seq[MutationsConfig => MutationsConfig] = Seq.empty
 ) {
 

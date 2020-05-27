@@ -1,6 +1,7 @@
 package blinky.run
 
 import better.files.File
+import java.nio.file.{Path, Paths}
 
 case class MutationsConfigValidated(
     projectPath: File,
@@ -12,15 +13,18 @@ case class MutationsConfigValidated(
 
 object MutationsConfigValidated {
 
-  def validate(config: MutationsConfig): Either[String, MutationsConfigValidated] = {
+  def validate(config: MutationsConfig)(pwd: File): Either[String, MutationsConfigValidated] = {
+    val projectPath = File(pwd.path.resolve(Paths.get(config.projectPath)))
     if (
       config.options.failOnMinimum && (config.options.mutationMinimum < 0.0 || config.options.mutationMinimum > 100.0)
-    ) {
+    )
       Left("mutationMinimum value is invalid. It should be a number between 0 and 100.")
-    } else
+    else if (!projectPath.exists)
+      Left(s"--projectPath '$projectPath' does not exists.")
+    else
       Right(
         MutationsConfigValidated(
-          config.projectPath,
+          projectPath,
           config.filesToMutate,
           config.filesToExclude,
           config.mutators,

@@ -16,12 +16,14 @@ import scala.concurrent.duration._
 
 class CliTest extends TestSpec {
 
+  private final val emptyDefaultFolder: String = "empty-default"
+
   "Cli general parsing" when {
 
     "--version" should {
 
       "return the version number of blinky" in {
-        val (_, out, _) = parse("--version")
+        val (_, out, _) = parse("--version")()
 
         out mustEqual
           s"""blinky v$version
@@ -32,8 +34,8 @@ class CliTest extends TestSpec {
 
     "--help" should {
 
-      "return the version number of blinky" in {
-        val (_, out, _) = parse("--help")
+      "return the help text" in {
+        val (_, out, _) = parse("--help")()
 
         out mustEqual
           s"""blinky v$version
@@ -49,7 +51,8 @@ class CliTest extends TestSpec {
              |  --compileCommand <cmd>   The compile command to be executed by sbt/bloop before the first run
              |  --testCommand <cmd>      The test command to be executed by sbt/bloop
              |  --verbose <bool>         If set, prints out debug information. Defaults to false
-             |  --onlyMutateDiff <bool>  If set, only mutate added and edited files in git diff against the master branch.
+             |  --onlyMutateDiff <bool>  If set, only mutate added and edited files in git diff against the master branch
+             |  --dryRun <bool>          If set, apply mutations and compile the code but do not run the actual mutation testing
              |""".stripMargin
       }
 
@@ -58,10 +61,10 @@ class CliTest extends TestSpec {
     "empty.conf" should {
 
       "return the default config options" in {
-        val (mutationsConfig, _, _) = parse(getFilePath("empty.conf"))
+        val (mutationsConfig, _, _) = parse(getFilePath("empty.conf"))()
 
         mutationsConfig.value mustEqual MutationsConfigValidated(
-          projectPath = File("."),
+          projectPath = File(getFilePath(emptyDefaultFolder)),
           filesToMutate = "src/main/scala",
           filesToExclude = "",
           mutators = SimpleBlinkyConfig(
@@ -86,7 +89,7 @@ class CliTest extends TestSpec {
     "options1.conf" should {
 
       "return the correct options" in {
-        val (mutationsConfig, _, _) = parse(getFilePath("options1.conf"))
+        val (mutationsConfig, _, _) = parse(getFilePath("options1.conf"))()
 
         mutationsConfig.value.options mustEqual OptionsConfig(
           verbose = false,
@@ -105,10 +108,10 @@ class CliTest extends TestSpec {
     "simple1.conf" should {
 
       "return the correct projectName, compileCommand and testCommand" in {
-        val (mutationsConfigOpt, _, _) = parse(getFilePath("simple1.conf"))
-        val mutationsConfig = mutationsConfigOpt.value
+        val (mutationsConfigOpt, _, err) = parse(getFilePath("simple1.conf"))(File(".."))
+        val mutationsConfig = mutationsConfigOpt.value withClue err
 
-        mutationsConfig.projectPath mustEqual "examples/example1"
+        mutationsConfig.projectPath mustEqual File("..") / "examples" / "example1"
         mutationsConfig.filesToMutate mustEqual "src/main/scala/Example.scala"
         mutationsConfig.options.compileCommand mustEqual "example1"
         mutationsConfig.options.testCommand mustEqual "example1"
@@ -134,11 +137,12 @@ class CliTest extends TestSpec {
           "true"
         )
 
-        val (mutationsConfigOpt, _, err) = parse(getFilePath("empty.conf") +: params: _*)
+        val (mutationsConfigOpt, _, err) =
+          parse(getFilePath("empty.conf") +: params: _*)(File(".."))
         mutationsConfigOpt mustBe defined withClue err
         val mutationsConfig = mutationsConfigOpt.value
 
-        mutationsConfig.projectPath mustEqual "examples/example2"
+        mutationsConfig.projectPath mustEqual File("..") / "examples" / "example2"
         mutationsConfig.filesToMutate mustEqual "src/main/scala/Example.scala"
         mutationsConfig.filesToExclude mustEqual "src/main/scala/Utils.scala"
 
@@ -157,23 +161,31 @@ class CliTest extends TestSpec {
       override def terminate(exitState: Either[String, Unit]): Unit = ()
     }
 
-  private def parse(args: String*): (Option[MutationsConfigValidated], String, String) = {
+  private def parse(
+      args: String*
+  )(
+      pwd: File = File(getFilePath(emptyDefaultFolder))
+  ): (Option[MutationsConfigValidated], String, String) = {
     val outCapture = new ByteArrayOutputStream
     val errCapture = new ByteArrayOutputStream
     Console.withOut(outCapture) {
       Console.withErr(errCapture) {
-        val mutationsConfig = Cli.parse(args.toArray, _parser)
+        val mutationsConfig =
+          Cli.parse(args.toArray, _parser)(pwd)
         (
           mutationsConfig,
-          outCapture.toString,
-          errCapture.toString
+          removeSlashR(outCapture.toString),
+          removeSlashR(errCapture.toString)
         )
       }
     }
   }
 
-  private def inWindows: Boolean =
+  private final val inWindows: Boolean =
     System.getProperty("os.name").toLowerCase.contains("win")
+
+  private final val removeSlashR: String => String =
+    if (inWindows) _.replace("\r", "") else identity
 
   private def getFilePath(fileName: String): String =
     if (inWindows)

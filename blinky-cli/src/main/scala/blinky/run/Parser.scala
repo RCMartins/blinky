@@ -22,30 +22,22 @@ object Parser {
         .text("prints this usage text"),
       version('v', "version")
         .text("prints blinky version"),
-      arg[File]("<blinkyConfFile>")
+      arg[String]("<blinkyConfFile>")
         .action((confFile, args) => args.copy(mainConfFile = Some(confFile)))
-        .validate(file =>
-          if (file.exists) success
-          else failure(s"<blinkyConfFile> '$file' does not exists.")
-        )
         .optional()
         .maxOccurs(1),
       opt[String]("projectName")
         .valueName("<path>")
-        .action((projectName, config) => {
+        .action { (projectName, config) =>
           config.add(
             _.modifyAll(_.options.compileCommand, _.options.testCommand).setTo(projectName)
           )
-        })
+        }
         .text("The project name, used for bloop compile and test commands")
         .maxOccurs(1),
-      opt[File]("projectPath")
+      opt[String]("projectPath")
         .valueName("<path>")
         .action((projectPath, config) => config.add(_.copy(projectPath = projectPath)))
-        .validate(file =>
-          if (file.exists) success
-          else failure(s"--projectPath '$file' does not exists.")
-        )
         .text("The project directory, can be an absolute or relative path")
         .maxOccurs(1),
       opt[String]("filesToMutate")
@@ -60,31 +52,40 @@ object Parser {
         .maxOccurs(1),
       opt[String]("compileCommand")
         .valueName("<cmd>")
-        .action((compileCommand, config) => {
+        .action { (compileCommand, config) =>
           config.add(_.modify(_.options.compileCommand).setTo(compileCommand))
-        })
+        }
         .text("The compile command to be executed by sbt/bloop before the first run")
         .maxOccurs(1),
       opt[String]("testCommand")
         .valueName("<cmd>")
-        .action((testCommand, config) => {
+        .action { (testCommand, config) =>
           config.add(_.modify(_.options.testCommand).setTo(testCommand))
-        })
+        }
         .text("The test command to be executed by sbt/bloop")
         .maxOccurs(1),
       opt[Boolean]("verbose")
         .valueName("<bool>")
-        .action((verbose, config) => {
+        .action { (verbose, config) =>
           config.add(_.modify(_.options.verbose).setTo(verbose))
-        })
+        }
         .text("If set, prints out debug information. Defaults to false")
         .maxOccurs(1),
       opt[Boolean]("onlyMutateDiff")
         .valueName("<bool>")
-        .action((onlyMutateDiff, config) => {
+        .action { (onlyMutateDiff, config) =>
           config.add(_.modify(_.options.onlyMutateDiff).setTo(onlyMutateDiff))
-        })
+        }
         .text("If set, only mutate added and edited files in git diff against the master branch")
+        .maxOccurs(1),
+      opt[Boolean]("dryRun")
+        .valueName("<bool>")
+        .action { (dryRun, config) =>
+          config.add(_.modify(_.options.dryRun).setTo(dryRun))
+        }
+        .text(
+          "If set, apply mutations and compile the code but do not run the actual mutation testing"
+        )
         .maxOccurs(1)
     )
   }

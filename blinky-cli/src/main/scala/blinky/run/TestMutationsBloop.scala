@@ -23,9 +23,9 @@ object TestMutationsBloop {
 
     val numberOfMutants = mutationReport.length
     println(s"$numberOfMutants mutants found.")
-    if (numberOfMutants == 0) {
+    if (numberOfMutants == 0)
       println("Try changing the mutation settings.")
-    } else {
+    else {
       %('sbt, 'bloopInstall)(projectPath)
       println("Running tests with original config")
       val compileResult =
@@ -63,9 +63,14 @@ object TestMutationsBloop {
               val originalTestTime = System.currentTimeMillis() - originalTestInitialTime
               if (options.verbose)
                 println(green("time: " + originalTestTime))
-              if (!options.dryRun) {
+              if (options.dryRun)
+                println(
+                  s"""
+                     |${green("In dryRun mode. Everything worked correctly.")}
+                     |If you want to run it again with mutations active use --dryRun=false""".stripMargin
+                )
+              else
                 runMutationsSetup(originalTestTime)
-              }
           }
       }
     }
@@ -88,7 +93,7 @@ object TestMutationsBloop {
       ConsoleReporter.reportMutationResult(results, totalTime, numberOfMutants, options)
     }
 
-    def runMutations(mutants: List[Mutant], initialTime: Long): List[(Int, Boolean)] = {
+    def runMutations(mutants: List[Mutant], initialTime: Long): List[(Int, Boolean)] =
       mutants match {
         case Nil =>
           Nil
@@ -119,7 +124,6 @@ object TestMutationsBloop {
 
           result :: runMutations(othersMutants, initialTime)
       }
-    }
 
     def runInBloop(mutantId: Int): Try[CommandResult] = {
       if (options.verbose)

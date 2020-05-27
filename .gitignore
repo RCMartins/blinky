@@ -2,3 +2,5 @@
 target
 .history
 .bloop
+
+bin/cs
