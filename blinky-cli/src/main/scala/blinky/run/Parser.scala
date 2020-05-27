@@ -5,6 +5,8 @@ import blinky.BuildInfo
 import com.softwaremill.quicklens._
 import scopt.{OParser, OParserBuilder, Read}
 
+import scala.concurrent.duration.Duration
+
 object Parser {
 
   private implicit val readFile: Read[File] = new Read[File] {
@@ -85,6 +87,31 @@ object Parser {
         }
         .text(
           "If set, apply mutations and compile the code but do not run the actual mutation testing"
+        )
+        .maxOccurs(1),
+      opt[Duration]("maxRunningTime")
+        .valueName("<duration>")
+        .action { (maxRunningTime, config) =>
+          config.add(_.modify(_.options.maxRunningTime).setTo(maxRunningTime))
+        }
+        .text("Maximum time allowed to run mutation tests")
+        .maxOccurs(1),
+      opt[Double]("mutationMinimum")
+        .valueName("<decimal>")
+        .action { (mutationMinimum, config) =>
+          config.add(_.modify(_.options.mutationMinimum).setTo(mutationMinimum))
+        }
+        .text(
+          "Minimum mutation score, value must be between 0 and 100, with one decimal place"
+        )
+        .maxOccurs(1),
+      opt[Boolean]("failOnMinimum")
+        .valueName("<bool>")
+        .action { (failOnMinimum, config) =>
+          config.add(_.modify(_.options.failOnMinimum).setTo(failOnMinimum))
+        }
+        .text(
+          "If set, exits with non-zero code when the mutation score is below mutationMinimum value"
         )
         .maxOccurs(1)
     )

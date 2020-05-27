@@ -17,7 +17,7 @@ case class MutationsConfig(
 
 object MutationsConfig {
   val default: MutationsConfig = MutationsConfig(
-    projectPath = ".",
+    projectPath = "",
     projectName = "",
     filesToMutate = "src/main/scala",
     filesToExclude = "",

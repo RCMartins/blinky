@@ -21,7 +21,7 @@ object Cli {
       val confFileResult: Either[String, File] =
         args.mainConfFile match {
           case Some(confFileStr) =>
-            val confFile = File(confFileStr)
+            val confFile = File(pwd.path.resolve(confFileStr))
             if (!confFile.exists)
               Left(s"""<blinkyConfFile> '$confFile' does not exist.
                       |blinky --help for usage.""".stripMargin)
