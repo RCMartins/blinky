@@ -63,9 +63,10 @@ class RuleSuite extends SemanticRuleSuite() {
     outputFolder.createDirectories()
     outputFolder / "mutants"
   }
-  private def mutantsExpectedFileResolver(testRelPath: RelativePath): File = {
+
+  private def mutantsExpectedFileResolver(testRelPath: RelativePath): File =
     props.outputSourceDirectories
-      .map { outputFolder => File(outputFolder.toNIO) / ".." / "resources" }
+      .map(outputFolder => File(outputFolder.toNIO) / ".." / "resources")
       .find(_.exists) match {
       case None =>
         fail(s".mutants file was expected to exist in resources folder for '$testRelPath'")
@@ -74,7 +75,6 @@ class RuleSuite extends SemanticRuleSuite() {
           path.toString + JFile.separator + testRelPath.toString.stripSuffix("scala") + "mutants"
         )
     }
-  }
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -129,21 +129,19 @@ class RuleSuite extends SemanticRuleSuite() {
     }
 
     val mutantsExpectedFile = mutantsExpectedFileResolver(testData.ruleTest.path.testPath)
-    if (mutantsExpectedFile.exists) {
+    if (mutantsExpectedFile.exists)
       test(testData.ruleTest.path.testName + " (mutants file)") {
         val mutantsFile: File = mutantsFileResolver(testData.ruleTest.path.testPath)
 
         if (mutantsFile.lines == mutantsExpectedFile.lines)
           succeed
-        else {
+        else
           fail(s"""Actual:
                   |${mutantsFile.contentAsString}
                   |Expected:
                   |${mutantsExpectedFile.contentAsString}
                   |""".stripMargin)
-        }
       }
-    }
   }
 
 }
