@@ -22,11 +22,12 @@ class CliTest extends TestSpec {
   "blinky --version" should {
 
     "return the version number of blinky" in {
-      val (_, out, _) = parse("--version")()
+      val (_, out, err) = parse("--version")()
 
       out mustEqual
         s"""blinky v$version
            |""".stripMargin
+      err mustBe empty
     }
 
   }
@@ -34,7 +35,7 @@ class CliTest extends TestSpec {
   "blinky --help" should {
 
     "return the help text" in {
-      val (_, out, _) = parse("--help")()
+      val (_, out, err) = parse("--help")()
 
       out mustEqual
         s"""blinky v$version
@@ -58,6 +59,7 @@ class CliTest extends TestSpec {
            |                           Minimum mutation score, value must be between 0 and 100, with one decimal place
            |  --failOnMinimum <bool>   If set, exits with non-zero code when the mutation score is below mutationMinimum value
            |""".stripMargin
+      err mustBe empty
     }
 
   }
