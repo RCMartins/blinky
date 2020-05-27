@@ -17,8 +17,6 @@ import scala.concurrent.duration._
 
 class CliTest extends TestSpec {
 
-  private final val emptyDefaultFolder: String = "empty-default"
-
   "blinky --version" should {
 
     "return the version number of blinky" in {
@@ -70,7 +68,7 @@ class CliTest extends TestSpec {
       val (mutationsConfig, out, err) = parse(getFilePath("empty.conf"))()
 
       mutationsConfig.value mustEqual MutationsConfigValidated(
-        projectPath = File(getFilePath(emptyDefaultFolder)),
+        projectPath = File(getFilePath(".")),
         filesToMutate = "src/main/scala",
         filesToExclude = "",
         mutators = SimpleBlinkyConfig(
@@ -120,10 +118,10 @@ class CliTest extends TestSpec {
   "blinky simple1.conf" should {
 
     "return the correct projectName, compileCommand and testCommand" in {
-      val (mutationsConfigOpt, out, err) = parse(getFilePath("simple1.conf"))(File(".."))
+      val (mutationsConfigOpt, out, err) = parse(getFilePath("simple1.conf"))(File("."))
       val mutationsConfig = mutationsConfigOpt.value withClue err
 
-      mutationsConfig.projectPath mustEqual File("..") / "examples" / "example1"
+      mutationsConfig.projectPath mustEqual File(".") / "examples" / "example1"
       mutationsConfig.filesToMutate mustEqual "src/main/scala/Example.scala"
       mutationsConfig.options.compileCommand mustEqual "example1"
       mutationsConfig.options.testCommand mustEqual "example1"
@@ -137,7 +135,7 @@ class CliTest extends TestSpec {
   "blinky <no conf file>" should {
 
     "return an error if there is no .blinky.conf file" in {
-      val pwdFolder = File(getFilePath("."))
+      val pwdFolder = File(".")
       val (mutationsConfigOpt, out, err) = parse()(pwdFolder)
 
       mutationsConfigOpt mustBe empty
@@ -193,11 +191,11 @@ class CliTest extends TestSpec {
       )
 
       val (mutationsConfigOpt, out, err) =
-        parse(getFilePath("empty.conf") +: params: _*)(File(".."))
+        parse(getFilePath("empty.conf") +: params: _*)(File("."))
       mutationsConfigOpt mustBe defined withClue err
       val mutationsConfig = mutationsConfigOpt.value
 
-      mutationsConfig.projectPath mustEqual File("..") / "examples" / "example2"
+      mutationsConfig.projectPath mustEqual File(".") / "examples" / "example2"
       mutationsConfig.filesToMutate mustEqual "src/main/scala/Example.scala"
       mutationsConfig.filesToExclude mustEqual "src/main/scala/Utils.scala"
 
@@ -248,7 +246,7 @@ class CliTest extends TestSpec {
   private def parse(
       args: String*
   )(
-      pwd: File = File(getFilePath(emptyDefaultFolder))
+      pwd: File = File(getFilePath("."))
   ): (Option[MutationsConfigValidated], String, String) = {
     val outCapture = new ByteArrayOutputStream
     val errCapture = new ByteArrayOutputStream

@@ -21,7 +21,7 @@ inThisBuild(
       "-deprecation"
     ),
     coverageEnabled := false,
-    fork in Test := true,
+    fork in Test := false,
     skip in publish := true
   )
 )
