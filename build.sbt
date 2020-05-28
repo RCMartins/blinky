@@ -1,3 +1,7 @@
+import java.nio.file.Path
+
+import sbt.Keys._
+import sbt.nio.file.FileAttributes
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
@@ -25,6 +29,9 @@ inThisBuild(
     skip in publish := true
   )
 )
+
+Global / excludeFilter := NothingFilter
+Global / fileInputExcludeFilter := ((_: Path, _: FileAttributes) => false)
 
 lazy val stableVersion = Def.setting {
   version.in(ThisBuild).value.replaceAll("\\+.*", "")
