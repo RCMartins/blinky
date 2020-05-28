@@ -1,6 +1,5 @@
 package blinky.v0
 
-import metaconfig.typesafeconfig._
 import metaconfig.{Conf, Configured}
 
 class MutatorsTest extends TestSpec {
