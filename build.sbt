@@ -21,8 +21,44 @@ inThisBuild(
     scalaVersion := V.scala212,
     addCompilerPlugin(scalafixSemanticdb),
     scalacOptions ++= List(
+      "-encoding",
+      "UTF-8",
+      "-explaintypes",
+      "-unchecked",
+      "-feature",
+      "-deprecation:true",
+      "-Xfuture",
+      "-Xcheckinit",
+      "-Xlint:by-name-right-associative",
+      "-Xlint:constant",
+      "-Xlint:delayedinit-select",
+      "-Xlint:doc-detached",
+      "-Xlint:missing-interpolator",
+      "-Xlint:option-implicit",
+      "-Xlint:package-object-classes",
+      "-Xlint:poly-implicit-overload",
+      "-Xlint:private-shadow",
+      "-Xlint:stars-align",
+      "-Xlint:type-parameter-shadow",
+      "-Xlint:unsound-match",
+      "-Ywarn-dead-code",
+      "-Ywarn-inaccessible",
+      "-Ywarn-nullary-override",
+      "-Ywarn-nullary-unit",
+      "-Ywarn-numeric-widen",
+      "-Ywarn-extra-implicit",
+      "-Ywarn-infer-any",
+      "-Ywarn-unused:imports",
+      "-Ywarn-unused:locals",
+      "-Ywarn-unused:patvars",
+      "-Ywarn-unused:privates",
+      "-Ypartial-unification",
+      "-Yno-adapted-args",
+      "-Ywarn-unused:implicits",
+      "-Ywarn-unused:params",
+      "-Ywarn-macros:after",
       "-Yrangepos",
-      "-deprecation"
+      if (sys.env.contains("CI")) "-Xfatal-warnings" else ""
     ),
     coverageEnabled := false,
     fork in Test := false,
@@ -32,6 +68,7 @@ inThisBuild(
 
 Global / excludeFilter := NothingFilter
 Global / fileInputExcludeFilter := ((_: Path, _: FileAttributes) => false)
+Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val stableVersion = Def.setting {
   version.in(ThisBuild).value.replaceAll("\\+.*", "")
@@ -48,6 +85,7 @@ lazy val core =
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.8.1",
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
       libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.1.4",
+      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.1.2" % "test",
       coverageMinimum := 89,
       coverageFailOnMinimum := true,
       buildInfoPackage := "blinky",
@@ -59,9 +97,17 @@ lazy val core =
       )
     )
 
-lazy val input = project
+lazy val input =
+  project
+    .settings(
+      scalacOptions := Seq.empty
+    )
 
-lazy val output = project
+lazy val output =
+  project
+    .settings(
+      scalacOptions := Seq.empty
+    )
 
 lazy val cli =
   project
@@ -74,6 +120,7 @@ lazy val cli =
       libraryDependencies += "com.github.scopt"           %% "scopt"                      % "4.0.0-RC2",
       libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.5.0",
       libraryDependencies += "org.scalatest"              %% "scalatest"                  % "3.1.2" % "test",
+      Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimum := 37,
       coverageFailOnMinimum := true
     )
@@ -101,5 +148,3 @@ lazy val docs =
       mdoc := run.in(Compile).evaluated
     )
     .dependsOn(core)
-
-Global / onChangedBuildSource := ReloadOnSourceChanges

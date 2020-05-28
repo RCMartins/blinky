@@ -1,10 +1,9 @@
 package blinky.run
 
-import better.files.File
 import com.softwaremill.quicklens._
 import metaconfig.generic.Surface
 import metaconfig.typesafeconfig._
-import metaconfig.{Conf, ConfDecoder, ConfEncoder, generic}
+import metaconfig.{Conf, ConfDecoder, generic}
 
 case class MutationsConfig(
     projectPath: String,
@@ -24,9 +23,6 @@ object MutationsConfig {
     mutators = SimpleBlinkyConfig.default,
     options = OptionsConfig.default
   )
-
-  private implicit val fileDecoder: ConfDecoder[File] =
-    ConfDecoder.stringConfDecoder.map(File(_))
 
   implicit val surface: Surface[MutationsConfig] =
     generic.deriveSurface[MutationsConfig]

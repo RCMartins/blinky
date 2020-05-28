@@ -1,7 +1,6 @@
 package blinky.run
 
 import better.files.File
-import java.nio.file.{Path, Paths}
 
 case class MutationsConfigValidated(
     projectPath: File,

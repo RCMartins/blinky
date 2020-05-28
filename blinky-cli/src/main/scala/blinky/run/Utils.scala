@@ -26,7 +26,8 @@ object Utils {
     val endLineMinus: Int = startLineMinus + contextLinesMinus - 1
     val endLinePlus: Int = startLinePlus + contextLinesPlus - 1
 
-    val lineNumbersLength: Int = 3 + Math.log10(Math.max(endLineMinus, endLinePlus)).toInt
+    val lineNumbersLength: Int =
+      3 + Math.log10(Math.max(endLineMinus.toDouble, endLinePlus.toDouble)).toInt
     val lineNumbersLengthArgInt: String = "%" + lineNumbersLength + "d"
     val lineNumbersLengthArgEmpty: String = " " * lineNumbersLength
 

@@ -62,7 +62,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
               }
 
             val finalSyntax = if (needsParens) "(" + mutatedStr.syntax + ")" else mutatedStr.syntax
-            Some(Patch.replaceTree(original, finalSyntax), mutantSeq)
+            Some((Patch.replaceTree(original, finalSyntax), mutantSeq))
           case _ =>
             None
         }
@@ -121,7 +121,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
   def saveNewMutantsToFile(mutantsFound: Seq[Mutant]): Unit =
     if (mutantsFound.nonEmpty)
       mutantsOutputFileOpt.foreach { mutantsOutputFile =>
-        val jsonMutationReport = mutantsFound.map(Json.toJson(_)).mkString("", "\n", "\n")
-        mutantsOutputFile.append(jsonMutationReport)
+        val jsonMutationReport = mutantsFound.map(Json.toJson(_)).map(_.toString)
+        mutantsOutputFile.appendLines(jsonMutationReport: _*)
       }
 }

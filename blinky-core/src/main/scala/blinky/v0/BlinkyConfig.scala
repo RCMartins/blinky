@@ -1,7 +1,7 @@
 package blinky.v0
 
 import metaconfig.generic.Surface
-import metaconfig.{Conf, ConfDecoder, ConfEncoder, generic}
+import metaconfig.{ConfDecoder, generic}
 
 case class BlinkyConfig(
     mutantsOutputFile: String,
@@ -21,10 +21,6 @@ object BlinkyConfig {
     disabledMutators = Mutators(Nil)
   )
 
-  implicit val mutatorEncoder: ConfEncoder[Mutator] =
-    (value: Mutator) => Conf.Str(value.name)
-  implicit val mutatorsEncoder: ConfEncoder[Mutators] =
-    (value: Mutators) => ConfEncoder[List[Mutator]].write(value.mutations)
   implicit val surface: Surface[BlinkyConfig] =
     generic.deriveSurface[BlinkyConfig]
   implicit val decoder: ConfDecoder[BlinkyConfig] =

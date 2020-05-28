@@ -4,13 +4,9 @@ import java.io.ByteArrayOutputStream
 import java.util.concurrent.TimeUnit
 
 import better.files.File
-import blinky.BuildInfo
 import blinky.BuildInfo.version
-import blinky.run.{MutationsConfig, MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
-import blinky.v0.{BlinkyConfig, Mutators}
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatest.{AppendedClues, OptionValues}
+import blinky.run.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
+import blinky.v0.Mutators
 import scopt.DefaultOParserSetup
 
 import scala.concurrent.duration._

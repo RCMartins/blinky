@@ -1,18 +1,12 @@
 package blinky.run
 
-import better.files.File
 import blinky.BuildInfo
 import com.softwaremill.quicklens._
-import scopt.{OParser, OParserBuilder, Read}
+import scopt.{OParser, OParserBuilder}
 
 import scala.concurrent.duration.Duration
 
 object Parser {
-
-  private implicit val readFile: Read[File] = new Read[File] {
-    override def arity: Int = 1
-    override def reads: String => File = File(_)
-  }
 
   private val builder: OParserBuilder[Args] = OParser.builder[Args]
   val parser: OParser[Unit, Args] = {
