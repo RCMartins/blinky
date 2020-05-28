@@ -10,10 +10,12 @@ import blinky.v0.BlinkyConfig
 import scala.util.Try
 
 object Run {
-  def run(config: MutationsConfig): Unit = {
+  def run(config: MutationsConfigValidated): Unit = {
     val ruleName = "Blinky"
     val originalProjectRoot = pwd
-    val originalProjectRelPath = RelPath(config.projectPath)
+    val originalProjectRelPath =
+      Try(Path(config.projectPath.pathAsString).relativeTo(originalProjectRoot))
+        .getOrElse(RelPath(config.projectPath.pathAsString))
     val originalProjectPath = originalProjectRoot / originalProjectRelPath
 
     val cloneProjectTempFolder = tmp.dir()
@@ -80,9 +82,8 @@ object Run {
               Seq.empty
           else
             base.filter(_.startsWith(configFileOrFolderToMutateStr))
-        } else {
+        } else
           Seq("all")
-        }
 
       // Setup semanticdb files with sbt compile.
       // (there should probably be a better way to do this...)

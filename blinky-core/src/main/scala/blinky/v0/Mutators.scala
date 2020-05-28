@@ -9,7 +9,7 @@ object Mutators {
   val all: Mutators = Mutators(Mutator.all.values.toList)
 
   implicit val readerMutations: ConfDecoder[Mutators] = {
-    def readerMutationsAux(path: String): ConfDecoder[Mutators] = {
+    def readerMutationsAux(path: String): ConfDecoder[Mutators] =
       ConfDecoder.instanceF[Mutators] {
         case Conf.Str(mutatorName) =>
           Mutator.findMutators(path + mutatorName) match {
@@ -32,7 +32,6 @@ object Mutators {
         case other =>
           Configured.typeMismatch("String with a Mutator name", other)
       }
-    }
 
     readerMutationsAux("")
   }

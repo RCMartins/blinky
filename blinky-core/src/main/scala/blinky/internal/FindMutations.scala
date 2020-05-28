@@ -14,20 +14,19 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
     (mutations.flatten, fullReplace.exists(identity))
   }
 
-  def topTreeMutations(tree: Tree): Seq[(Term, MutatedTerms)] = {
+  def topTreeMutations(tree: Tree): Seq[(Term, MutatedTerms)] =
     tree match {
       case term: Term =>
         topTermMutations(term, parensRequired = false)
       case other =>
         other.children.flatMap(topTreeMutations)
     }
-  }
 
   def topTermMutations(
       term: Term,
       parensRequired: Boolean,
       overrideOriginal: Option[Term] = None
-  ): Seq[(Term, MutatedTerms)] = {
+  ): Seq[(Term, MutatedTerms)] =
     termMutations(term, mainTermsOnly = false).collect {
       // Disable rules on Term.Placeholder until we can handle this case properly
       case (original, _) if original.collect { case Term.Placeholder() => }.nonEmpty =>
@@ -39,7 +38,6 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
       case other =>
         Some(other)
     }.flatten
-  }
 
   def topMainTermMutations(term: Term): Seq[Term] =
     termMutations(term, mainTermsOnly = true).flatMap { case (_, mutations) => mutations.mutated }
@@ -53,11 +51,10 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
       val (mainMutations, fullReplace) = findAllMutations(term)
       if (fullReplace)
         Seq((term, mainMutations.toMutated(needsParens = false)))
-      else if (mainMutations.nonEmpty || mainTermsOnly) {
+      else if (mainMutations.nonEmpty || mainTermsOnly)
         Seq((term, (mainMutations ++ subMutationsWithMain).toMutated(needsParens = false)))
-      } else {
+      else
         subMutationsWithoutMain
-      }
     }
 
     mainTerm match {
@@ -190,13 +187,12 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
     }
   }
 
-  def listTermsMutateMain(originalList: List[Term]): List[List[Term]] = {
+  def listTermsMutateMain(originalList: List[Term]): List[List[Term]] =
     originalList.zipWithIndex
       .flatMap { case (term, index) => topMainTermMutations(term).map((_, index)) }
       .map { case (mutated, index) => originalList.updated(index, mutated) }
-  }
 
-  def initMutateMain(init: Init): List[Init] = {
+  def initMutateMain(init: Init): List[Init] =
     init.argss
       .map(_.zipWithIndex)
       .zipWithIndex
@@ -211,5 +207,4 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
           val argsUpdated = init.argss(index).updated(indexInner, mutated)
           Init(init.tpe, init.name, init.argss.updated(index, argsUpdated))
       }
-  }
 }

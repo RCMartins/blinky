@@ -1,3 +1,7 @@
+import java.nio.file.Path
+
+import sbt.Keys._
+import sbt.nio.file.FileAttributes
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
@@ -17,15 +21,54 @@ inThisBuild(
     scalaVersion := V.scala212,
     addCompilerPlugin(scalafixSemanticdb),
     scalacOptions ++= List(
+      "-encoding",
+      "UTF-8",
+      "-explaintypes",
+      "-unchecked",
+      "-feature",
+      "-deprecation:true",
+      "-Xfuture",
+      "-Xcheckinit",
+      "-Xlint:by-name-right-associative",
+      "-Xlint:constant",
+      "-Xlint:delayedinit-select",
+      "-Xlint:doc-detached",
+      "-Xlint:missing-interpolator",
+      "-Xlint:option-implicit",
+      "-Xlint:package-object-classes",
+      "-Xlint:poly-implicit-overload",
+      "-Xlint:private-shadow",
+      "-Xlint:stars-align",
+      "-Xlint:type-parameter-shadow",
+      "-Xlint:unsound-match",
+      "-Ywarn-dead-code",
+      "-Ywarn-inaccessible",
+      "-Ywarn-nullary-override",
+      "-Ywarn-nullary-unit",
+      "-Ywarn-numeric-widen",
+      "-Ywarn-extra-implicit",
+      "-Ywarn-infer-any",
+      "-Ywarn-unused:imports",
+      "-Ywarn-unused:locals",
+      "-Ywarn-unused:patvars",
+      "-Ywarn-unused:privates",
+      "-Ypartial-unification",
+      "-Yno-adapted-args",
+      "-Ywarn-unused:implicits",
+      "-Ywarn-unused:params",
+      "-Ywarn-macros:after",
       "-Yrangepos",
-      "-deprecation"
+      if (sys.env.contains("CI")) "-Xfatal-warnings" else ""
     ),
     coverageEnabled := false,
-    fork in Test := true
+    fork in Test := false,
+    skip in publish := true
   )
 )
 
-skip in publish := true
+Global / excludeFilter := NothingFilter
+Global / fileInputExcludeFilter := ((_: Path, _: FileAttributes) => false)
+Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val stableVersion = Def.setting {
   version.in(ThisBuild).value.replaceAll("\\+.*", "")
@@ -36,11 +79,13 @@ lazy val core =
     .in(file("blinky-core"))
     .enablePlugins(BuildInfoPlugin)
     .settings(
+      skip in publish := false,
       moduleName := "blinky",
       libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.8.1",
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
       libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.1.4",
+      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.1.2" % "test",
       coverageMinimum := 89,
       coverageFailOnMinimum := true,
       buildInfoPackage := "blinky",
@@ -52,23 +97,30 @@ lazy val core =
       )
     )
 
-lazy val input = project.settings(
-  skip in publish := true
-)
+lazy val input =
+  project
+    .settings(
+      scalacOptions := Seq.empty
+    )
 
-lazy val output = project.settings(
-  skip in publish := true
-)
+lazy val output =
+  project
+    .settings(
+      scalacOptions := Seq.empty
+    )
 
 lazy val cli =
   project
     .in(file("blinky-cli"))
     .settings(
+      skip in publish := false,
       moduleName := "blinky-cli",
-      libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.10",
-      libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.10",
-      libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.0.0-RC2",
-      libraryDependencies += "org.scalatest"    %% "scalatest"                  % "3.1.2" % "test",
+      libraryDependencies += "com.geirsson"               %% "metaconfig-core"            % "0.9.10",
+      libraryDependencies += "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.10",
+      libraryDependencies += "com.github.scopt"           %% "scopt"                      % "4.0.0-RC2",
+      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.5.0",
+      libraryDependencies += "org.scalatest"              %% "scalatest"                  % "3.1.2" % "test",
+      Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimum := 37,
       coverageFailOnMinimum := true
     )
@@ -76,8 +128,8 @@ lazy val cli =
 
 lazy val tests =
   project
+    .enablePlugins(ScalafixTestkitPlugin)
     .settings(
-      skip in publish := true,
       libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
       scalafixTestkitOutputSourceDirectories :=
         sourceDirectories.in(output, Compile).value,
@@ -87,15 +139,12 @@ lazy val tests =
         fullClasspath.in(input, Compile).value
     )
     .dependsOn(core, cli)
-    .enablePlugins(ScalafixTestkitPlugin)
-
-Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val docs =
   project
     .in(file("blinky-docs"))
-    .dependsOn(core)
     .enablePlugins(MdocPlugin, DocusaurusPlugin)
     .settings(
       mdoc := run.in(Compile).evaluated
     )
+    .dependsOn(core)

@@ -42,11 +42,10 @@ object ConsoleReporter {
           red(s"Mutation score is below minimum [$scoreFormatted% < $minimum%]")
         )
         System.exit(1)
-      } else {
+      } else
         println(
           green(s"Mutation score is above minimum [$scoreFormatted% >= $minimum%]")
         )
-      }
     }
   }
 

@@ -43,12 +43,11 @@ object Mutator {
     ) ++
       allGroups.flatMap(group => group.getSubMutators.map(mutator => (mutator.name, mutator)))
 
-  def findMutators(str: String): List[Mutator] = {
+  def findMutators(str: String): List[Mutator] =
     all.collect {
       case (name, mutation) if name == str                => mutation
       case (name, mutation) if name.startsWith(str + ".") => mutation
     }.toList
-  }
 
   case object LiteralBooleans extends NonGroupedMutator("LiteralBooleans") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
