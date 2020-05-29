@@ -9,8 +9,13 @@ def main(confPath: Path, extraParams: String*): Unit = {
   val versionNumber = publishLocalBlinky()
 
   val shouldDoFullTest = {
-    val commitHash = sys.env("TRAVIS_COMMIT")
-    %%("git", "log", "-1", "--pretty=format:%s")(path).out.string.toLowerCase.contains("[full-ci]")
+    val Seq(line1, line2) =
+      %%("git", "log", "-2", "--pretty=format:%s")(path).out.lines.map(_.toLowerCase)
+
+    if (line1.matches("merge [0-9a-f]{40} into [0-9a-f]{40}"))
+      line2.contains("[full-ci]")
+    else
+      line1.contains("[full-ci]")
   }
 
   val allParams: Seq[String] =
