@@ -8,9 +8,10 @@ def main(confPath: Path, extraParams: String*): Unit = {
   val path = pwd
   val versionNumber = publishLocalBlinky()
 
-  println(("TRAVIS_COMMIT_MESSAGE", sys.env.get("TRAVIS_COMMIT_MESSAGE")))
-  val shouldDoFullTest =
-    sys.env.get("TRAVIS_COMMIT_MESSAGE").exists(_.toLowerCase.contains("[full-ci]"))
+  val shouldDoFullTest = {
+    val commitHash = sys.env("TRAVIS_COMMIT")
+    %%("git", "log", "-1", "--pretty=format:%s")(path).out.string.toLowerCase.contains("[full-ci]")
+  }
 
   val allParams: Seq[String] =
     Seq(
