@@ -186,8 +186,7 @@ class CliTest extends TestSpec {
         "true"
       )
 
-      val (mutationsConfigOpt, out, err) =
-        parse(getFilePath("empty.conf") +: params: _*)(File("."))
+      val (mutationsConfigOpt, out, err) = parse(getFilePath("empty.conf") +: params: _*)(File("."))
       mutationsConfigOpt mustBe defined withClue err
       val mutationsConfig = mutationsConfigOpt.value
 
@@ -206,6 +205,22 @@ class CliTest extends TestSpec {
 
       out mustBe empty
       err mustBe empty
+    }
+
+    "return an error if projectPath does not exist" in {
+      val params: Seq[String] = Seq(
+        "--projectPath",
+        "examples/non-existent"
+      )
+
+      val pwd = File(".")
+      val (mutationsConfigOpt, out, err) = parse(getFilePath("empty.conf") +: params: _*)(pwd)
+
+      mutationsConfigOpt mustBe empty
+      out mustBe empty
+      err mustBe
+        s"""--projectPath '${pwd / "examples" / "non-existent"}' does not exists.
+           |""".stripMargin
     }
 
   }

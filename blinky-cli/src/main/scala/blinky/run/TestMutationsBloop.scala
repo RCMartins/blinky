@@ -125,14 +125,18 @@ object TestMutationsBloop {
           result :: runMutations(othersMutants, initialTime)
       }
 
-    def runInBloop(mutantId: Int): Try[CommandResult] = {
-      if (options.verbose)
+    def runInBloop(mutant: Mutant): Try[CommandResult] = {
+      if (options.verbose) {
         println(
-          s"""> [SCALA_MUTATION_$mutantId=1] bash -c "bloop test ${escapeString(testCommand)}""""
+          s"""> [SCALA_MUTATION_${mutant.id}=1] bash -c "bloop test ${escapeString(testCommand)}""""
         )
+        println("Testing:")
+        println(prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = false))
+        println("-----")
+      }
 
       Try(
-        Command(Vector.empty, Map(s"SCALA_MUTATION_$mutantId" -> "1"), Shellout.executeStream)(
+        Command(Vector.empty, Map(s"SCALA_MUTATION_${mutant.id}" -> "1"), Shellout.executeStream)(
           'bash,
           "-c",
           s"bloop test ${escapeString(testCommand)}"
