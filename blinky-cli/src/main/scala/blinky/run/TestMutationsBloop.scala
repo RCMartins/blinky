@@ -106,7 +106,7 @@ object TestMutationsBloop {
         case mutant :: othersMutants =>
           val id = mutant.id
           val time = System.currentTimeMillis()
-          val testResult = runInBloop(id)
+          val testResult = runInBloop(mutant)
 
           val result =
             if (testResult.isSuccess) {
