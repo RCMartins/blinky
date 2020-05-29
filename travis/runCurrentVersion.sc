@@ -12,6 +12,11 @@ def main(confPath: Path, extraParams: String*): Unit = {
     val Seq(line1, line2) =
       %%("git", "log", "-2", "--pretty=format:%s")(path).out.lines.map(_.toLowerCase)
 
+    println("---")
+    println(line1)
+    println(line2)
+    println("---")
+
     if (line1.matches("merge [0-9a-f]{40} into [0-9a-f]{40}"))
       line2.contains("[full-ci]")
     else
