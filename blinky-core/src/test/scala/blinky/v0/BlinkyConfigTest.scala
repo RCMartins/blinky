@@ -1,7 +1,5 @@
 package blinky.v0
 
-import metaconfig.{Conf, Configured}
-
 class BlinkyConfigTest extends TestSpec {
 
   "BlinkyConfig.default" should {
