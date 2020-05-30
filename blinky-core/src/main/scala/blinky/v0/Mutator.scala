@@ -130,7 +130,13 @@ object Mutator {
     override val groupName: String = "LiteralStrings"
 
     override val getSubMutators: List[Mutator] =
-      List(EmptyToMutated, NonEmptyToMutated, ConcatToMutated)
+      List(
+        EmptyToMutated,
+        EmptyInterToMutated,
+        NonEmptyToMutated,
+        NonEmptyInterToMutated,
+        ConcatToMutated
+      )
 
     object EmptyToMutated extends SimpleMutator("EmptyToMutated") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
@@ -139,9 +145,26 @@ object Mutator {
       }
     }
 
+    object EmptyInterToMutated extends SimpleMutator("EmptyInterToMutated") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case Term.Interpolate(Term.Name("s" | "f" | "raw"), List(Lit.String("")), List()) =>
+          default(Lit.String("mutated!"))
+      }
+    }
+
     object NonEmptyToMutated extends SimpleMutator("NonEmptyToMutated") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
         case Lit.String(value) if value.nonEmpty =>
+          default(Lit.String(""), Lit.String("mutated!"))
+      }
+    }
+
+    object NonEmptyInterToMutated extends SimpleMutator("NonEmptyInterToMutated") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case Term.Interpolate(Term.Name("s" | "f" | "raw"), lits, names)
+            if names.nonEmpty || lits.exists {
+              case Lit.String(str) => str.nonEmpty
+            } =>
           default(Lit.String(""), Lit.String("mutated!"))
       }
     }

@@ -55,7 +55,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
             val (_, mutatedStr) =
               mutantSeq.map(mutant => (mutant.id, mutant.mutated)).foldRight((0, original)) {
                 case ((id, mutatedTerm), (_, originalTerm)) =>
-                  val mutantId = Lit.String(s"SCALA_MUTATION_$id")
+                  val mutantId = Lit.String(s"BLINKY_MUTATION_$id")
                   val result =
                     q"""if (_root_.scala.sys.env.contains($mutantId)) ($mutatedTerm) else ($originalTerm)"""
                   (0, result)

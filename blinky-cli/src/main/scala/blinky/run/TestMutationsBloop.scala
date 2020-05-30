@@ -106,15 +106,18 @@ object TestMutationsBloop {
         case mutant :: othersMutants =>
           val id = mutant.id
           val time = System.currentTimeMillis()
-          val testResult = runInBloop(id)
+          val testResult = runInBloop(mutant)
 
           val result =
             if (testResult.isSuccess) {
-              println(s"Mutant #$id was not killed!")
-              println(prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true))
+              println(red(s"Mutant #$id was not killed!"))
+              if (!options.verbose)
+                println(
+                  prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true)
+                )
               id -> false
             } else {
-              println(s"Mutant #$id was killed.")
+              println(green(s"Mutant #$id was killed."))
               id -> true
             }
           if (options.verbose) {
@@ -125,14 +128,19 @@ object TestMutationsBloop {
           result :: runMutations(othersMutants, initialTime)
       }
 
-    def runInBloop(mutantId: Int): Try[CommandResult] = {
-      if (options.verbose)
+    def runInBloop(mutant: Mutant): Try[CommandResult] = {
+      if (options.verbose) {
         println(
-          s"""> [SCALA_MUTATION_$mutantId=1] bash -c "bloop test ${escapeString(testCommand)}""""
+          s"""> [BLINKY_MUTATION_${mutant.id}=1] bash -c "bloop test ${escapeString(
+            testCommand
+          )}""""
         )
+        println(prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true))
+        println("--v--" * 5)
+      }
 
       Try(
-        Command(Vector.empty, Map(s"SCALA_MUTATION_$mutantId" -> "1"), Shellout.executeStream)(
+        Command(Vector.empty, Map(s"BLINKY_MUTATION_${mutant.id}" -> "1"), Shellout.executeStream)(
           'bash,
           "-c",
           s"bloop test ${escapeString(testCommand)}"
