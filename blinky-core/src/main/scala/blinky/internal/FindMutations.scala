@@ -129,7 +129,10 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
                 topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
             }
             .map { case (mutated, index) => Term.PartialFunction(cases.updated(index, mutated)) },
-          cases.flatMap(caseTerm => topTermMutations(caseTerm.body, parensRequired = false))
+          cases.flatMap(caseTerm =>
+            topTermMutations(caseTerm.cond, parensRequired = true) ++
+              topTermMutations(caseTerm.body, parensRequired = false)
+          )
         )
       case function @ Term.Function(params, body) =>
         selectSmallerMutation(
