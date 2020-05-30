@@ -343,14 +343,15 @@ object Mutator {
     class RemoveApplyArgMutator(
         mutatorName: String,
         collectionName: String,
-        symbolsToMatch: Seq[String]
+        symbolsToMatch: Seq[String],
+        minimum: Int = 1
     ) extends SimpleMutator(mutatorName) {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
         case collection @ Term.Apply(
               select @ (Term.Name(`collectionName`) | Term.Select(_, Term.Name(`collectionName`))),
               args
             )
-            if args.nonEmpty && args.lengthCompare(MaxSize) <= 0 &&
+            if args.lengthCompare(minimum) >= 0 && args.lengthCompare(MaxSize) <= 0 &&
               SymbolMatcher.exact(symbolsToMatch: _*).matches(collection.symbol) =>
           default(removeOneArg(Nil, args, Nil).reverse.map(Term.Apply(select, _)): _*)
       }
@@ -384,7 +385,8 @@ object Mutator {
             "scala/Predef.Set.",
             "scala/collection/mutable/Set.",
             "scala/collection/immutable/Set."
-          )
+          ),
+          minimum = 2
         )
 
   }
