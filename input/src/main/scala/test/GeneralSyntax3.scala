@@ -1,7 +1,7 @@
 /*
 rule = Blinky
 Blinky.filesToMutate = [all]
-Blinky.enabledMutators = [ArithmeticOperators, LiteralBooleans]
+Blinky.enabledMutators = [ArithmeticOperators, LiteralBooleans, Collections]
  */
 package test
 
@@ -22,7 +22,7 @@ object GeneralSyntax3 {
 
   def fun[A](value: A): List[A] = List(value)
 
-  val call1 = fun[Int](1 + 2)
+  val call1 = fun[Int] (1 + 2)
 
   val call2 = fun(2 + 3: Int)
 

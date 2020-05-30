@@ -3,6 +3,7 @@ package blinky.v0
 import blinky.v0.Mutator._
 import scalafix.v1._
 
+import scala.annotation.tailrec
 import scala.meta._
 
 trait MutatorGroup {
@@ -34,7 +35,8 @@ object Mutator {
       ConditionalExpressions,
       LiteralStrings,
       ScalaOptions,
-      ScalaTry
+      ScalaTry,
+      Collections
     )
 
   val all: Map[String, Mutator] =
@@ -49,7 +51,7 @@ object Mutator {
       case (name, mutation) if name.startsWith(str + ".") => mutation
     }.toList
 
-  case object LiteralBooleans extends NonGroupedMutator("LiteralBooleans") {
+  object LiteralBooleans extends NonGroupedMutator("LiteralBooleans") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case Lit.Boolean(value) =>
         default(Lit.Boolean(!value))
@@ -313,7 +315,44 @@ object Mutator {
     }
   }
 
-  def default(terms: Term*): (List[Term], Boolean) = (terms.toList, false)
+  object Collections extends MutatorGroup {
+    override val groupName: String = "Collections"
 
-  def fullReplace(terms: Term*): (List[Term], Boolean) = (terms.toList, true)
+    override val getSubMutators: List[Mutator] =
+      List(
+        Seq
+      )
+
+    object Seq extends SimpleMutator("Seq") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case seq @ Term.Apply(Term.Name("Seq") | Term.Select(_, Term.Name("Seq")), args)
+            if args.nonEmpty && args.lengthCompare(25) <= 0 &&
+              SymbolMatcher
+                .exact(
+                  "scala/collection/Seq.",
+                  "scala/collection/mutable/Seq.",
+                  "scala/collection/immutable/Seq."
+                )
+                .matches(seq.symbol) =>
+          @tailrec
+          def removeOneArg(
+              before: List[Term],
+              terms: List[Term],
+              result: List[List[Term]]
+          ): List[List[Term]] =
+            terms match {
+              case Nil => result
+              case term :: others =>
+                removeOneArg(before :+ term, others, before ++ others :: result)
+            }
+
+          default(removeOneArg(Nil, args, Nil).reverse.map(Term.Apply(Term.Name("Seq"), _)): _*)
+      }
+    }
+
+  }
+
+  private def default(terms: Term*): (List[Term], Boolean) = (terms.toList, false)
+
+  private def fullReplace(terms: Term*): (List[Term], Boolean) = (terms.toList, true)
 }

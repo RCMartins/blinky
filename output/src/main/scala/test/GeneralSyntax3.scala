@@ -23,5 +23,9 @@ object GeneralSyntax3 {
 
   def fun2(args: Boolean*): Boolean = args.forall(identity)
 
-  val call3 = fun2(Seq(if (???) false else true, if (???) true else false): _*)
+  val call3 = fun2((if (???) Seq(false) ///
+               else if (???) Seq(true) ///
+               else if (???) Seq(false, false) ///
+               else if (???) Seq(true, true) ///
+                        else Seq(true, false)): _*)
 }
