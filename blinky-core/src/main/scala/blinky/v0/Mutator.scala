@@ -319,9 +319,10 @@ object Mutator {
     override val groupName: String = "Collections"
 
     override val getSubMutators: List[Mutator] =
-      scala.collection.immutable.List(
-        Seq,
-        List
+      List(
+        ListApply,
+        SeqApply,
+        SetApply
       )
 
     private val MaxSize = 25
@@ -339,35 +340,52 @@ object Mutator {
           removeOneArg(before :+ term, others, before ++ others :: result)
       }
 
-    object List extends SimpleMutator("List") {
+    class RemoveApplyArgMutator(
+        mutatorName: String,
+        collectionName: String,
+        symbolsToMatch: Seq[String]
+    ) extends SimpleMutator(mutatorName) {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-        case list @ Term.Apply(
-              select @ (Term.Name("List") | Term.Select(_, Term.Name("List"))),
+        case collection @ Term.Apply(
+              select @ (Term.Name(`collectionName`) | Term.Select(_, Term.Name(`collectionName`))),
               args
             )
             if args.nonEmpty && args.lengthCompare(MaxSize) <= 0 &&
-              SymbolMatcher.exact("scala/collection/immutable/List.").matches(list.symbol) =>
+              SymbolMatcher.exact(symbolsToMatch: _*).matches(collection.symbol) =>
           default(removeOneArg(Nil, args, Nil).reverse.map(Term.Apply(select, _)): _*)
       }
     }
 
-    object Seq extends SimpleMutator("Seq") {
-      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-        case seq @ Term.Apply(
-              select @ (Term.Name("Seq") | Term.Select(_, Term.Name("Seq"))),
-              args
-            )
-            if args.nonEmpty && args.lengthCompare(MaxSize) <= 0 &&
-              SymbolMatcher
-                .exact(
-                  "scala/collection/Seq.",
-                  "scala/collection/mutable/Seq.",
-                  "scala/collection/immutable/Seq."
-                )
-                .matches(seq.symbol) =>
-          default(removeOneArg(Nil, args, Nil).reverse.map(Term.Apply(select, _)): _*)
-      }
-    }
+    object ListApply
+        extends RemoveApplyArgMutator(
+          "ListApply",
+          "List",
+          Seq(
+            "scala/collection/immutable/List."
+          )
+        )
+
+    object SeqApply
+        extends RemoveApplyArgMutator(
+          "SeqApply",
+          "Seq",
+          Seq(
+            "scala/collection/Seq.",
+            "scala/collection/mutable/Seq.",
+            "scala/collection/immutable/Seq."
+          )
+        )
+
+    object SetApply
+        extends RemoveApplyArgMutator(
+          "SetApply",
+          "Set",
+          Seq(
+            "scala/Predef.Set.",
+            "scala/collection/mutable/Set.",
+            "scala/collection/immutable/Set."
+          )
+        )
 
   }
 

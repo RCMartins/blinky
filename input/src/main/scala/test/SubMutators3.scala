@@ -8,6 +8,7 @@ Blinky.enabledMutators = [
   { ScalaOptions = [GetOrElse, Exists, Forall, IsEmpty, NonEmpty, Fold,
                     OrElse, OrNull, Filter, FilterNot, Contains] }
   { ScalaTry = [GetOrElse, OrElse] }
+  { Collections = [ListApply, SeqApply, SetApply] }
 ]
  */
 package test
