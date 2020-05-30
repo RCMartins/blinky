@@ -147,7 +147,7 @@ object Mutator {
 
     object EmptyInterToMutated extends SimpleMutator("EmptyInterToMutated") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-        case Term.Interpolate(Term.Name("s"), List(Lit.String("")), List()) =>
+        case Term.Interpolate(Term.Name("s" | "f" | "raw"), List(Lit.String("")), List()) =>
           default(Lit.String("mutated!"))
       }
     }
@@ -161,7 +161,8 @@ object Mutator {
 
     object NonEmptyInterToMutated extends SimpleMutator("NonEmptyInterToMutated") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-        case Term.Interpolate(Term.Name("s"), lits, names) if names.nonEmpty || lits.exists {
+        case Term.Interpolate(Term.Name("s" | "f" | "raw"), lits, names)
+            if names.nonEmpty || lits.exists {
               case Lit.String(str) => str.nonEmpty
             } =>
           default(Lit.String(""), Lit.String("mutated!"))

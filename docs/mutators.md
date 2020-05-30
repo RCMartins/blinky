@@ -116,8 +116,21 @@ description: Changes empty strings `""` into `"mutated!"`.
 example:
 
 ```diff
-- val name = ""
-+ val name = "mutated!"
+- val str = ""
++ val str = "mutated!"
+```
+
+#### String - Change empty interpolated string
+
+name: EmptyInterToMutated
+
+description: Changes empty interpolated strings `s""` into `"mutated!"`. It works on `s`, `f` and `raw` interpolators.
+
+example:
+
+```diff
+- val str = s""
++ val str = "mutated!"
 ```
 
 #### String - Change non-empty string
@@ -129,15 +142,35 @@ description: Changes non-empty strings into two mutations. One with empty `""` a
 example mutation 1:
 
 ```diff
-- val name = "foobar"
-+ val name = ""
+- val str = "foobar"
++ val str = ""
 ```
 
 example mutation 2:
 
 ```diff
-- val name = "foobar"
-+ val name = "mutated!"
+- val str = "foobar"
++ val str = "mutated!"
+```
+
+#### String - Change non-empty interpolated string
+
+name: NonEmptyInterToMutated
+
+description: Changes non-empty interpolated strings into two mutations. One with empty `""` and another with `"mutated!"`. It works on `s`, `f` and `raw` interpolators.
+
+example mutation 1:
+
+```diff
+- val str = s"forbar: $foobar"
++ val str = ""
+```
+
+example mutation 2:
+
+```diff
+- val str = s"forbar: $foobar"
++ val str = "mutated!"
 ```
 
 #### String - Concat into mutated
@@ -149,15 +182,15 @@ description: Changes the string concat operator `+` and both left and right expr
 example mutation 1:
 
 ```diff
-- val name = "foo" + "bar"
-+ val name = ""
+- val str = "foo" + "bar"
++ val str = ""
 ```
 
 example mutation 2:
 
 ```diff
-- val name = "foo" + "bar"
-+ val name = "mutated!"
+- val str = "foo" + "bar"
++ val str = "mutated!"
 ```
 
 ---
