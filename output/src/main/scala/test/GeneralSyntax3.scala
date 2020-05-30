@@ -15,7 +15,7 @@ object GeneralSyntax3 {
 
   val foo4 = new FooT[Int](if (???) 10 - 2 else 10 + 2)
 
-  def fun[A](value: A): List[A] = List(value)
+  def fun[A](value: A): List[A] = if (???) List() else List(value)
 
   val call1 = fun[Int](if (???) 1 - 2 else 1 + 2)
 
