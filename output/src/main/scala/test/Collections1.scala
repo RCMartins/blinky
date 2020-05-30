@@ -1,7 +1,11 @@
 package test
 
 object Collections1 {
-  val list1 = if (???) List("b") else if (???) List("a") else List("a", "b")
+  val list1 = if (???) List("b", "c", "d") ///
+         else if (???) List("a", "c", "d") ///
+         else if (???) List("a", "b", "d") ///
+         else if (???) List("a", "b", "c") ///
+                  else List("a", "b", "c", "d")
   val list2 = if (???) scala.List("b") else if (???) scala.List("a") else scala.List("a", "b")
   val list3 = if (???) scala.collection.immutable.List("b") ///
          else if (???) scala.collection.immutable.List("a") ///

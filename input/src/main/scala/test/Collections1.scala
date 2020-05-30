@@ -6,7 +6,7 @@ Blinky.enabledMutators = [Collections]
 package test
 
 object Collections1 {
-  val list1 = List("a", "b")
+  val list1 = List("a", "b", "c", "d")
   val list2 = scala.List("a", "b")
   val list3 = scala.collection.immutable.List("a", "b")
 
