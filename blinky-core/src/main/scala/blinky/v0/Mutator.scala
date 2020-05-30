@@ -319,14 +319,45 @@ object Mutator {
     override val groupName: String = "Collections"
 
     override val getSubMutators: List[Mutator] =
-      List(
-        Seq
+      scala.collection.immutable.List(
+        Seq,
+        List
       )
+
+    private val MaxSize = 25
+
+    @tailrec
+    private def removeOneArg(
+        before: List[Term],
+        terms: List[Term],
+        result: List[List[Term]]
+    ): List[List[Term]] =
+      terms match {
+        case Nil =>
+          result
+        case term :: others =>
+          removeOneArg(before :+ term, others, before ++ others :: result)
+      }
+
+    object List extends SimpleMutator("List") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case list @ Term.Apply(
+              select @ (Term.Name("List") | Term.Select(_, Term.Name("List"))),
+              args
+            )
+            if args.nonEmpty && args.lengthCompare(MaxSize) <= 0 &&
+              SymbolMatcher.exact("scala/collection/immutable/List.").matches(list.symbol) =>
+          default(removeOneArg(Nil, args, Nil).reverse.map(Term.Apply(select, _)): _*)
+      }
+    }
 
     object Seq extends SimpleMutator("Seq") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-        case seq @ Term.Apply(Term.Name("Seq") | Term.Select(_, Term.Name("Seq")), args)
-            if args.nonEmpty && args.lengthCompare(25) <= 0 &&
+        case seq @ Term.Apply(
+              select @ (Term.Name("Seq") | Term.Select(_, Term.Name("Seq"))),
+              args
+            )
+            if args.nonEmpty && args.lengthCompare(MaxSize) <= 0 &&
               SymbolMatcher
                 .exact(
                   "scala/collection/Seq.",
@@ -334,19 +365,7 @@ object Mutator {
                   "scala/collection/immutable/Seq."
                 )
                 .matches(seq.symbol) =>
-          @tailrec
-          def removeOneArg(
-              before: List[Term],
-              terms: List[Term],
-              result: List[List[Term]]
-          ): List[List[Term]] =
-            terms match {
-              case Nil => result
-              case term :: others =>
-                removeOneArg(before :+ term, others, before ++ others :: result)
-            }
-
-          default(removeOneArg(Nil, args, Nil).reverse.map(Term.Apply(Term.Name("Seq"), _)): _*)
+          default(removeOneArg(Nil, args, Nil).reverse.map(Term.Apply(select, _)): _*)
       }
     }
 
