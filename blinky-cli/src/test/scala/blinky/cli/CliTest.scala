@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import better.files.File
 import blinky.BuildInfo.version
+import blinky.TestSpec
 import blinky.run.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
 import blinky.v0.Mutators
 import scopt.DefaultOParserSetup
@@ -273,12 +274,6 @@ class CliTest extends TestSpec {
       }
     }
   }
-
-  private final val inWindows: Boolean =
-    System.getProperty("os.name").toLowerCase.contains("win")
-
-  private final val removeCarriageReturns: String => String =
-    if (inWindows) _.replace("\r", "") else identity
 
   private def getFilePath(fileName: String): String =
     if (inWindows)

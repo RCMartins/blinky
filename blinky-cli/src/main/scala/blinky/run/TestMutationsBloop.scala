@@ -90,7 +90,10 @@ object TestMutationsBloop {
       val results = runMutations(mutationsToTest, initialTime)
       val totalTime = System.currentTimeMillis() - initialTime
 
-      ConsoleReporter.reportMutationResult(results, totalTime, numberOfMutants, options)
+      val successfulMutationTest =
+        ConsoleReporter.reportMutationResult(results, totalTime, numberOfMutants, options)
+      if (!successfulMutationTest)
+        System.exit(1)
     }
 
     def runMutations(mutants: List[Mutant], initialTime: Long): List[(Int, Boolean)] =

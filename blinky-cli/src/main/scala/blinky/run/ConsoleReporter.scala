@@ -9,15 +9,15 @@ object ConsoleReporter {
       totalTime: Long,
       numberOfMutants: Int,
       options: OptionsConfig
-  ): Unit = {
+  ): Boolean = {
     val mutantsToTestSize = results.size
     val mutantsToTestPerc = mutantsToTestSize * 100 / numberOfMutants
     val totalKilled = results.count(_._2)
     val totalNotKilled = mutantsToTestSize - results.count(_._2)
-    val score = (totalKilled * 1000.0 / mutantsToTestSize).ceil / 10.0
+    val score = (totalKilled * 1000.0 / mutantsToTestSize).floor / 10.0
     val scoreFormatted = "%4.1f".format(score)
     val avgTimeFormatted = {
-      val avgTime = totalTime / 1000.0 / mutantsToTestSize
+      val avgTime = (totalTime / 100.0 / mutantsToTestSize).ceil / 10.0
       "%3.1f".format(avgTime)
     }
     println(
@@ -41,12 +41,15 @@ object ConsoleReporter {
         println(
           red(s"Mutation score is below minimum [$scoreFormatted% < $minimum%]")
         )
-        System.exit(1)
-      } else
+        false
+      } else {
         println(
           green(s"Mutation score is above minimum [$scoreFormatted% >= $minimum%]")
         )
-    }
+        true
+      }
+    } else
+      true
   }
 
 }
