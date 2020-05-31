@@ -32,6 +32,23 @@ object Run {
     val projectRealRelPath: RelPath = originalProjectPath.relativeTo(gitFolder)
     val projectRealPath = cloneProjectBaseFolder / projectRealRelPath
 
+    {
+      // Copy only the files tracked by git into our temporary folder
+      val filesToCopy: Seq[RelPath] =
+        runAsync(
+          "git",
+          Seq("ls-files", "--others", "--exclude-standard", "--cached")
+        )(originalProjectPath).out.lines.map(RelPath(_))
+
+      filesToCopy.foreach { fileToCopy =>
+        makeDirectory(projectRealPath / fileToCopy / up)
+        cp.into(
+          originalProjectRoot / fileToCopy,
+          projectRealPath / fileToCopy / up
+        )
+      }
+    }
+
     // Setup files to mutate ('scalafix --diff' does not work like I want...)
     val filesToMutate: Seq[String] =
       if (config.options.onlyMutateDiff) {
@@ -51,10 +68,12 @@ object Run {
         // This part is just an optimization of 'base'
         val configFileOrFolderToMutate: Path =
           Try(Path(config.filesToMutate))
-            .getOrElse(projectRealPath / RelPath(config.filesToMutate))
+            .getOrElse(originalProjectRoot / RelPath(config.filesToMutate))
 
         val configFileOrFolderToMutateStr =
-          configFileOrFolderToMutate.toString
+          Try(Path(config.filesToMutate))
+            .getOrElse(projectRealPath / RelPath(config.filesToMutate))
+            .toString
 
         if (configFileOrFolderToMutate.isFile)
           if (base.contains(configFileOrFolderToMutateStr))
@@ -71,21 +90,6 @@ object Run {
       true
     } else {
       val (mutatedProjectPath, coursier) = {
-        // Copy only the files tracked by git into our temporary folder
-        val filesToCopy: Seq[RelPath] =
-          runAsync(
-            "git",
-            Seq("ls-files", "--others", "--exclude-standard", "--cached")
-          )(originalProjectPath).out.lines.map(RelPath(_))
-
-        filesToCopy.foreach { fileToCopy =>
-          makeDirectory(projectRealPath / fileToCopy / up)
-          cp.into(
-            originalProjectRoot / fileToCopy,
-            projectRealPath / fileToCopy / up
-          )
-        }
-
         Setup.sbtCompileWithSemanticDB(projectRealPath)
 
         // Setup coursier
