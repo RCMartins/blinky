@@ -135,6 +135,8 @@ object TestMutationsBloop {
             testCommand
           )}""""
         )
+        println(%%("free", "-m")(projectPath).out.string)
+        println("--^--" * 5)
         println(prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true))
         println("--v--" * 5)
       }
