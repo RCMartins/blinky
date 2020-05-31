@@ -15,12 +15,7 @@ jobs:
       name: running unit tests
       if: (type = pull_request) OR (branch = master AND type = push)
       script:
-        - if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then
-            sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport \
-              && sbt coverageAggregate codacyCoverage;
-          else
-            sbt test && echo "Skipped coverage reporting since no codacy token was found.";
-          fi
+        - sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport
 
     - name: formatting check
       if: type = pull_request
