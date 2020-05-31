@@ -1,7 +1,7 @@
 /*
 rule = Blinky
 Blinky.filesToMutate = [all]
-Blinky.enabledMutators = [ArithmeticOperators, LiteralBooleans]
+Blinky.enabledMutators = [ArithmeticOperators, LiteralBooleans, Collections]
  */
 package test
 
