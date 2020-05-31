@@ -10,7 +10,6 @@ import play.api.libs.json.Json
 import scalafix.v1._
 
 import scala.meta._
-import scala.meta.inputs.Input
 import scala.meta.inputs.Input.VirtualFile
 import scala.util.Try
 
