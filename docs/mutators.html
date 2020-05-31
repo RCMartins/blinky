@@ -65,6 +65,7 @@ Because of several factors like time to run or importance we may want to enable/
 <li><a href="#literal-strings">Literal Strings</a></li>
 <li><a href="#scala-options">Scala Options</a></li>
 <li><a href="#scala-try">Scala Try</a></li>
+<li><a href="#scala-collections">Scala Collections</a></li>
 </ul>
 <h3><a class="anchor" aria-hidden="true" id="literal-booleans"></a><a href="#literal-booleans" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Literal Booleans</h3>
 <p>name: LiteralBooleans</p>
@@ -289,4 +290,56 @@ One with just the call expression (left side) and another with the orElse argume
 <span class="hljs-deletion">- val value = tryValue.orElse(Try(0))</span>
 <span class="hljs-addition">+ val value = Try(0)</span>
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/blinky/docs/configuration"><span class="arrow-prev">← </span><span>Configuration</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#mutators">Mutators</a></li><li><a href="#available-mutators">Available Mutators</a><ul class="toc-headings"><li><a href="#literal-booleans">Literal Booleans</a></li><li><a href="#arithmetic-operators">Arithmetic Operators</a></li><li><a href="#conditional-expressions">Conditional Expressions</a></li><li><a href="#literal-strings">Literal Strings</a></li><li><a href="#scala-options">Scala Options</a></li><li><a href="#scala-try">Scala Try</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><div><h5>Docs</h5><a href="/blinky/docs/installation.html">Installation</a><a href="/blinky/docs/configuration.html">Configuration</a><a href="/blinky/docs/mutators.html">Mutators</a></div><div><h5>More</h5><a href="https://github.com/rcmartins/blinky">GitHub</a></div></section><section class="copyright">Copyright © 2020 Blinky</section></footer></div></body></html>
+<h3><a class="anchor" aria-hidden="true" id="scala-collections"></a><a href="#scala-collections" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Scala Collections</h3>
+<p>group name: Collections</p>
+<h4><a class="anchor" aria-hidden="true" id="listapply"></a><a href="#listapply" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ListApply</h4>
+<p>name: ListApply</p>
+<p>description: Changes the scala.collection.immutable.List <code>apply</code> arguments.
+Creating mutations where one of the arguments is missing.</p>
+<p>example mutation 1:</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- val list = List("a", "b", "c")</span>
+<span class="hljs-addition">+ val list = List("b", "c")</span>
+</code></pre>
+<p>example mutation 2:</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- val list = List("a", "b", "c")</span>
+<span class="hljs-addition">+ val list = List("a", "c")</span>
+</code></pre>
+<p>example mutation 3:</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- val list = List("a", "b", "c")</span>
+<span class="hljs-addition">+ val list = List("a", "b")</span>
+</code></pre>
+<h4><a class="anchor" aria-hidden="true" id="seqapply"></a><a href="#seqapply" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>SeqApply</h4>
+<p>name: SeqApply</p>
+<p>description: Changes the Seq <code>apply</code> arguments.
+(it works for <code>scala.Seq</code>, <code>scala.collection.mutable.Seq</code> and <code>scala.collection.immutable.Seq</code>)
+Creating mutations where one of the arguments is missing.</p>
+<p>example mutation 1:</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- val seq = Seq("a", "b", "c")</span>
+<span class="hljs-addition">+ val seq = Seq("b", "c")</span>
+</code></pre>
+<p>example mutation 2:</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- val seq = Seq("a", "b", "c")</span>
+<span class="hljs-addition">+ val seq = Seq("a", "c")</span>
+</code></pre>
+<p>example mutation 3:</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- val seq = Seq("a", "b", "c")</span>
+<span class="hljs-addition">+ val seq = Seq("a", "b")</span>
+</code></pre>
+<h4><a class="anchor" aria-hidden="true" id="setapply"></a><a href="#setapply" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>SetApply</h4>
+<p>name: SetApply</p>
+<p>description: Changes the Set <code>apply</code> arguments.
+(it works for <code>scala/Predef.Set</code>, <code>scala.collection.mutable.Set</code> and <code>scala.collection.immutable.Set</code>)
+Creating mutations where one of the arguments is missing.</p>
+<p>example mutation 1:</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- val set = Set("a", "b", "c")</span>
+<span class="hljs-addition">+ val set = Set("b", "c")</span>
+</code></pre>
+<p>example mutation 2:</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- val set = Set("a", "b", "c")</span>
+<span class="hljs-addition">+ val set = Set("a", "c")</span>
+</code></pre>
+<p>example mutation 3:</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- val set = Set("a", "b", "c")</span>
+<span class="hljs-addition">+ val set = Set("a", "b")</span>
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/blinky/docs/configuration"><span class="arrow-prev">← </span><span>Configuration</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#mutators">Mutators</a></li><li><a href="#available-mutators">Available Mutators</a><ul class="toc-headings"><li><a href="#literal-booleans">Literal Booleans</a></li><li><a href="#arithmetic-operators">Arithmetic Operators</a></li><li><a href="#conditional-expressions">Conditional Expressions</a></li><li><a href="#literal-strings">Literal Strings</a></li><li><a href="#scala-options">Scala Options</a></li><li><a href="#scala-try">Scala Try</a></li><li><a href="#scala-collections">Scala Collections</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><div><h5>Docs</h5><a href="/blinky/docs/installation.html">Installation</a><a href="/blinky/docs/configuration.html">Configuration</a><a href="/blinky/docs/mutators.html">Mutators</a></div><div><h5>More</h5><a href="https://github.com/rcmartins/blinky">GitHub</a></div></section><section class="copyright">Copyright © 2020 Blinky</section></footer></div></body></html>
