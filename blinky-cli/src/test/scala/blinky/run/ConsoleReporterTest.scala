@@ -12,7 +12,7 @@ class ConsoleReporterTest extends TestSpec {
       val (successful, out, err) =
         testReportMutationResult(
           Seq((1, true), (2, true), (3, false)),
-          1234L,
+          1200L,
           numberOfMutants = 10,
           OptionsConfig.default.copy(failOnMinimum = false)
         )
