@@ -121,7 +121,7 @@ lazy val cli =
       libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.5.0",
       libraryDependencies += "org.scalatest"              %% "scalatest"                  % "3.1.2" % "test",
       Test / scalacOptions -= "-Ywarn-unused:locals",
-      coverageMinimum := 43,
+      coverageMinimum := 40,
       coverageFailOnMinimum := true
     )
     .dependsOn(core)

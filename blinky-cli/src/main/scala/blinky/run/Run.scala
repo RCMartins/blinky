@@ -32,7 +32,7 @@ object Run {
     val projectRealRelPath: RelPath = originalProjectPath.relativeTo(gitFolder)
     val projectRealPath = cloneProjectBaseFolder / projectRealRelPath
 
-    {
+    def copyFilesToTempFolder(): Unit = {
       // Copy only the files tracked by git into our temporary folder
       val filesToCopy: Seq[RelPath] =
         runAsync(
@@ -65,35 +65,42 @@ object Run {
             .filter(file => file.ext == "scala" || file.ext == "sbt")
             .map(_.toString)
 
-        // This part is just an optimization of 'base'
-        val configFileOrFolderToMutate: Path =
-          Try(Path(config.filesToMutate))
-            .getOrElse(originalProjectRoot / RelPath(config.filesToMutate))
+        if (base.isEmpty)
+          base
+        else {
+          copyFilesToTempFolder()
 
-        val configFileOrFolderToMutateStr =
-          Try(Path(config.filesToMutate))
-            .getOrElse(projectRealPath / RelPath(config.filesToMutate))
-            .toString
+          // This part is just an optimization of 'base'
+          val configFileOrFolderToMutate: Path =
+            Try(Path(config.filesToMutate))
+              .getOrElse(projectRealPath / RelPath(config.filesToMutate))
 
-        if (configFileOrFolderToMutate.isFile)
-          if (base.contains(configFileOrFolderToMutateStr))
-            Seq(configFileOrFolderToMutateStr)
+          val configFileOrFolderToMutateStr =
+            configFileOrFolderToMutate.toString
+
+          if (configFileOrFolderToMutate.isFile)
+            if (base.contains(configFileOrFolderToMutateStr))
+              Seq(configFileOrFolderToMutateStr)
+            else
+              Seq.empty
           else
-            Seq.empty
-        else
-          base.filter(_.startsWith(configFileOrFolderToMutateStr))
-      } else
+            base.filter(_.startsWith(configFileOrFolderToMutateStr))
+        }
+      } else {
+        copyFilesToTempFolder()
         Seq("all")
+      }
 
     if (filesToMutate.isEmpty) {
       ConsoleReporter.filesToMutateIsEmpty()
       true
     } else {
-      val (mutatedProjectPath, coursier) = {
-        Setup.sbtCompileWithSemanticDB(projectRealPath)
 
-        // Setup coursier
-        val coursier = Setup.setupCoursier(projectRealPath)
+      // Setup coursier
+      val coursier = Setup.setupCoursier(projectRealPath)
+
+      {
+        Setup.sbtCompileWithSemanticDB(projectRealPath)
 
         // Setup scalafix
         Files.copy(
@@ -101,14 +108,12 @@ object Run {
           Paths.get(projectRealPath.toString, "scalafix")
         )
         runSync("chmod", Seq("+x", "scalafix"))(projectRealPath)
-
-        (projectRealPath, coursier)
       }
 
       // Setup BlinkyConfig object
       val blinkyConf: BlinkyConfig =
         BlinkyConfig(
-          mutantsOutputFile = (mutatedProjectPath / "blinky.mutants").toString,
+          mutantsOutputFile = (projectRealPath / "blinky.mutants").toString,
           filesToMutate = filesToMutate,
           enabledMutators = config.mutators.enabled,
           disabledMutators = config.mutators.disabled
@@ -136,11 +141,11 @@ object Run {
             "-p"
           ),
           Map("COURSIER_REPOSITORIES" -> "ivy2Local|sonatype:snapshots|sonatype:releases")
-        )(mutatedProjectPath).out.string.trim
+        )(projectRealPath).out.string.trim
 
       val params: Seq[String] =
         Seq(
-          "--verbose",
+          if (config.options.verbose) "--verbose" else "",
           if (config.filesToExclude.nonEmpty) s"--exclude=${config.filesToExclude}" else "",
           s"--tool-classpath=$toolPath",
           s"--files=${config.filesToMutate}",
@@ -148,9 +153,9 @@ object Run {
           s"--auto-classpath=$semanticDbPath"
         ).filter(_.nonEmpty)
 
-      runSync("./scalafix", params)(mutatedProjectPath)
+      runSync("./scalafix", params)(projectRealPath)
 
-      TestMutationsBloop.run(mutatedProjectPath, blinkyConf, config.options)
+      TestMutationsBloop.run(projectRealPath, blinkyConf, config.options)
     }
   }
 }
