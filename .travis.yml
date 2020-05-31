@@ -15,7 +15,14 @@ jobs:
       name: running unit tests
       if: (type = pull_request) OR (branch = master AND type = push)
       script:
-        - sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport
+        - if [[ -n "$COVERALLS_REPO_TOKEN" ]]; then
+            sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport \
+              && sbt coverageAggregate;
+          else
+            sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport;
+          fi
+      after_success:
+        - sbt coveralls
 
     - name: formatting check
       if: type = pull_request
