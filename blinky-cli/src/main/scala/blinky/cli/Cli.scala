@@ -11,7 +11,9 @@ object Cli {
   def main(args: Array[String]): Unit =
     parse(args, setup)(File(".")) match {
       case Some(config) =>
-        Run.run(config)
+        val successfulRun = Run.run(config)
+        if (!successfulRun)
+          System.exit(1)
       case _ =>
       // arguments are bad, error message will have been displayed by OParser.parse
     }
