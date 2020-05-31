@@ -52,4 +52,11 @@ object ConsoleReporter {
       true
   }
 
+  def filesToMutateIsEmpty(): Unit =
+    println(
+      s"""${green("0 files to mutate because no code change found due to --mutateOnlyDiff flag.")}
+         |If you want all files to be tested regardless use --mutateOnlyDiff=false
+         |""".stripMargin
+    )
+
 }

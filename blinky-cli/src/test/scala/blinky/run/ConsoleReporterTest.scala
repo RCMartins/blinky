@@ -93,6 +93,22 @@ class ConsoleReporterTest extends TestSpec {
 
   }
 
+  "filesToMutateIsEmpty" should {
+
+    "print the correct message used when the filesToMutate is empty" in {
+      val outCapture = new ByteArrayOutputStream
+      Console.withOut(outCapture) {
+        ConsoleReporter.filesToMutateIsEmpty()
+      }
+      removeCarriageReturns(outCapture.toString) mustEqual
+        s"""\u001B[32m0 files to mutate because no code change found due to --mutateOnlyDiff flag.\u001B[0m
+           |If you want all files to be tested regardless use --mutateOnlyDiff=false
+           |
+           |""".stripMargin
+    }
+
+  }
+
   private def testReportMutationResult(
       results: Seq[(Int, Boolean)],
       totalTime: Long,
