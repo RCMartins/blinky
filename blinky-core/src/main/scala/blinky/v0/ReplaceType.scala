@@ -24,7 +24,7 @@ object ReplaceType {
     val needsParens: Boolean = false
   }
 
-  case class CaseCrazy(terms: List[Term]) extends ReplaceType {
+  case class NeedsParens(terms: List[Term]) extends ReplaceType {
     val fullReplace: Boolean = false
     val needsParens: Boolean = true
   }

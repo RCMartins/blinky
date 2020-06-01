@@ -401,21 +401,16 @@ object Mutator {
         def removeOneCase(
             before: List[Case],
             terms: List[Case],
-            result: List[(List[Case], Case, List[Case])]
-        ): List[(List[Case], Case, List[Case])] =
+            result: List[List[Case]]
+        ): List[List[Case]] =
           terms match {
             case Nil =>
               result
             case caseTerm :: others =>
-              removeOneCase(before :+ caseTerm, others, (before, caseTerm, others) :: result)
+              removeOneCase(before :+ caseTerm, others, (before ++ others) :: result)
           }
 
-        CaseCrazy(
-          removeOneCase(Nil, cases, Nil).map {
-            case (before, Case(pat, conf, body), after) =>
-              Term.PartialFunction(before ++ after)
-          }
-        )
+        NeedsParens(removeOneCase(Nil, cases, Nil).map(Term.PartialFunction(_)))
     }
   }
 
