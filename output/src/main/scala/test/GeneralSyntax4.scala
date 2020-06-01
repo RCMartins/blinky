@@ -11,6 +11,8 @@ object GeneralSyntax4 {
         else if (???) Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 - 4).value1) ///
         else Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 + 4).value1)
 
+  val foo2 = Foo(if (???) 1 - 1 else 1 + 1, 3)(4, 5)
+
   val some1 = Some("value")
 
   val pair1 = "str" -> (if (???) null else some1.orNull[String])
