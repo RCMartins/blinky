@@ -1,6 +1,6 @@
-package blinky.cli
+package blinky.run
 
-import blinky.run.Utils
+import blinky.TestSpec
 
 class UtilsTest extends TestSpec {
 

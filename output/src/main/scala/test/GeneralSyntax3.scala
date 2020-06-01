@@ -15,7 +15,7 @@ object GeneralSyntax3 {
 
   val foo4 = new FooT[Int](if (???) 10 - 2 else 10 + 2)
 
-  def fun[A](value: A): List[A] = List(value)
+  def fun[A](value: A): List[A] = if (???) List() else List(value)
 
   val call1 = fun[Int](if (???) 1 - 2 else 1 + 2)
 
@@ -23,5 +23,9 @@ object GeneralSyntax3 {
 
   def fun2(args: Boolean*): Boolean = args.forall(identity)
 
-  val call3 = fun2(Seq(if (???) false else true, if (???) true else false): _*)
+  val call3 = fun2((if (???) Seq(false) ///
+               else if (???) Seq(true) ///
+               else if (???) Seq(false, false) ///
+               else if (???) Seq(true, true) ///
+                        else Seq(true, false)): _*)
 }

@@ -17,6 +17,7 @@ Because of several factors like time to run or importance we may want to enable/
 * [Literal Strings](#literal-strings)
 * [Scala Options](#scala-options)
 * [Scala Try](#scala-try)
+* [Scala Collections](#scala-collections)
 
 ### Literal Booleans
 
@@ -415,4 +416,94 @@ example mutation 2:
   // tryValue: Try[Int]
 - val value = tryValue.orElse(Try(0))
 + val value = Try(0)
+```
+
+### Scala Collections
+
+group name: Collections
+
+#### ListApply
+
+name: ListApply
+
+description: Changes the scala.collection.immutable.List `apply` arguments.
+Creating mutations where one of the arguments is missing.
+
+example mutation 1:
+
+```diff
+- val list = List("a", "b", "c")
++ val list = List("b", "c")
+```
+
+example mutation 2:
+
+```diff
+- val list = List("a", "b", "c")
++ val list = List("a", "c")
+```
+
+example mutation 3:
+
+```diff
+- val list = List("a", "b", "c")
++ val list = List("a", "b")
+```
+
+#### SeqApply
+
+name: SeqApply
+
+description: Changes the Seq `apply` arguments.
+(it works for `scala.Seq`, `scala.collection.mutable.Seq` and `scala.collection.immutable.Seq`)
+Creating mutations where one of the arguments is missing.
+
+example mutation 1:
+
+```diff
+- val seq = Seq("a", "b", "c")
++ val seq = Seq("b", "c")
+```
+
+example mutation 2:
+
+```diff
+- val seq = Seq("a", "b", "c")
++ val seq = Seq("a", "c")
+```
+
+example mutation 3:
+
+```diff
+- val seq = Seq("a", "b", "c")
++ val seq = Seq("a", "b")
+```
+
+#### SetApply
+
+name: SetApply
+
+description: Changes the Set `apply` arguments.
+(it works for `scala/Predef.Set`, `scala.collection.mutable.Set` and `scala.collection.immutable.Set`)
+Creating mutations where one of the arguments is missing.
+
+example mutation 1:
+
+```diff
+- val set = Set("a", "b", "c")
++ val set = Set("b", "c")
+```
+
+example mutation 2:
+
+```diff
+- val set = Set("a", "b", "c")
++ val set = Set("a", "c")
+```
+
+example mutation 3:
+
+```diff
+- val set = Set("a", "b", "c")
++ val set = Set("a", "b")
 ```

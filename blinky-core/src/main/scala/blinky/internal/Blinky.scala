@@ -37,11 +37,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
   override def fix(implicit doc: SemanticDocument): Patch = {
     val findMutations: FindMutations = new FindMutations(config.activeMutators, doc)
 
-    val fileName =
-      doc.input match {
-        case VirtualFile(path, _) => path
-        case _                    => ""
-      }
+    val VirtualFile(fileName, _) = doc.input
 
     if (!fileShouldBeMutated(fileName))
       Patch.empty
