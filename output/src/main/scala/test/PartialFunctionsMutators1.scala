@@ -1,7 +1,8 @@
 package test
 
-object PartialFunctions2 {
-  List(10, 20, 30).map (if (???) {
+object PartialFunctionsMutators1 {
+  val value1 =
+    List(10, 20, 30).map (if (???) {
   case 10 => true
   case 20 => false
   case 30 => true
@@ -23,4 +24,9 @@ object PartialFunctions2 {
   case 30 => true
   case _ => false
 })
+
+  val value2 =
+    List(10, 20).map {
+      case _ => false
+    }
 }

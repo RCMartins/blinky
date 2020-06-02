@@ -23,7 +23,7 @@ Because of several factors like time to run or importance we may want to enable/
 
 name: LiteralBooleans
 
-description: change true into false and false into true.  
+description: changes true into false and false into true.  
 
 example:
 
@@ -418,6 +418,8 @@ example mutation 2:
 + val value = Try(0)
 ```
 
+---
+
 ### Scala Collections
 
 group name: Collections
@@ -507,3 +509,35 @@ example mutation 3:
 - val set = Set("a", "b", "c")
 + val set = Set("a", "b")
 ```
+
+---
+
+### Partial Functions
+
+name: PartialFunctions
+
+description: Changes partial function applications, 
+creating mutations where one of the cases is missing.
+
+example mutation 1:
+
+```diff
+  // strList: List[String]
+  strList.collect {
+-   case "foo" => "foobar"
+    case "bar" => "barfoo"
+  }
+```
+
+example mutation 2:
+
+```diff
+  // strList: List[String]
+  strList.collect {
+    case "foo" => "foobar"
+-   case "bar" => "barfoo"
+  }
+```
+
+---
+

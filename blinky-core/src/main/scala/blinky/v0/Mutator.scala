@@ -394,7 +394,7 @@ object Mutator {
   object PartialFunctions extends NonGroupedMutator("PartialFunctions") {
 
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-      case Term.PartialFunction(cases) =>
+      case Term.PartialFunction(cases) if cases.lengthCompare(2) >= 0 =>
         @tailrec
         def removeOneCase(
             before: List[Case],
