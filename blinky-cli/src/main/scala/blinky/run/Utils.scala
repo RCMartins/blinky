@@ -74,7 +74,7 @@ object Utils {
         case line :: otherLines if line.startsWith("-") =>
           addLineNum(line, numMinusOpt, None) ::
             addLineNumLoop(otherLines, numMinusOpt.map(_ + 1), numPlusOpt, afterChanges = true)
-        case line :: otherLines if line.startsWith("+") =>
+        case line :: otherLines =>
           addLineNum(line, None, numPlusOpt) ::
             addLineNumLoop(otherLines, numMinusOpt, numPlusOpt.map(_ + 1), afterChanges = true)
       }

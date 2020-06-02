@@ -83,7 +83,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
           apply,
           topMainTermMutations(fun).map(mutated => Term.Apply(mutated, args)) ++
             listTermsMutateMain(args).map(Term.Apply(fun, _)),
-          topTermMutations(fun, parensRequired = false) ++
+          topTermMutations(fun, parensRequired = true) ++
             args.flatMap(topTermMutations(_, parensRequired = false))
         )
       case applyType @ Term.ApplyType(term, targs) =>
