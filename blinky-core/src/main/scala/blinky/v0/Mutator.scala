@@ -20,8 +20,6 @@ trait Mutator {
   def name: String
 
   def getMutator(implicit doc: SemanticDocument): MutationResult
-
-  override def toString: String = name
 }
 
 object Mutator {

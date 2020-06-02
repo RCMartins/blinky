@@ -13,6 +13,8 @@ object GeneralSyntax4 {
 
   val foo2 = Foo(if (???) 1 - 1 else 1 + 1, 3)(4, 5)
 
+  val foo3 = (if (???) List(2) else if (???) List(1) else List(1, 2))(0)
+
   val some1 = Some("value")
 
   val pair1 = "str" -> (if (???) null else some1.orNull[String])

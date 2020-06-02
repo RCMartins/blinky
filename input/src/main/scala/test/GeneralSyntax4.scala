@@ -1,7 +1,7 @@
 /*
 rule = Blinky
 Blinky.filesToMutate = [all]
-Blinky.enabledMutators = [ScalaOptions, ArithmeticOperators]
+Blinky.enabledMutators = [ScalaOptions, ArithmeticOperators, Collections]
  */
 package test
 
@@ -11,6 +11,8 @@ object GeneralSyntax4 {
   val foo1 = Some(2).contains(Foo(1 + 1, 2 + 2)(3 + 3, 4 + 4).value1)
 
   val foo2 = Foo(1 + 1, 3)(4, 5)
+
+  val foo3 = List(1, 2)(0)
 
   val some1 = Some("value")
 
