@@ -100,7 +100,7 @@ class RuleSuite extends SemanticRuleSuite() {
         def replaceMutantsInputFile(text: String): String = {
           val path =
             mutantsFileResolver(ruleTest.path.testPath).toString.replace("\\", "\\\\") // windows
-          text.replaceAllLiterally(
+          text.replace(
             "Blinky.mutantsOutputFile = ???",
             s"""Blinky.mutantsOutputFile = "$path""""
           )

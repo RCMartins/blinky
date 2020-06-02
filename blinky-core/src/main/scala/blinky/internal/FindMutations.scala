@@ -23,6 +23,12 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
     }
 
   def topTermMutations(
+      term: Option[Term],
+      parensRequired: Boolean
+  ): Seq[(Term, MutatedTerms)] =
+    term.map(topTermMutations(_, parensRequired)).getOrElse(Seq.empty)
+
+  def topTermMutations(
       term: Term,
       parensRequired: Boolean,
       overrideOriginal: Option[Term] = None
@@ -78,7 +84,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
           apply,
           topMainTermMutations(fun).map(mutated => Term.Apply(mutated, args)) ++
             listTermsMutateMain(args).map(Term.Apply(fun, _)),
-          topTermMutations(fun, parensRequired = false) ++
+          topTermMutations(fun, parensRequired = true) ++
             args.flatMap(topTermMutations(_, parensRequired = false))
         )
       case applyType @ Term.ApplyType(term, targs) =>
@@ -109,7 +115,10 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
                   topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
               }
               .map { case (mutated, index) => Term.Match(expr, cases.updated(index, mutated)) },
-          cases.flatMap(caseTerm => topTermMutations(caseTerm.body, parensRequired = false))
+          cases.flatMap(caseTerm =>
+            topTermMutations(caseTerm.cond, parensRequired = true) ++
+              topTermMutations(caseTerm.body, parensRequired = false)
+          )
         )
       case parFunc @ Term.PartialFunction(cases) =>
         selectSmallerMutation(
