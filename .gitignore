@@ -4,4 +4,4 @@ target
 .bloop
 
 bin/cs
-.blinky-cache
+/output/.blinky-cache
