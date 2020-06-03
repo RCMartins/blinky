@@ -3,6 +3,7 @@ import java.nio.file.Path
 import sbt.Keys._
 import sbt.nio.file.FileAttributes
 import scoverage.ScoverageKeys.coverageFailOnMinimum
+import PreProcess._
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -106,7 +107,19 @@ lazy val input =
 lazy val output =
   project
     .settings(
-      scalacOptions := Seq.empty
+      scalacOptions := Seq.empty,
+      Compile / sourceGenerators += Def.task {
+        val sourcesFolder = file((Compile / scalaSource).value.toString + "-output")
+        val generatedFolder = (sourceManaged in Compile).value
+
+        val cachedFunc =
+          FileFunction.cached(
+            file("output/.blinky-cache")
+          ) { files =>
+            files.flatMap(preProcessOutputFiles(_, generatedFolder))
+          }
+        cachedFunc(Set(sourcesFolder)).toSeq
+      }.taskValue
     )
 
 lazy val cli =
@@ -138,7 +151,7 @@ lazy val tests =
       scalafixTestkitInputClasspath :=
         fullClasspath.in(input, Compile).value
     )
-    .dependsOn(core, cli)
+    .dependsOn(core, cli, output)
 
 lazy val docs =
   project
