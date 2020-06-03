@@ -1,9 +1,10 @@
 import java.nio.file.Path
 
+import PreProcess._
 import sbt.Keys._
 import sbt.nio.file.FileAttributes
+import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
-import PreProcess._
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -114,7 +115,8 @@ lazy val output =
 
         val cachedFunc =
           FileFunction.cached(
-            file("output/.blinky-cache")
+            file("output/.blinky-cache"),
+            FileInfo.full
           ) { files =>
             files.flatMap(preProcessOutputFiles(_, generatedFolder))
           }
