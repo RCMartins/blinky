@@ -1,6 +1,7 @@
 package blinky.v0
 
 import blinky.v0.Mutator._
+import blinky.v0.ReplaceType._
 import scalafix.v1._
 
 import scala.annotation.tailrec
@@ -25,7 +26,7 @@ trait Mutator {
 object Mutator {
   abstract class NonGroupedMutator(override val name: String) extends Mutator
 
-  type MutationResult = PartialFunction[Term, (Iterable[Term], Boolean)]
+  type MutationResult = PartialFunction[Term, ReplaceType]
 
   private val allGroups: List[MutatorGroup] =
     List(
@@ -39,7 +40,8 @@ object Mutator {
 
   val all: Map[String, Mutator] =
     Map(
-      LiteralBooleans.name -> LiteralBooleans
+      LiteralBooleans.name -> LiteralBooleans,
+      PartialFunctions.name -> PartialFunctions
     ) ++
       allGroups.flatMap(group => group.getSubMutators.map(mutator => (mutator.name, mutator)))
 
@@ -389,7 +391,28 @@ object Mutator {
 
   }
 
-  private def default(terms: Term*): (List[Term], Boolean) = (terms.toList, false)
+  object PartialFunctions extends NonGroupedMutator("PartialFunctions") {
 
-  private def fullReplace(terms: Term*): (List[Term], Boolean) = (terms.toList, true)
+    override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+      case Term.PartialFunction(cases) if cases.lengthCompare(2) >= 0 =>
+        @tailrec
+        def removeOneCase(
+            before: List[Case],
+            terms: List[Case],
+            result: List[List[Case]]
+        ): List[List[Case]] =
+          terms match {
+            case Nil =>
+              result
+            case caseTerm :: others =>
+              removeOneCase(before :+ caseTerm, others, (before ++ others) :: result)
+          }
+
+        NeedsParens(removeOneCase(Nil, cases, Nil).map(Term.PartialFunction(_)))
+    }
+  }
+
+  private def default(terms: Term*): ReplaceType = Standard(terms.toList)
+
+  private def fullReplace(terms: Term*): ReplaceType = FullReplace(terms.toList)
 }

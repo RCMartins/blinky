@@ -8,10 +8,9 @@ import scala.meta._
 class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocument) {
   def findAllMutations(
       term: Term
-  ): (Seq[Term], Boolean) = {
-    val (mutations, fullReplace) =
-      activeMutators.flatMap(_.getMutator(doc).lift(term)).unzip
-    (mutations.flatten, fullReplace.exists(identity))
+  ): (Seq[Term], Boolean, Boolean) = {
+    val replaces = activeMutators.flatMap(_.getMutator(doc).lift(term))
+    (replaces.flatMap(_.terms), replaces.exists(_.fullReplace), replaces.exists(_.needsParens))
   }
 
   def topTreeMutations(tree: Tree): Seq[(Term, MutatedTerms)] =
@@ -54,11 +53,11 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
         subMutationsWithMain: => Seq[Term],
         subMutationsWithoutMain: => Seq[(Term, MutatedTerms)]
     ): Seq[(Term, MutatedTerms)] = {
-      val (mainMutations, fullReplace) = findAllMutations(term)
+      val (mainMutations, fullReplace, needsParens) = findAllMutations(term)
       if (fullReplace)
-        Seq((term, mainMutations.toMutated(needsParens = false)))
+        Seq((term, mainMutations.toMutated(needsParens = needsParens)))
       else if (mainMutations.nonEmpty || mainTermsOnly)
-        Seq((term, (mainMutations ++ subMutationsWithMain).toMutated(needsParens = false)))
+        Seq((term, (mainMutations ++ subMutationsWithMain).toMutated(needsParens = needsParens)))
       else
         subMutationsWithoutMain
     }
@@ -129,7 +128,10 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
                 topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
             }
             .map { case (mutated, index) => Term.PartialFunction(cases.updated(index, mutated)) },
-          cases.flatMap(caseTerm => topTermMutations(caseTerm.body, parensRequired = false))
+          cases.flatMap(caseTerm =>
+            topTermMutations(caseTerm.cond, parensRequired = true) ++
+              topTermMutations(caseTerm.body, parensRequired = false)
+          )
         )
       case function @ Term.Function(params, body) =>
         selectSmallerMutation(
