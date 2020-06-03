@@ -1,8 +1,7 @@
 import java.io.{File => JFile}
+import java.util.concurrent.atomic.AtomicInteger
 
 import better.files._
-
-import scala.annotation.tailrec
 
 object PreProcess {
 
@@ -25,17 +24,14 @@ object PreProcess {
   }
 
   private def preProcess(input: File, output: File): Unit = {
-    @tailrec //TODO remove this !!!
-    def replacedQuestionMarks(before: String, id: Int): String = {
-      val after =
-        before.replaceFirst(
-          "\\?\\?\\?",
-          "_root_.scala.sys.env.contains(\"BLINKY_MUTATION_" + id + "\")"
+    def replacedQuestionMarks(str: String): String = {
+      val id: AtomicInteger = new AtomicInteger(1)
+
+      "\\?\\?\\?".r
+        .replaceAllIn(
+          str,
+          _ => "_root_.scala.sys.env.contains(\"BLINKY_MUTATION_" + id.getAndIncrement() + "\")"
         )
-      if (after != before)
-        replacedQuestionMarks(after, id + 1)
-      else
-        after
     }
 
     def replaceLongLines(text: String): String = {
@@ -44,7 +40,7 @@ object PreProcess {
     }
 
     val outputFileContent = input.contentAsString
-    val outputSourceReplaced = replaceLongLines(replacedQuestionMarks(outputFileContent, 1))
+    val outputSourceReplaced = replaceLongLines(replacedQuestionMarks(outputFileContent))
     output.writeText(outputSourceReplaced)
   }
 

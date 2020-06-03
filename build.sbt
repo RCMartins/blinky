@@ -118,7 +118,7 @@ lazy val output =
           ) { files =>
             files.flatMap(preProcessOutputFiles(_, generatedFolder))
           }
-        cachedFunc(Set(sourcesFolder)).toSeq
+        cachedFunc(Set(sourcesFolder, file("project/PreProcess.scala"))).toSeq
       }.taskValue
     )
 
