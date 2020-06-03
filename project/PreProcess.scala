@@ -15,11 +15,10 @@ object PreProcess {
     file.listRecursively
       .filter(_.isRegularFile)
       .map { outFile =>
-        val outputFile = outputFolder / "test" / outFile.name
-        println(outputFile)
-        outputFile.parent.createDirectories()
-        preProcess(outFile, outputFile)
-        outputFile
+        val processedFile = outputFolder / "test" / outFile.name
+        processedFile.parent.createDirectories()
+        preProcess(outFile, processedFile)
+        processedFile
       }
       .toSeq
       .map(_.toJava)
