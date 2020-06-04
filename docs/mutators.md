@@ -18,6 +18,7 @@ Because of several factors like time to run or importance we may want to enable/
 * [Scala Options](#scala-options)
 * [Scala Try](#scala-try)
 * [Scala Collections](#scala-collections)
+* [Partial Functions](#partial-functions)
 
 ### Literal Booleans
 
@@ -514,7 +515,11 @@ example mutation 3:
 
 ### Partial Functions
 
-name: PartialFunctions
+group name: PartialFunctions
+
+#### RemoveOneCase
+
+name: RemoveOneCase
 
 description: Changes partial function applications, 
 creating mutations where one of the cases is missing.
@@ -539,5 +544,31 @@ example mutation 2:
   }
 ```
 
----
+#### RemoveOneAlternative
 
+name: RemoveOneAlternative
+
+description: Changes partial function applications, 
+creating mutations where one of the pattern alternatives is missing.
+
+example mutation 1:
+
+```diff
+  // strList: List[String]
+  strList.collect {
+-   case "foo" | "bar => "foobar"
++   case "foo" => "foobar"
+  }
+```
+
+example mutation 2:
+
+```diff
+  // strList: List[String]
+  strList.collect {
+-   case "foo" | "bar => "foobar"
++   case "bar" => "foobar"
+  }
+```
+
+---
