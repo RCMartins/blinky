@@ -61,28 +61,36 @@ class RuleSuite extends SemanticRuleSuite() {
       props.outputSourceDirectories.head.toNIO
     ) / ".." / ".." / "classes").path.resolve(testRelPath.toString.stripSuffix("scala") + "mutants")
 
-  private def replaceInput(testData: TestData): Unit = {
-    val inputSourceReplaced = {
-      val path =
-        mutantsFileResolver(testData.ruleTest.path.testPath).toString
-          .replace("\\", "\\\\") // windows
-      testData.inputSource.replace(
-        "Blinky.mutantsOutputFile = ???",
-        s"""Blinky.mutantsOutputFile = "$path""""
-      )
-    }
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    testsData.foreach { testData =>
+      if (testData.hasMutationsFile) {
+        val inputSourceReplaced = {
+          val path =
+            mutantsFileResolver(testData.ruleTest.path.testPath).toString
+              .replace("\\", "\\\\") // windows
+          testData.inputSource.replace(
+            "Blinky.mutantsOutputFile = ???",
+            s"""Blinky.mutantsOutputFile = "$path""""
+          )
+        }
 
-    Files.write(testData.inputPath.toNIO, inputSourceReplaced.getBytes)
+        Files.write(testData.inputPath.toNIO, inputSourceReplaced.getBytes)
+      }
+    }
   }
 
-  private def restoreInput(testData: TestData): Unit =
-    Files.write(testData.inputPath.toNIO, testData.inputSource.getBytes)
+  override def afterAll(): Unit = {
+    super.afterAll()
+    testsData.foreach { testData =>
+      if (testData.hasMutationsFile)
+        Files.write(testData.inputPath.toNIO, testData.inputSource.getBytes)
+    }
+  }
 
   testsData.foreach { testData =>
     test(testData.ruleTest.path.testName) {
-      if (testData.hasMutationsFile) replaceInput(testData)
       evaluateTestBody(testData.ruleTest)
-      if (testData.hasMutationsFile) restoreInput(testData)
     }
 
     if (testData.hasMutationsFile) {

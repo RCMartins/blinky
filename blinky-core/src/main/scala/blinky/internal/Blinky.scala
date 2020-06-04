@@ -98,7 +98,6 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
               'git,
               'diff,
               "--no-index",
-              "--minimal",
               originalFile.toString,
               mutatedFile.toString
             )(
