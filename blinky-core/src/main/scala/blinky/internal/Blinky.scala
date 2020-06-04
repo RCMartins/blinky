@@ -70,7 +70,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
             case (original, MutatedTerms(mutationsFound, needsParens)) =>
               val mutantSeq =
                 mutationsFound
-                  .filterNot(_.syntax == original.syntax)
+                  .filterNot(_.structure == original.structure)
                   .map(mutated => createMutant(original, mutated, fileName))
               createPatch(mutantSeq, needsParens = needsParens)
           }
