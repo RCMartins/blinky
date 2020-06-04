@@ -408,7 +408,7 @@ object Mutator {
               removeOneCase(before :+ caseTerm, others, (before ++ others) :: result)
           }
 
-        NeedsParens(removeOneCase(Nil, cases, Nil).map(Term.PartialFunction(_)))
+        NeedsParens(removeOneCase(Nil, cases, Nil).reverse.map(Term.PartialFunction(_)))
     }
   }
 
