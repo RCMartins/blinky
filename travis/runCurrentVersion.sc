@@ -6,7 +6,6 @@ import ammonite.ops.Shellable.StringShellable
 @main
 def main(confPath: Path, extraParams: String*): Unit = {
   val path = pwd
-  val versionNumber = publishLocalBlinky()
 
   val commitMsg = {
     val Seq(line1, line2) =
@@ -21,6 +20,7 @@ def main(confPath: Path, extraParams: String*): Unit = {
   if (shouldSkipTest) {
     println("Skipping test because commit message command")
   } else {
+    val versionNumber = publishLocalBlinky()
     val allParams: Seq[String] =
       Seq(
         "launch",
