@@ -18,6 +18,7 @@ Because of several factors like time to run or importance we may want to enable/
 * [Scala Options](#scala-options)
 * [Scala Try](#scala-try)
 * [Scala Collections](#scala-collections)
+* [Scala Strings](#scala-strings)
 
 ### Literal Booleans
 
@@ -541,3 +542,21 @@ example mutation 2:
 
 ---
 
+### Scala Strings
+
+group name: ScalaStrings
+
+#### Trim
+
+name: Trim
+
+description: Removes the call to `trim` on strings. 
+
+example:
+
+```diff
+- val value = " foo ".trim
++ val value = " foo "
+```
+
+---
