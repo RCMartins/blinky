@@ -36,13 +36,13 @@ object Mutator {
       ScalaOptions,
       ScalaTry,
       Collections,
+      PartialFunctions,
       ScalaStrings
     )
 
   val all: Map[String, Mutator] =
     Map(
-      LiteralBooleans.name -> LiteralBooleans,
-      PartialFunctions.name -> PartialFunctions
+      LiteralBooleans.name -> LiteralBooleans
     ) ++
       allGroups.flatMap(group => group.getSubMutators.map(mutator => (mutator.name, mutator)))
 
@@ -392,24 +392,83 @@ object Mutator {
 
   }
 
-  object PartialFunctions extends NonGroupedMutator("PartialFunctions") {
+  object PartialFunctions extends MutatorGroup {
+    override val groupName: String = "PartialFunctions"
 
-    override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-      case Term.PartialFunction(cases) if cases.lengthCompare(2) >= 0 =>
-        @tailrec
-        def removeOneCase(
-            before: List[Case],
-            terms: List[Case],
-            result: List[List[Case]]
-        ): List[List[Case]] =
-          terms match {
-            case Nil =>
-              result
-            case caseTerm :: others =>
-              removeOneCase(before :+ caseTerm, others, (before ++ others) :: result)
-          }
+    override val getSubMutators: List[Mutator] =
+      List(
+        RemoveOneCase,
+        RemoveOneAlternative
+      )
 
-        NeedsParens(removeOneCase(Nil, cases, Nil).reverse.map(Term.PartialFunction(_)))
+    object RemoveOneCase extends SimpleMutator("RemoveOneCase") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case Term.PartialFunction(cases) if cases.lengthCompare(2) >= 0 =>
+          @tailrec
+          def removeOneCase(
+              before: List[Case],
+              terms: List[Case],
+              result: List[List[Case]]
+          ): List[List[Case]] =
+            terms match {
+              case Nil =>
+                result
+              case caseTerm :: others =>
+                removeOneCase(before :+ caseTerm, others, (before ++ others) :: result)
+            }
+
+          NeedsParens(removeOneCase(Nil, cases, Nil).reverse.map(Term.PartialFunction(_)))
+      }
+    }
+
+    object RemoveOneAlternative extends SimpleMutator("RemoveOneAlternative") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case Term.PartialFunction(cases) =>
+          def findAlternatives(mainPat: Pat): List[Pat] =
+            mainPat match {
+              case Pat.Bind(name, pat) =>
+                findAlternatives(pat).map(Pat.Bind(name, _))
+              case Pat.Extract(term, pats) =>
+                pats.zipWithIndex
+                  .flatMap { case (pat, index) => findAlternatives(pat).map((_, index)) }
+                  .map { case (mutated, index) => Pat.Extract(term, pats.updated(index, mutated)) }
+              case Pat.Alternative(pat1, pat2) =>
+                findAlternatives(pat1) ++ findAlternatives(pat2)
+              case pat =>
+                List(pat)
+            }
+
+          @tailrec
+          def changeOneCase(
+              before: List[Case],
+              terms: List[Case],
+              result: List[List[Case]]
+          ): List[List[Case]] =
+            terms match {
+              case Nil =>
+                result
+              case caseTerm :: others =>
+                val alternatives =
+                  findAlternatives(caseTerm.pat)
+                    .filterNot(_.structure == caseTerm.pat.structure)
+
+                val caseTermsMutated =
+                  if (alternatives.length > 1)
+                    alternatives
+                      .map(pat => caseTerm.copy(pat = pat))
+                      .reverse
+                  else
+                    Nil
+
+                changeOneCase(
+                  before :+ caseTerm,
+                  others,
+                  caseTermsMutated.map(term => (before :+ term) ++ others) ++ result
+                )
+            }
+
+          NeedsParens(changeOneCase(Nil, cases, Nil).reverse.map(Term.PartialFunction(_)))
+      }
     }
   }
 
