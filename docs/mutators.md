@@ -19,6 +19,7 @@ Because of several factors like time to run or importance we may want to enable/
 * [Scala Try](#scala-try)
 * [Scala Collections](#scala-collections)
 * [Partial Functions](#partial-functions)
+* [Scala Strings](#scala-strings)
 
 ### Literal Booleans
 
@@ -569,6 +570,25 @@ example mutation 2:
 -   case "foo" | "bar => "foobar"
 +   case "bar" => "foobar"
   }
+```
+
+---
+
+### Scala Strings
+
+group name: ScalaStrings
+
+#### Trim
+
+name: Trim
+
+description: Removes the call to `trim` on strings. 
+
+example:
+
+```diff
+- val value = " foo ".trim
++ val value = " foo "
 ```
 
 ---

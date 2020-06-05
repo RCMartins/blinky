@@ -36,7 +36,8 @@ object Mutator {
       ScalaOptions,
       ScalaTry,
       Collections,
-      PartialFunctions
+      PartialFunctions,
+      ScalaStrings
     )
 
   val all: Map[String, Mutator] =
@@ -469,6 +470,24 @@ object Mutator {
           NeedsParens(changeOneCase(Nil, cases, Nil).reverse.map(Term.PartialFunction(_)))
       }
     }
+  }
+
+  object ScalaStrings extends MutatorGroup {
+    override val groupName: String = "ScalaStrings"
+
+    override val getSubMutators: List[Mutator] =
+      List(
+        Trim
+      )
+
+    object Trim extends SimpleMutator("Trim") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case trim @ Term.Select(term @ _, Term.Name("trim"))
+            if SymbolMatcher.exact("java/lang/String#trim().").matches(trim.symbol) =>
+          default(term)
+      }
+    }
+
   }
 
   private def default(terms: Term*): ReplaceType = Standard(terms.toList)

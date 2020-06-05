@@ -10,6 +10,7 @@ Blinky.enabledMutators = [
   { ScalaTry = [GetOrElse, OrElse] }
   { Collections = [ListApply, SeqApply, SetApply] }
   { PartialFunctions = [RemoveOneCase] }
+  { ScalaStrings = [Trim] }
 ]
  */
 package test
