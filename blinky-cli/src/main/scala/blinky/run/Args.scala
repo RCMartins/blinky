@@ -1,11 +1,11 @@
-package blinky.run
-
-case class Args(
-    mainConfFile: Option[String] = None,
-    overrides: Seq[MutationsConfig => MutationsConfig] = Seq.empty
-) {
-
-  def add(over: MutationsConfig => MutationsConfig): Args =
-    copy(overrides = overrides :+ over)
-
-}
+//package blinky.run
+//
+//case class Args(
+//    mainConfFile: Option[String] = None,
+//    overrides: Seq[MutationsConfig => MutationsConfig] = Seq.empty
+//) {
+//
+//  def add(over: MutationsConfig => MutationsConfig): Args =
+//    copy(overrides = overrides :+ over)
+//
+//}
