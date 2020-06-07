@@ -10,9 +10,6 @@ object Instruction {
 
   final case class Empty[A](next: Instruction[A]) extends Instruction[A]
 
-//  final case class Sequence[A, +B](seq: Seq[Instruction[B]], next: Instruction[A])
-//      extends Instruction[A]
-
   final case class PrintLine[A](line: String, next: Instruction[A]) extends Instruction[A]
 
   final case class PrintErrorLine[A](line: String, next: Instruction[A]) extends Instruction[A]

@@ -5,8 +5,6 @@ import ammonite.ops._
 
 object AmmoniteExternalCalls extends ExternalCalls {
 
-  //def pwd: Path = ammonite.ops.pwd
-
   def runSync(op: String, args: Seq[String])(path: Path): Unit =
     %.applyDynamic(op)(args.map(StringShellable): _*)(path)
 

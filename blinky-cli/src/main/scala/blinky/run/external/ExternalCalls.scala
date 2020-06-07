@@ -4,8 +4,6 @@ import ammonite.ops.{CommandResult, Path}
 
 trait ExternalCalls {
 
-  //def pwd: Path
-
   def runSync(op: String, args: Seq[String])(path: Path): Unit
 
   def runAsync(
