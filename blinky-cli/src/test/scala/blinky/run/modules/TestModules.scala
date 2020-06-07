@@ -1,11 +1,11 @@
-package blinky.runZIO.modules
+package blinky.run.modules
 
 import better.files.File
-import blinky.runZIO.external.ExternalCalls
+import blinky.run.external.ExternalCalls
 import scopt.OParserSetup
 import zio.ZIO
 
-object Modules {
+object TestModules {
 
   class TestParserModule(oParserSetup: OParserSetup) extends ParserModule.Service[Any] {
     override def parser: ZIO[Any, Nothing, OParserSetup] =

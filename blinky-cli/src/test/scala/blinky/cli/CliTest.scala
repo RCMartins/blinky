@@ -1,47 +1,42 @@
-package blinky.cliZIO
+package blinky.cli
 
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.TimeUnit
 
-import ammonite.ops.Path
 import better.files.File
 import blinky.BuildInfo.version
 import blinky.TestSpec
-import blinky.runZIO.Instruction
-import blinky.runZIO.Instruction._
-import blinky.runZIO.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
-import blinky.runZIO.modules.Modules.{TestCliModule, TestParserModule}
-import blinky.runZIO.modules.{CliModule, ParserModule}
+import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
+import blinky.run.modules.TestModules.{TestCliModule, TestParserModule}
+import blinky.run.modules.{CliModule, ParserModule}
 import blinky.v0.Mutators
 import scopt.DefaultOParserSetup
+import zio.UIO
 import zio.test.Assertion._
 import zio.test._
 import zio.test.environment._
-import zio.{ExitCode, UIO}
 
 import scala.concurrent.duration._
 
 object CliTest extends TestSpec {
 
-  private type InstructionType = Instruction[Either[ExitCode, MutationsConfigValidated], Path]
-
   val spec: Spec[TestEnvironment, TestFailure[Nothing], TestSuccess] =
     suite("Cli")(
       testM("blinky --version should return the version number of blinky") {
-        val (zioInst, parser) = parse("--version")()
+        val (zioResult, parser) = parse("--version")()
         for {
-          _ <- zioInst
-        } yield assert(parser.getOut) {
-          equalTo(s"""blinky v$version
-                     |""".stripMargin)
-        } &&
+          _ <- zioResult
+        } yield assert(parser.getOut)(equalTo {
+          s"""blinky v$version
+             |""".stripMargin
+        }) &&
           assert(parser.getErr)(equalTo(""))
       },
       testM("blinky --help should return the help text") {
-        val (zioInst, parser) = parse("--help")()
+        val (zioResult, parser) = parse("--help")()
 
         for {
-          _ <- zioInst
+          _ <- zioResult
         } yield assert(parser.getOut) {
           equalTo {
             s"""blinky v$version
@@ -70,48 +65,45 @@ object CliTest extends TestSpec {
           assert(parser.getErr)(equalTo(""))
       },
       testM("blinky empty.conf should return the default config options") {
-        val (zioInst, parser) = parse(getFilePath("empty.conf"))()
+        val (zioResult, parser) = parse(getFilePath("empty.conf"))()
 
         for {
-          inst <- zioInst
+          result <- zioResult
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
-          assert(inst)(equalTo {
-            Result(
-              Right(
-                MutationsConfigValidated(
-                  projectPath = File(getFilePath(".")),
-                  filesToMutate = "src/main/scala",
-                  filesToExclude = "",
-                  mutators = SimpleBlinkyConfig(
-                    enabled = Mutators.all,
-                    disabled = Mutators(Nil)
-                  ),
-                  options = OptionsConfig(
-                    verbose = false,
-                    dryRun = false,
-                    compileCommand = "",
-                    testCommand = "",
-                    maxRunningTime = 60.minutes,
-                    failOnMinimum = false,
-                    mutationMinimum = 25.0,
-                    onlyMutateDiff = false
-                  )
+          assert(result)(equalTo {
+            Right(
+              MutationsConfigValidated(
+                projectPath = File(getFilePath(".")),
+                filesToMutate = "src/main/scala",
+                filesToExclude = "",
+                mutators = SimpleBlinkyConfig(
+                  enabled = Mutators.all,
+                  disabled = Mutators(Nil)
+                ),
+                options = OptionsConfig(
+                  verbose = false,
+                  dryRun = false,
+                  compileCommand = "",
+                  testCommand = "",
+                  maxRunningTime = 60.minutes,
+                  failOnMinimum = false,
+                  mutationMinimum = 25.0,
+                  onlyMutateDiff = false
                 )
               )
             )
           })
       },
       testM("blinky options1.conf should return the correct options") {
-        val (zioInst, parser) = parse(getFilePath("options1.conf"))()
+        val (zioResult, parser) = parse(getFilePath("options1.conf"))()
 
         for {
-          inst <- zioInst
-          config = getMutationsConfig(inst)
+          result <- zioResult
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
-          assert(config.map(_.options))(equalTo {
-            Some(
+          assert(result.map(_.options))(equalTo {
+            Right(
               OptionsConfig(
                 verbose = false,
                 dryRun = false,
@@ -128,11 +120,11 @@ object CliTest extends TestSpec {
       testM(
         "blinky simple1.conf should return the correct projectName, compileCommand and testCommand"
       ) {
-        val (zioInst, parser) = parse(getFilePath("simple1.conf"))(File("."))
+        val (zioResult, parser) = parse(getFilePath("simple1.conf"))(File("."))
 
         for {
-          inst <- zioInst
-          config = getMutationsConfig(inst)
+          result <- zioResult
+          config = result.toOption
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
           assert(config.map(_.projectPath))(equalSome(File(".") / "examples" / "example1")) &&
@@ -142,33 +134,31 @@ object CliTest extends TestSpec {
       },
       testM("blinky <no conf file> should return an error if there is no .blinky.conf file") {
         val pwdFolder = File(".")
-        val (zioInst, parser) = parse()(pwdFolder)
+        val (zioResult, parser) = parse()(pwdFolder)
 
         for {
-          inst <- zioInst
+          result <- zioResult
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
-          assert(inst)(equalTo {
-            PrintErrorLine(
+          assert(result)(equalTo {
+            Left(
               s"""Default '${pwdFolder / ".blinky.conf"}' does not exist.
-                 |blinky --help for usage.""".stripMargin,
-              Result(Left(ExitCode(1)))
+                 |blinky --help for usage.""".stripMargin
             )
           })
       },
       testM("blinky <non-existent-file> should return an error if there is no unknown.conf file") {
         val pwdFolder = File(getFilePath("."))
-        val (zioInst, parser) = parse("unknown.conf")(pwdFolder)
+        val (zioResult, parser) = parse("unknown.conf")(pwdFolder)
 
         for {
-          inst <- zioInst
+          result <- zioResult
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
-          assert(inst)(equalTo {
-            PrintErrorLine(
+          assert(result)(equalTo {
+            Left(
               s"""<blinkyConfFile> '${pwdFolder / "unknown.conf"}' does not exist.
-                 |blinky --help for usage.""".stripMargin,
-              Result(Left(ExitCode(1)))
+                 |blinky --help for usage.""".stripMargin
             )
           })
       },
@@ -197,11 +187,11 @@ object CliTest extends TestSpec {
             "true"
           )
 
-          val (zioInst, parser) = parse(getFilePath("empty.conf") +: params: _*)(File("."))
+          val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(File("."))
 
           for {
-            inst <- zioInst
-            config = getMutationsConfig(inst)
+            result <- zioResult
+            config = result.toOption
           } yield assert(parser.getOut)(equalTo("")) &&
             assert(parser.getErr)(equalTo("")) &&
             assert(config.map(_.projectPath))(equalSome(File(".") / "examples" / "example2")) &&
@@ -227,95 +217,70 @@ object CliTest extends TestSpec {
           )
 
           val pwd = File(".")
-          val (zioInst, parser) = parse(getFilePath("empty.conf") +: params: _*)(pwd)
+          val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(pwd)
 
           for {
-            inst <- zioInst
+            result <- zioResult
           } yield assert(parser.getOut)(equalTo("")) &&
             assert(parser.getErr)(equalTo("")) &&
-            assert(inst)(equalTo {
-              PrintErrorLine(
-                s"""--projectPath '${pwd / "examples" / "non-existent"}' does not exists.""".stripMargin,
-                Result(Left(ExitCode(1)))
+            assert(result)(equalTo {
+              Left(
+                s"""--projectPath '${pwd / "examples" / "non-existent"}' does not exists.""".stripMargin
               )
             })
         }
       ),
       suite("mutationMinimum value check")(
         testM("return an error if mutationMinimum is negative") {
-          val (zioInst, parser) = parse("--mutationMinimum", "-0.1")()
+          val (zioResult, parser) = parse("--mutationMinimum", "-0.1")()
 
           for {
-            inst <- zioInst
+            result <- zioResult
           } yield assert(parser.getOut)(equalTo("")) &&
             assert(parser.getErr)(equalTo("")) &&
-            assert(inst)(equalTo {
-              PrintErrorLine(
-                s"""mutationMinimum value is invalid. It should be a number between 0 and 100.""".stripMargin,
-                Result(Left(ExitCode(1)))
+            assert(result)(equalTo {
+              Left(
+                s"""mutationMinimum value is invalid. It should be a number between 0 and 100.""".stripMargin
               )
             })
         },
         testM("return an error if mutationMinimum is above 100") {
-          val (zioInst, parser) = parse("--mutationMinimum", "100.1")()
+          val (zioResult, parser) = parse("--mutationMinimum", "100.1")()
 
           for {
-            inst <- zioInst
+            result <- zioResult
           } yield assert(parser.getOut)(equalTo("")) &&
             assert(parser.getErr)(equalTo("")) &&
-            assert(inst)(equalTo {
-              PrintErrorLine(
-                s"""mutationMinimum value is invalid. It should be a number between 0 and 100.""".stripMargin,
-                Result(Left(ExitCode(1)))
+            assert(result)(equalTo {
+              Left(
+                s"""mutationMinimum value is invalid. It should be a number between 0 and 100.""".stripMargin
               )
             })
         }
       )
     )
 
-  private def getMutationsConfig(instruction: InstructionType): Option[MutationsConfigValidated] =
-    instruction match {
-      case Result(value) =>
-        value.toOption
-      case _ =>
-        None
-    }
-
-  class MyParser() {
-
+  private class MyParser() {
     private val outCapture = new ByteArrayOutputStream
     private val errCapture = new ByteArrayOutputStream
 
     val _parser: DefaultOParserSetup =
       new DefaultOParserSetup() {
-
         override def terminate(exitState: Either[String, Unit]): Unit = ()
-
-        override def displayToOut(msg: String): Unit =
-          outCapture.write((msg + "\n").getBytes)
-
-        override def displayToErr(msg: String): Unit =
-          errCapture.write((msg + "\n").getBytes)
-
+        override def displayToOut(msg: String): Unit = outCapture.write((msg + "\n").getBytes)
+        override def displayToErr(msg: String): Unit = errCapture.write((msg + "\n").getBytes)
         override def errorOnUnknownArgument: Boolean = true
-
-        override def reportError(msg: String): Unit =
-          errCapture.write((msg + "\n").getBytes)
-
-        override def reportWarning(msg: String): Unit =
-          errCapture.write((msg + "\n").getBytes)
-
       }
 
     def getOut: String = removeCarriageReturns(outCapture.toString)
     def getErr: String = removeCarriageReturns(errCapture.toString)
   }
 
-  def parse(
+  private def parse(
       args: String*
   )(
       pwd: File = File(getFilePath("."))
-  ): (UIO[Instruction[Either[ExitCode, MutationsConfigValidated], Path]], MyParser) = {
+  ): (UIO[Either[String, MutationsConfigValidated]], MyParser) = {
     val myParser = new MyParser()
 
     val parserEnv: ParserModule with CliModule = new ParserModule with CliModule {
@@ -323,11 +288,7 @@ object CliTest extends TestSpec {
       override val cliModule: CliModule.Service[Any] = new TestCliModule(pwd)
     }
 
-    val zio = CliZIO.parse(args.toList).provide(parserEnv)
-    (
-      zio,
-      myParser
-    )
+    (Cli.parse(args.toList).provide(parserEnv), myParser)
   }
 
 }

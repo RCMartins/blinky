@@ -1,4 +1,4 @@
-package blinky.runZIO.modules
+package blinky.run.modules
 
 import scopt.{DefaultOParserSetup, OParserSetup}
 import zio.ZIO

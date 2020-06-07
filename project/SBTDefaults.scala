@@ -31,7 +31,6 @@ object SBTDefaults {
       "-Ywarn-infer-any",
       "-Ywarn-unused:imports",
       "-Ywarn-unused:locals",
-      "-Ywarn-unused:patvars",
       "-Ywarn-unused:privates",
       "-Ypartial-unification",
       "-Yno-adapted-args",

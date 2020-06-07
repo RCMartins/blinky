@@ -1,4 +1,4 @@
-package blinky.runZIO.config
+package blinky.run.config
 
 import blinky.v0.{BlinkyConfig, Mutator, Mutators}
 import metaconfig.generic.Surface

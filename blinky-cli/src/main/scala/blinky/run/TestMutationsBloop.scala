@@ -1,161 +1,212 @@
-//package blinky.run
-//
-//import ammonite.ops.{CommandResult, Path}
-//import blinky.run.ExternalCalls._
-//import blinky.run.Utils._
-//import blinky.v0.BlinkyConfig
-//import play.api.libs.json.Json
-//
-//import scala.util.{Failure, Random, Success, Try}
-//
-//object TestMutationsBloop {
-//  def run(
-//      projectPath: Path,
-//      blinkyConfig: BlinkyConfig,
-//      options: OptionsConfig
-//  ): Boolean = {
-//
-//    val mutationReport: List[Mutant] =
-//      readFile(Path(blinkyConfig.mutantsOutputFile))
-//        .split("\n")
-//        .filter(_.nonEmpty)
-//        .map(Json.parse(_).as[Mutant])
-//        .toList
-//    val testCommand = options.testCommand
-//    val numberOfMutants = mutationReport.length
-//
-//    def runMutationsSetup(originalTestTime: Long): Boolean = {
-//      val mutationsToTest =
-//        if (originalTestTime * mutationReport.size >= options.maxRunningTime.toMillis)
-//          Random.shuffle(mutationReport)
-//        else
-//          mutationReport
-//
-//      println(
-//        s"Running the same tests on mutated code (maximum of ${options.maxRunningTime})"
-//      )
-//
-//      val initialTime = System.currentTimeMillis()
-//      val results = runMutations(mutationsToTest, initialTime)
-//      val totalTime = System.currentTimeMillis() - initialTime
-//
-//      ConsoleReporter.reportMutationResult(results, totalTime, numberOfMutants, options)
-//    }
-//
-//    def runMutations(mutants: List[Mutant], initialTime: Long): List[(Int, Boolean)] =
-//      mutants match {
-//        case Nil =>
-//          Nil
-//        case _ if System.currentTimeMillis() - initialTime > options.maxRunningTime.toMillis =>
-//          println(
-//            s"Timed out - maximum of ${options.maxRunningTime} " +
-//              s"(this can be changed with --maxRunningTime parameter)"
-//          )
-//          Nil
-//        case mutant :: othersMutants =>
-//          val id = mutant.id
-//          val time = System.currentTimeMillis()
-//          val testResult = runInBloop(mutant)
-//
-//          val result =
-//            if (testResult.isSuccess) {
-//              println(red(s"Mutant #$id was not killed!"))
-//              if (!options.verbose)
-//                println(
-//                  prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true)
-//                )
-//              id -> false
-//            } else {
-//              println(green(s"Mutant #$id was killed."))
-//              id -> true
-//            }
-//          if (options.verbose) {
-//            println(s"time: ${System.currentTimeMillis() - time}")
-//            println("-" * 40)
-//          }
-//
-//          result :: runMutations(othersMutants, initialTime)
-//      }
-//
-//    def runInBloop(mutant: Mutant): Try[CommandResult] = {
-//      if (options.verbose) {
-//        println(
-//          s"""> [BLINKY_MUTATION_${mutant.id}=1] bash -c "bloop test ${escapeString(
-//            testCommand
-//          )}""""
-//        )
-//        println(prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true))
-//        println("--v--" * 5)
-//      }
-//
-//      Try(
-//        runBash(
-//          Seq(
-//            "bloop",
-//            "test",
-//            escapeString(testCommand)
-//          ),
-//          Map(s"BLINKY_MUTATION_${mutant.id}" -> "1")
-//        )(projectPath)
-//      )
-//    }
-//
-//    println(s"$numberOfMutants mutants found.")
-//    if (numberOfMutants == 0) {
-//      println("Try changing the mutation settings.")
-//      true
-//    } else {
-//      runSync("sbt", Seq("bloopInstall"))(projectPath)
-//      println("Running tests with original config")
-//      val compileResult =
-//        Try(runBash(Seq("bloop", "compile", escapeString(options.compileCommand)))(projectPath))
-//      compileResult match {
-//        case Failure(error) =>
-//          val newIssueLink = "https://github.com/RCMartins/blinky/issues/new"
-//          Console.err.println(error)
-//          Console.err.println(
-//            s"""There are compile errors after applying the Blinky rule.
-//               |This could be because Blinky is not configured correctly.
-//               |Make sure compileCommand is set.
-//               |If you think it's due to a bug in Blinky please to report in:
-//               |$newIssueLink""".stripMargin
-//          )
-//          false
-//        case Success(_) =>
-//          val originalTestInitialTime = System.currentTimeMillis()
-//          val vanillaResult =
-//            Try(runBash(Seq(s"bloop test ${escapeString(testCommand)}"))(projectPath))
-//          vanillaResult match {
-//            case Failure(error) =>
-//              Console.err.println(
-//                s"""Tests failed. No mutations will run until this is fixed.
-//                   |This could be because Blinky is not configured correctly.
-//                   |Make sure testCommand is set.
-//                   |
-//                   |$error
-//                   |""".stripMargin
-//              )
-//              false
-//            case Success(result) =>
-//              println(green("Original tests passed..."))
-//              if (options.verbose)
-//                println(result.out.string)
-//              val originalTestTime = System.currentTimeMillis() - originalTestInitialTime
-//              if (options.verbose)
-//                println(green("time: " + originalTestTime))
-//              if (options.dryRun) {
-//                println(
-//                  s"""
-//                     |${green("In dryRun mode. Everything worked correctly.")}
-//                     |If you want to run it again with mutations active use --dryRun=false
-//                     |""".stripMargin
-//                )
-//                true
-//              } else
-//                runMutationsSetup(originalTestTime)
-//          }
-//      }
-//    }
-//  }
-//
-//}
+package blinky.run
+
+import ammonite.ops.Path
+import blinky.run.Instruction._
+import blinky.run.Utils._
+import blinky.run.config.OptionsConfig
+import blinky.v0.BlinkyConfig
+import play.api.libs.json.Json
+import zio.ExitCode
+
+import scala.util.Random
+
+object TestMutationsBloop {
+  def run(
+      projectPath: Path,
+      blinkyConfig: BlinkyConfig,
+      options: OptionsConfig
+  ): Instruction[ExitCode] = {
+
+    for {
+
+      mutationReport <- readFile(Path(blinkyConfig.mutantsOutputFile))
+        .map(
+          _.split("\n")
+            .filter(_.nonEmpty)
+            .map(Json.parse(_).as[Mutant])
+            .toList
+        )
+      testCommand = options.testCommand
+      numberOfMutants = mutationReport.length
+
+      runInBloop: (Mutant => Instruction[Boolean]) = { (mutant: Mutant) =>
+        val prints =
+          if (options.verbose)
+            for {
+              _ <- printLine(
+                s"""> [BLINKY_MUTATION_${mutant.id}=1] bash -c "bloop test ${escapeString(
+                  testCommand
+                )}""""
+              )
+              _ <- printLine(
+                prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true)
+              )
+              _ <- printLine("--v--" * 5)
+            } yield ()
+          else
+            empty
+
+        prints.flatMap(_ =>
+          runAsyncSuccess(
+            "bloop",
+            Seq(
+              "test",
+              escapeString(testCommand)
+            ),
+            Map(s"BLINKY_MUTATION_${mutant.id}" -> "1")
+          )(projectPath)
+        )
+      }
+
+      runMutant: (Mutant => Instruction[(Int, Boolean)]) = { (mutant: Mutant) =>
+        val id = mutant.id
+        for {
+          time <- succeed(System.currentTimeMillis())
+          testResult <- runInBloop(mutant)
+
+          _ <-
+            if (testResult)
+              printLine(red(s"Mutant #$id was not killed!")).flatMap(_ =>
+                if (!options.verbose)
+                  printLine(
+                    prettyDiff(
+                      mutant.diff,
+                      mutant.fileName,
+                      projectPath.toString,
+                      color = true
+                    )
+                  )
+                else
+                  empty
+              )
+            else
+              printLine(green(s"Mutant #$id was killed."))
+
+          _ <-
+            if (options.verbose)
+              printLine(s"time: ${System.currentTimeMillis() - time}").flatMap(_ =>
+                printLine("-" * 40)
+              )
+            else
+              empty
+
+        } yield id -> !testResult
+      }
+
+      runMutations: (List[Mutant] => Long => Instruction[List[(Int, Boolean)]]) = {
+        (initialMutants: List[Mutant]) => (initialTime: Long) =>
+          def loop(mutants: List[Mutant]): Instruction[List[(Int, Boolean)]] =
+            mutants match {
+              case Nil =>
+                succeed(Nil)
+              case _
+                  if System.currentTimeMillis() - initialTime > options.maxRunningTime.toMillis =>
+                printLine(
+                  s"Timed out - maximum of ${options.maxRunningTime} " +
+                    s"(this can be changed with --maxRunningTime parameter)"
+                ).map(_ => Nil)
+              case mutant :: othersMutants =>
+                runMutant(mutant).flatMap(mutantResult =>
+                  loop(othersMutants).map(mutantResult :: _)
+                )
+            }
+
+          loop(initialMutants)
+      }
+
+      runMutationsSetup: (Long => Instruction[ExitCode]) = { (originalTestTime: Long) =>
+        val mutationsToTest =
+          if (originalTestTime * numberOfMutants >= options.maxRunningTime.toMillis)
+            Random.shuffle(mutationReport)
+          else
+            mutationReport
+
+        for {
+          _ <- printLine(
+            s"Running the same tests on mutated code (maximum of ${options.maxRunningTime})"
+          )
+
+          initialTime = System.currentTimeMillis()
+          results <- runMutations(mutationsToTest)(initialTime)
+          totalTime = System.currentTimeMillis() - initialTime
+
+          result <-
+            ConsoleReporter.reportMutationResult(results, totalTime, numberOfMutants, options)
+        } yield
+          if (result)
+            ExitCode.success
+          else
+            ExitCode.failure
+      }
+
+      _ <- printLine(s"$numberOfMutants mutants found.")
+
+      testResult <-
+        if (numberOfMutants == 0)
+          printLine("Try changing the mutation settings.").map(_ => ExitCode.success)
+        else
+          for {
+            _ <- runSync("sbt", Seq("bloopInstall"))(projectPath)
+            _ <- printLine("Running tests with original config")
+            compileResult <- runAsyncEither(
+              "bloop",
+              Seq("compile", escapeString(options.compileCommand))
+            )(projectPath)
+            res <- compileResult match {
+              case Left(error) =>
+                val newIssueLink = "https://github.com/RCMartins/blinky/issues/new"
+                printErrorLine(error)
+                  .flatMap(_ =>
+                    printErrorLine(
+                      s"""There are compile errors after applying the Blinky rule.
+                         |This could be because Blinky is not configured correctly.
+                         |Make sure compileCommand is set.
+                         |If you think it's due to a bug in Blinky please to report in:
+                         |$newIssueLink""".stripMargin
+                    )
+                  )
+                  .map(_ => ExitCode.failure)
+              case Right(_) =>
+                for {
+                  originalTestInitialTime <- succeed(System.currentTimeMillis())
+                  vanillaTestResult <-
+                    runAsyncEither("bloop", Seq(s"test", escapeString(testCommand)))(projectPath)
+
+                  res <- vanillaTestResult match {
+                    case Left(error) =>
+                      printErrorLine(
+                        s"""Tests failed. No mutations will run until this is fixed.
+                           |This could be because Blinky is not configured correctly.
+                           |Make sure testCommand is set.
+                           |
+                           |$error
+                           |""".stripMargin
+                      ).map(_ => ExitCode.failure)
+                    case Right(result) =>
+                      for {
+                        _ <- printLine(green("Original tests passed..."))
+                        _ <- conditional(options.verbose)(printLine(result))
+                        originalTestTime <- succeed(
+                          System.currentTimeMillis() - originalTestInitialTime
+                        )
+                        _ <- conditional(options.verbose)(
+                          printLine(green("time: " + originalTestTime))
+                        )
+                        res <-
+                          if (options.dryRun)
+                            printLine(
+                              s"""
+                                 |${green("In dryRun mode. Everything worked correctly.")}
+                                 |If you want to run it again with mutations active use --dryRun=false
+                                 |""".stripMargin
+                            ).map(_ => ExitCode.success)
+                          else
+                            runMutationsSetup(originalTestTime)
+                      } yield res
+                  }
+                } yield res
+            }
+          } yield res
+    } yield testResult
+  }
+}

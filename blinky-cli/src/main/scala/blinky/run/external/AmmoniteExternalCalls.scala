@@ -1,4 +1,4 @@
-package blinky.runZIO.external
+package blinky.run.external
 
 import ammonite.ops.Shellable.StringShellable
 import ammonite.ops._
@@ -18,7 +18,7 @@ object AmmoniteExternalCalls extends ExternalCalls {
     Command(Vector.empty, envArgs, Shellout.executeStream)
       .applyDynamic(op)(args.map(StringShellable): _*)(path)
 
-  def makeTemporaryFolder(): Path =
+  def makeTemporaryDirectory(): Path =
     tmp.dir()
 
   def makeDirectory(path: Path): Unit =

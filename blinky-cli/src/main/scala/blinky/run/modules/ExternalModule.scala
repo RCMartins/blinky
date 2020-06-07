@@ -1,6 +1,6 @@
-package blinky.runZIO.modules
+package blinky.run.modules
 
-import blinky.runZIO.external.{AmmoniteExternalCalls, ExternalCalls}
+import blinky.run.external.{AmmoniteExternalCalls, ExternalCalls}
 import zio.ZIO
 
 trait ExternalModule {

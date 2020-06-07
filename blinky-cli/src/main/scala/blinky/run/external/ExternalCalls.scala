@@ -1,4 +1,4 @@
-package blinky.runZIO.external
+package blinky.run.external
 
 import ammonite.ops.{CommandResult, Path}
 
@@ -20,7 +20,7 @@ trait ExternalCalls {
   )(path: Path): CommandResult =
     runAsync("bash", Seq("-c", args.mkString(" ")), envArgs)(path)
 
-  def makeTemporaryFolder(): Path
+  def makeTemporaryDirectory(): Path
 
   def makeDirectory(path: Path): Unit
 

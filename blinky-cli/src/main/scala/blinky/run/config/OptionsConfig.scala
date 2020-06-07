@@ -1,4 +1,4 @@
-package blinky.runZIO.config
+package blinky.run.config
 
 import metaconfig.generic.Surface
 import metaconfig.{Conf, ConfDecoder, Configured, generic}
