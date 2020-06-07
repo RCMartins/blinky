@@ -49,7 +49,7 @@ lazy val core =
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
       libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.1.4",
       libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.1.2" % "test",
-      coverageMinimum := 89,
+      coverageMinimum := 94,
       coverageFailOnMinimum := true,
       buildInfoPackage := "blinky",
       buildInfoKeys := Seq[BuildInfoKey](
@@ -100,7 +100,7 @@ lazy val cli =
       libraryDependencies += "dev.zio"                    %% "zio-test-sbt"               % "1.0.0-RC20" % "test",
       testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
       Test / scalacOptions -= "-Ywarn-unused:locals",
-      coverageMinimum := 40,
+      coverageMinimum := 31,
       coverageFailOnMinimum := true
     )
     .dependsOn(core)
