@@ -97,13 +97,15 @@ object Run {
                       val configFileOrFolderToMutateStr =
                         configFileOrFolderToMutate.toString
 
-                      if (configFileOrFolderToMutate.isFile)
-                        if (base.contains(configFileOrFolderToMutateStr))
-                          succeed(Seq(configFileOrFolderToMutateStr))
+                      succeed(configFileOrFolderToMutate.isFile).flatMap(
+                        if (_)
+                          if (base.contains(configFileOrFolderToMutateStr))
+                            succeed(Seq(configFileOrFolderToMutateStr))
+                          else
+                            succeed(Seq.empty[String])
                         else
-                          succeed(Seq.empty[String])
-                      else
-                        succeed(base.filter(_.startsWith(configFileOrFolderToMutateStr)))
+                          succeed(base.filter(_.startsWith(configFileOrFolderToMutateStr)))
+                      )
                     }
               } yield result
             else
