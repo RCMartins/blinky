@@ -10,12 +10,8 @@ object Setup {
       case true => succeed("coursier")
       case false =>
         runAsyncSuccess("cs", Seq("--help"))(path).flatMap {
-          case true => succeed("cs")
-          case false =>
-            for {
-              _ <- runSync("curl", Seq("-fLo", "cs", "coursier-cli-linux"))(path)
-              _ <- runSync("chmod", Seq("+x", "cs"))(path)
-            } yield "./cs"
+          case true  => succeed("cs")
+          case false => copyExeFromResources("coursier", path).map(_ => "./coursier")
         }
     }
 
