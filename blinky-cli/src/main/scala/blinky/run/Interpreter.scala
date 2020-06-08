@@ -62,6 +62,9 @@ object Interpreter {
         case ReadFile(path, next) =>
           val content = externalCalls.readFile(path)
           interpreterNext(next(content))
+        case IsFile(path, next) =>
+          val isFile = externalCalls.isFile(path)
+          interpreterNext(next(isFile))
       }
 
     interpreterNext(initialProgram)

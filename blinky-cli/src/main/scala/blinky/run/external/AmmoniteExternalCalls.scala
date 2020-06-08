@@ -31,4 +31,7 @@ object AmmoniteExternalCalls extends ExternalCalls {
   def readFile(path: Path): String =
     read(path)
 
+  def isFile(path: Path): Boolean =
+    path.isFile
+
 }

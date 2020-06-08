@@ -28,4 +28,6 @@ trait ExternalCalls {
 
   def readFile(path: Path): String
 
+  def isFile(path: Path): Boolean
+
 }

@@ -41,6 +41,8 @@ package object run {
           WriteFile(path, content, next.flatMap(f))
         case ReadFile(path, next) =>
           ReadFile(path, next(_: String).flatMap(f))
+        case IsFile(path, next) =>
+          IsFile(path, next(_: Boolean).flatMap(f))
       }
   }
 

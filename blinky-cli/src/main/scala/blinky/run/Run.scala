@@ -1,6 +1,6 @@
 package blinky.run
 
-import ammonite.ops.{Path, RelPath, statFileData, up}
+import ammonite.ops.{Path, RelPath, up}
 import blinky.BuildInfo
 import blinky.run.Instruction._
 import blinky.run.config.{MutationsConfigValidated, SimpleBlinkyConfig}
@@ -97,7 +97,8 @@ object Run {
                       val configFileOrFolderToMutateStr =
                         configFileOrFolderToMutate.toString
 
-                      succeed(configFileOrFolderToMutate.isFile).flatMap(
+                      IsFile(
+                        configFileOrFolderToMutate,
                         if (_)
                           if (base.contains(configFileOrFolderToMutateStr))
                             succeed(Seq(configFileOrFolderToMutateStr))

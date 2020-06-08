@@ -59,6 +59,8 @@ object Instruction {
 
   final case class ReadFile[A](path: Path, next: String => Instruction[A]) extends Instruction[A]
 
+  final case class IsFile[A](path: Path, next: Boolean => Instruction[A]) extends Instruction[A]
+
   ///
 
   def succeed[A](value: => A): Return[A] =
