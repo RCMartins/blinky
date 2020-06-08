@@ -61,8 +61,6 @@ object Instruction {
 
   final case class IsFile[A](path: Path, next: Boolean => Instruction[A]) extends Instruction[A]
 
-  ///
-
   def succeed[A](value: => A): Return[A] =
     Return(() => value)
 
@@ -103,9 +101,6 @@ object Instruction {
 
   def copyInto(from: Path, to: Path): CopyInto[Unit] =
     CopyInto(from, to, succeed(()))
-
-  def writeFile(path: Path, content: String): WriteFile[Unit] =
-    WriteFile(path, content, succeed(()))
 
   def readFile(path: Path): ReadFile[String] =
     ReadFile(path, content => succeed(content))
