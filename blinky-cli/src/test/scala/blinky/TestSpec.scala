@@ -11,7 +11,7 @@ trait TestSpec extends DefaultRunnableSpec {
   final val removeCarriageReturns: String => String =
     if (inWindows) _.replace("\r", "") else identity
 
-  final def getFilePath: String => String =
+  final def getResourcePath: String => String =
     if (inWindows)
       fileName => getClass.getResource(s"/$fileName").getPath.stripPrefix("/")
     else

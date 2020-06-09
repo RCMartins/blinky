@@ -65,7 +65,7 @@ object CliTest extends TestSpec {
           assert(parser.getErr)(equalTo(""))
       },
       testM("blinky empty.conf should return the default config options") {
-        val (zioResult, parser) = parse(getFilePath("empty.conf"))()
+        val (zioResult, parser) = parse(getResourcePath("empty.conf"))()
 
         for {
           result <- zioResult
@@ -74,7 +74,7 @@ object CliTest extends TestSpec {
           assert(result)(equalTo {
             Right(
               MutationsConfigValidated(
-                projectPath = File(getFilePath(".")),
+                projectPath = File(getResourcePath(".")),
                 filesToMutate = "src/main/scala",
                 filesToExclude = "",
                 mutators = SimpleBlinkyConfig(
@@ -96,7 +96,7 @@ object CliTest extends TestSpec {
           })
       },
       testM("blinky options1.conf should return the correct options") {
-        val (zioResult, parser) = parse(getFilePath("options1.conf"))()
+        val (zioResult, parser) = parse(getResourcePath("options1.conf"))()
 
         for {
           result <- zioResult
@@ -120,7 +120,7 @@ object CliTest extends TestSpec {
       testM(
         "blinky simple1.conf should return the correct projectName, compileCommand and testCommand"
       ) {
-        val (zioResult, parser) = parse(getFilePath("simple1.conf"))(File("."))
+        val (zioResult, parser) = parse(getResourcePath("simple1.conf"))(File("."))
 
         for {
           result <- zioResult
@@ -148,7 +148,7 @@ object CliTest extends TestSpec {
           })
       },
       testM("blinky <non-existent-file> should return an error if there is no unknown.conf file") {
-        val pwdFolder = File(getFilePath("."))
+        val pwdFolder = File(getResourcePath("."))
         val (zioResult, parser) = parse("unknown.conf")(pwdFolder)
 
         for {
@@ -187,7 +187,7 @@ object CliTest extends TestSpec {
             "true"
           )
 
-          val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(File("."))
+          val (zioResult, parser) = parse(getResourcePath("empty.conf") +: params: _*)(File("."))
 
           for {
             result <- zioResult
@@ -217,7 +217,7 @@ object CliTest extends TestSpec {
           )
 
           val pwd = File(".")
-          val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(pwd)
+          val (zioResult, parser) = parse(getResourcePath("empty.conf") +: params: _*)(pwd)
 
           for {
             result <- zioResult
@@ -279,7 +279,7 @@ object CliTest extends TestSpec {
   private def parse(
       args: String*
   )(
-      pwd: File = File(getFilePath("."))
+      pwd: File = File(getResourcePath("."))
   ): (UIO[Either[String, MutationsConfigValidated]], MyParser) = {
     val myParser = new MyParser()
 

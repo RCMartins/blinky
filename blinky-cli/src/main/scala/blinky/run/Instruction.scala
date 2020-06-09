@@ -64,10 +64,8 @@ object Instruction {
   def succeed[A](value: => A): Return[A] =
     Return(() => value)
 
-  val empty: Instruction[Unit] = succeed(())
-
   def conditional(cond: Boolean)(value: Instruction[Unit]): Instruction[Unit] =
-    if (cond) value else empty
+    if (cond) value else succeed(())
 
   def printLine(line: String): PrintLine[Unit] =
     PrintLine(line, succeed(()))

@@ -31,7 +31,7 @@ object TestMutationsBloop {
 
       runInBloop: (Mutant => Instruction[Boolean]) = { (mutant: Mutant) =>
         val prints =
-          if (options.verbose)
+          conditional(options.verbose)(
             for {
               _ <- printLine(
                 s"""> [BLINKY_MUTATION_${mutant.id}=1] bash -c "bloop test ${escapeString(
@@ -43,8 +43,7 @@ object TestMutationsBloop {
               )
               _ <- printLine("--v--" * 5)
             } yield ()
-          else
-            empty
+          )
 
         prints.flatMap(_ =>
           runAsyncSuccess(
@@ -67,7 +66,7 @@ object TestMutationsBloop {
           _ <-
             if (testResult)
               printLine(red(s"Mutant #$id was not killed!")).flatMap(_ =>
-                if (!options.verbose)
+                conditional(!options.verbose)(
                   printLine(
                     prettyDiff(
                       mutant.diff,
@@ -76,19 +75,16 @@ object TestMutationsBloop {
                       color = true
                     )
                   )
-                else
-                  empty
+                )
               )
             else
               printLine(green(s"Mutant #$id was killed."))
 
-          _ <-
-            if (options.verbose)
-              printLine(s"time: ${System.currentTimeMillis() - time}").flatMap(_ =>
-                printLine("-" * 40)
-              )
-            else
-              empty
+          _ <- conditional(options.verbose)(
+            printLine(s"time: ${System.currentTimeMillis() - time}").flatMap(_ =>
+              printLine("-" * 40)
+            )
+          )
 
         } yield id -> !testResult
       }
