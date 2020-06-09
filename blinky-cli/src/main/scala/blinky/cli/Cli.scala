@@ -1,54 +1,75 @@
 package blinky.cli
 
 import better.files.File
+import blinky.run.Instruction._
 import blinky.run._
-import scopt.{DefaultOParserSetup, OParser, OParserSetup}
+import blinky.run.config._
+import blinky.run.modules.{CliModule, ExternalModule, ParserModule}
+import scopt.OParser
+import zio.{ExitCode, URIO, ZEnv, ZIO}
 
-object Cli {
+object Cli extends zio.App {
 
-  private val setup: DefaultOParserSetup = new DefaultOParserSetup() {}
+  private type FullEnvironment = ParserModule with ExternalModule with CliModule
 
-  def main(args: Array[String]): Unit =
-    parse(args, setup)(File(".")) match {
-      case Some(config) =>
-        val successfulRun = Run.run(config)
-        if (!successfulRun)
-          System.exit(1)
-      case _ =>
-      // arguments are bad, error message will have been displayed by OParser.parse
-    }
+  private type ParserEnvironment = ParserModule with CliModule
 
-  def parse(args: Array[String], setup: OParserSetup)(pwd: File): Option[MutationsConfigValidated] =
-    OParser.parse(Parser.parser, args, Args(), setup).flatMap { args =>
-      val confFileResult: Either[String, File] =
-        args.mainConfFile match {
-          case Some(confFileStr) =>
-            val confFile = File(pwd.path.resolve(confFileStr))
-            if (!confFile.exists)
-              Left(s"""<blinkyConfFile> '$confFile' does not exist.
-                      |blinky --help for usage.""".stripMargin)
-            else
-              Right(confFile)
-          case None =>
-            val confFile = pwd / ".blinky.conf"
-            if (!confFile.exists)
-              Left(s"""Default '$confFile' does not exist.
-                      |blinky --help for usage.""".stripMargin)
-            else
-              Right(confFile)
-        }
-
-      confFileResult.flatMap { confFile =>
-        val initialMutationsConf =
-          MutationsConfig.read(confFile.contentAsString)
-        val config = args.overrides.foldLeft(initialMutationsConf)((conf, over) => over(conf))
-        MutationsConfigValidated.validate(config)(pwd)
-      } match {
-        case Left(errorMessage) =>
-          Console.err.println(errorMessage)
-          None
-        case Right(mutationsConfigValidated) =>
-          Some(mutationsConfigValidated)
+  override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
+    parseAndRun(args).provide {
+      new ParserModule.Live with ExternalModule.Live with CliModule.Live {
+        override val pwdLive: File = File(".")
       }
     }
+
+  private def parseAndRun(strArgs: List[String]): URIO[FullEnvironment, ExitCode] =
+    for {
+      env <- ZIO.environment[ExternalModule]
+      external <- env.externalModule.external
+      parseResult <- parse(strArgs)
+      instructions <- parseResult match {
+        case Left(exitCode) =>
+          ZIO.succeed(PrintErrorLine(exitCode, succeed(ExitCode.failure)))
+        case Right(configValidated) =>
+          Run.run(configValidated)
+      }
+    } yield Interpreter.interpreter(external, instructions)
+
+  private[cli] def parse(
+      strArgs: List[String]
+  ): URIO[ParserEnvironment, Either[String, MutationsConfigValidated]] =
+    for {
+      env <- ZIO.environment[ParserEnvironment]
+      parser <- env.parserModule.parser
+      pwd <- env.cliModule.pwd
+      args <- ZIO.succeed(OParser.parse(Parser.parser, strArgs, Args(), parser))
+    } yield args match {
+      case None =>
+        Left("")
+      case Some(Args(mainConfFile, overrides)) =>
+        val confFileResult: Either[String, File] =
+          mainConfFile match {
+            case Some(confFileStr) =>
+              val confFile = File(pwd.path.resolve(confFileStr))
+              if (!confFile.exists)
+                Left(s"""<blinkyConfFile> '$confFile' does not exist.
+                        |blinky --help for usage.""".stripMargin)
+              else
+                Right(confFile)
+            case None =>
+              val confFile = pwd / ".blinky.conf"
+              if (!confFile.exists)
+                Left(s"""Default '$confFile' does not exist.
+                        |blinky --help for usage.""".stripMargin)
+              else
+                Right(confFile)
+          }
+
+        confFileResult.flatMap { confFile =>
+          val initialMutationsConf =
+            MutationsConfig.read(confFile.contentAsString)
+          val config = overrides.foldLeft(initialMutationsConf)((conf, over) => over(conf))
+          MutationsConfigValidated.validate(config)(pwd)
+        }
+    }
+
 }

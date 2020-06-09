@@ -1,6 +1,7 @@
 package blinky.run
 
 import blinky.BuildInfo
+import blinky.run.config.Args
 import com.softwaremill.quicklens._
 import scopt.{OParser, OParserBuilder}
 

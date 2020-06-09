@@ -1,4 +1,4 @@
-package blinky.run
+package blinky.run.config
 
 import better.files.File
 

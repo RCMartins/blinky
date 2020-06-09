@@ -1,9 +1,9 @@
-package blinky.run
+package blinky.run.external
 
 import ammonite.ops.Shellable.StringShellable
 import ammonite.ops._
 
-object ExternalCalls {
+object AmmoniteExternalCalls extends ExternalCalls {
 
   def runSync(op: String, args: Seq[String])(path: Path): Unit =
     %.applyDynamic(op)(args.map(StringShellable): _*)(path)
@@ -16,13 +16,7 @@ object ExternalCalls {
     Command(Vector.empty, envArgs, Shellout.executeStream)
       .applyDynamic(op)(args.map(StringShellable): _*)(path)
 
-  def runBash(
-      args: Seq[String],
-      envArgs: Map[String, String] = Map.empty
-  )(path: Path): CommandResult =
-    runAsync("bash", Seq("-c", args.mkString(" ")), envArgs)(path)
-
-  def makeTemporaryFolder(): Path =
+  def makeTemporaryDirectory(): Path =
     tmp.dir()
 
   def makeDirectory(path: Path): Unit =
@@ -36,5 +30,8 @@ object ExternalCalls {
 
   def readFile(path: Path): String =
     read(path)
+
+  def isFile(path: Path): Boolean =
+    path.isFile
 
 }

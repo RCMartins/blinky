@@ -1,4 +1,4 @@
-package blinky.run
+package blinky.run.config
 
 case class Args(
     mainConfFile: Option[String] = None,

@@ -1,4 +1,4 @@
-package blinky.run
+package blinky.run.config
 
 import com.softwaremill.quicklens._
 import metaconfig.generic.Surface
