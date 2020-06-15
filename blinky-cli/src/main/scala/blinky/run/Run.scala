@@ -32,12 +32,12 @@ object Run {
     val originalProjectPath: Path = originalProjectRoot / originalProjectRelPath
 
     for {
-      cloneProjectTempFolder <- makeTemporaryFolder
+      cloneProjectTempFolder <- makeTemporaryDirectory
       _ <- conditional(config.options.verbose)(
         printLine(s"Temporary project folder: $cloneProjectTempFolder")
       )
 
-      gitResult <- runAsync("git", Seq("rev-parse", "--show-toplevel"))(originalProjectRoot)
+      gitResult <- runAsync("git", Seq("rev-parse", "--show-toplevel"), path = originalProjectRoot)
       gitFolder = Path(gitResult)
 
       cloneProjectBaseFolder: Path = cloneProjectTempFolder / gitFolder.baseName
@@ -47,7 +47,8 @@ object Run {
 
       // Setup files to mutate ('scalafix --diff' does not work like I want...)
       filesToMutate <- filesToMutateInstruction(
-        config,
+        config.options.onlyMutateDiff,
+        config.filesToMutate,
         gitFolder,
         cloneProjectBaseFolder,
         projectRealPath,
@@ -89,8 +90,9 @@ object Run {
                 s"com.github.rcmartins:${ruleName.toLowerCase}_2.12:${BuildInfo.version}",
                 "-p"
               ),
-              Map("COURSIER_REPOSITORIES" -> "ivy2Local|sonatype:snapshots|sonatype:releases")
-            )(projectRealPath)
+              Map("COURSIER_REPOSITORIES" -> "ivy2Local|sonatype:snapshots|sonatype:releases"),
+              projectRealPath
+            )
 
             _ <- {
               val params: Seq[String] =
@@ -104,7 +106,7 @@ object Run {
                   "--auto-classpath=target"
                 ).filter(_.nonEmpty)
 
-              runSync("./scalafix", params)(projectRealPath)
+              runSync("./scalafix", params, projectRealPath)
             }
 
             runResult <- TestMutationsBloop.run(projectRealPath, blinkyConf, config.options)
@@ -113,7 +115,8 @@ object Run {
   }
 
   private[run] def filesToMutateInstruction(
-      config: MutationsConfigValidated,
+      onlyMutateDiff: Boolean,
+      filesToMutate: String,
       gitFolder: Path,
       cloneProjectBaseFolder: Path,
       projectRealPath: Path,
@@ -125,8 +128,9 @@ object Run {
         // Copy only the files tracked by git into our temporary folder
         gitResult <- runAsync(
           "git",
-          Seq("ls-files", "--others", "--exclude-standard", "--cached")
-        )(originalProjectPath)
+          Seq("ls-files", "--others", "--exclude-standard", "--cached"),
+          path = originalProjectPath
+        )
         filesToCopy = gitResult.split(System.lineSeparator()).map(RelPath(_))
 
         _ <- filesToCopy.foldLeft(succeed(()): Instruction[Unit]) { (before, fileToCopy) =>
@@ -142,14 +146,13 @@ object Run {
         }
       } yield ()
 
-    if (config.options.onlyMutateDiff)
+    if (onlyMutateDiff)
       // maybe copy the .git folder so it can be used by TestMutations, etc?
       //cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
       for {
-        masterHash <- runAsync("git", Seq("rev-parse", "master"))(gitFolder)
-        diffLines <- runAsync("git", Seq("--no-pager", "diff", "--name-only", masterHash))(
-          gitFolder
-        )
+        masterHash <- runAsync("git", Seq("rev-parse", "master"), path = gitFolder)
+        diffLines <-
+          runAsync("git", Seq("--no-pager", "diff", "--name-only", masterHash), path = gitFolder)
 
         base: Seq[String] =
           diffLines
@@ -166,8 +169,8 @@ object Run {
             copyFilesToTempFolder.flatMap { (_: Unit) =>
               // This part is just an optimization of 'base'
               val configFileOrFolderToMutate: Path =
-                Try(Path(config.filesToMutate))
-                  .getOrElse(projectRealPath / RelPath(config.filesToMutate))
+                Try(Path(filesToMutate))
+                  .getOrElse(projectRealPath / RelPath(filesToMutate))
 
               val configFileOrFolderToMutateStr =
                 configFileOrFolderToMutate.toString

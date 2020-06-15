@@ -1,8 +1,9 @@
 package blinky.run
 
-import ammonite.ops.pwd
+import ammonite.ops.{Path, pwd}
 import better.files.File
 import blinky.TestSpec
+import blinky.run.TestInstruction._
 import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
 import blinky.run.modules.CliModule
 import blinky.run.modules.TestModules.TestCliModule
@@ -13,10 +14,45 @@ import zio.{ExitCode, UIO}
 object RunTest extends TestSpec {
 
   private val path = pwd
+  private val pathStr = path.toString
+
+  private val originalProjectRoot = pwd
+  private val originalProjectPath = originalProjectRoot
+  private val cloneProjectTempFolder = Path("/tmp")
+  private val gitFolder = Path("/project")
+  private val cloneProjectBaseFolder = cloneProjectTempFolder / "project"
+  private val projectRealPath = cloneProjectTempFolder / "project"
 
   val spec: Spec[TestEnvironment, TestFailure[Nothing], TestSuccess] =
     suite("Run")(
-      testM("something") {
+      suite("filesToMutateInstruction")(
+        test("should return the correct instruction") {
+          val inst = Run.filesToMutateInstruction(
+            onlyMutateDiff = false,
+            filesToMutate = "src",
+            gitFolder,
+            cloneProjectBaseFolder,
+            projectRealPath,
+            originalProjectPath,
+            originalProjectRoot
+          )
+
+          println(inst)
+          testInstruction(
+            inst,
+            for {
+              _ <- testRunAsync(
+                "git",
+                Seq("ls-files", "--others", "--exclude-standard", "--cached"),
+                Map.empty,
+                originalProjectPath,
+                mockResult = "file1" + System.lineSeparator() + "file2"
+              )
+            } yield Seq("all")
+          )
+        }
+      ),
+      testM("correct instruction") {
         val zioInst = run(
           MutationsConfigValidated(
             projectPath = File("project"),
@@ -28,10 +64,17 @@ object RunTest extends TestSpec {
         )
         for {
           inst <- zioInst
-        } yield testInstruction(
-          inst,
-          ???
-        )
+        } yield {
+          println(inst)
+          testInstruction(
+            inst,
+            for {
+              _ <- testMakeTemporaryDirectory(Path("/tmp"))
+              _ <-
+                testRunAsync("git", Seq("rev-parse", "--show-toplevel"), Map.empty, path, pathStr)
+            } yield testSucceed(???)
+          )
+        }
       }
     )
 
@@ -45,11 +88,5 @@ object RunTest extends TestSpec {
 
     Run.run(config).provide(cliEnv)
   }
-
-  private def testInstruction[A](
-      actualInstruction: Instruction[A],
-      expectationInstruction: TestInstruction[A]
-  ): TestResult =
-    ???
 
 }

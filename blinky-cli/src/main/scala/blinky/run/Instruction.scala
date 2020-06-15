@@ -51,11 +51,17 @@ object Instruction {
 
   final case class CopyInto[A](from: Path, to: Path, next: Instruction[A]) extends Instruction[A]
 
-  final case class CopyResource[A](resource: String, destinationPath: Path, next: Instruction[A])
-      extends Instruction[A]
+  final case class CopyResource[A](
+      resource: String,
+      destinationPath: Path,
+      next: Instruction[A]
+  ) extends Instruction[A]
 
-  final case class WriteFile[A](path: Path, content: String, next: Instruction[A])
-      extends Instruction[A]
+  final case class WriteFile[A](
+      path: Path,
+      content: String,
+      next: Instruction[A]
+  ) extends Instruction[A]
 
   final case class ReadFile[A](path: Path, next: String => Instruction[A]) extends Instruction[A]
 
@@ -73,25 +79,34 @@ object Instruction {
   def printErrorLine(line: String): PrintErrorLine[Unit] =
     PrintErrorLine(line, succeed(()))
 
-  def runSync(op: String, args: Seq[String])(path: Path): RunSync[Unit] =
+  def runSync(op: String, args: Seq[String], path: Path): RunSync[Unit] =
     RunSync(op, args, path, succeed(()))
 
-  def runAsync(op: String, args: Seq[String], envArgs: Map[String, String] = Map.empty)(
+  def runAsync(
+      op: String,
+      args: Seq[String],
+      envArgs: Map[String, String] = Map.empty,
       path: Path
   ): RunAsync[String] =
     RunAsync(op, args, envArgs, path, succeed(_: String))
 
-  def runAsyncSuccess(op: String, args: Seq[String], envArgs: Map[String, String] = Map.empty)(
+  def runAsyncSuccess(
+      op: String,
+      args: Seq[String],
+      envArgs: Map[String, String] = Map.empty,
       path: Path
   ): RunAsyncSuccess[Boolean] =
     RunAsyncSuccess(op, args, envArgs, path, succeed(_: Boolean))
 
-  def runAsyncEither(op: String, args: Seq[String], envArgs: Map[String, String] = Map.empty)(
+  def runAsyncEither(
+      op: String,
+      args: Seq[String],
+      envArgs: Map[String, String] = Map.empty,
       path: Path
   ): RunAsyncEither[Either[String, String]] =
     RunAsyncEither(op, args, envArgs, path, succeed(_: Either[String, String]))
 
-  def makeTemporaryFolder: MakeTemporaryDirectory[Path] =
+  def makeTemporaryDirectory: MakeTemporaryDirectory[Path] =
     MakeTemporaryDirectory(path => succeed(path))
 
   def makeDirectory(path: Path): MakeDirectory[Unit] =

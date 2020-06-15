@@ -6,10 +6,10 @@ import blinky.run.Instruction.{CopyResource, runAsyncSuccess, runSync, succeed}
 object Setup {
 
   def setupCoursier(path: Path): Instruction[String] =
-    runAsyncSuccess("coursier", Seq("--help"))(path).flatMap {
+    runAsyncSuccess("coursier", Seq("--help"), path = path).flatMap {
       case true => succeed("coursier")
       case false =>
-        runAsyncSuccess("cs", Seq("--help"))(path).flatMap {
+        runAsyncSuccess("cs", Seq("--help"), path = path).flatMap {
           case true  => succeed("cs")
           case false => copyExeFromResources("coursier", path).map(_ => "./coursier")
         }
@@ -24,8 +24,9 @@ object Setup {
         "set ThisBuild / semanticdbEnabled := true",
         "set ThisBuild / semanticdbVersion := \"4.3.12\"",
         "compile"
-      )
-    )(path)
+      ),
+      path
+    )
 
   def setupScalafix(path: Path): Instruction[Unit] =
     copyExeFromResources("scalafix", path)
@@ -34,7 +35,7 @@ object Setup {
     CopyResource(
       s"/$name",
       path / name,
-      runSync("chmod", Seq("+x", name))(path)
+      runSync("chmod", Seq("+x", name), path)
     )
 
 }
