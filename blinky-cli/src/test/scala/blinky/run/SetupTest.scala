@@ -2,9 +2,7 @@ package blinky.run
 
 import ammonite.ops.pwd
 import blinky.TestSpec
-import blinky.run.Instruction._
 import blinky.run.TestInstruction._
-import zio.test.Assertion._
 import zio.test._
 import zio.test.environment.TestEnvironment
 
