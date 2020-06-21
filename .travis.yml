@@ -27,15 +27,25 @@ jobs:
       script:
         - sbt scalafmtCheckAll scalafmtSbtCheck
 
-    - name: mutation testing core
+    - name: mutation testing core 1/2
       if: type = pull_request
       script:
-        - ./travis/setup.sh && amm travis/runCurrentVersion.sc "travis/core.blinky.conf"
+        - ./travis/setup.sh && amm travis/runCurrentVersion.sc "travis/core.blinky.conf" --multiRun 1/2
 
-    - name: mutation testing cli
+    - name: mutation testing core 2/2
       if: type = pull_request
       script:
-        - ./travis/setup.sh && amm travis/runCurrentVersion.sc "travis/cli.blinky.conf"
+        - ./travis/setup.sh && amm travis/runCurrentVersion.sc "travis/core.blinky.conf" --multiRun 2/2
+
+    - name: mutation testing cli 1/2
+      if: type = pull_request
+      script:
+        - ./travis/setup.sh && amm travis/runCurrentVersion.sc "travis/cli.blinky.conf" --multiRun 1/2
+
+    - name: mutation testing cli 2/2
+      if: type = pull_request
+      script:
+        - ./travis/setup.sh && amm travis/runCurrentVersion.sc "travis/cli.blinky.conf" --multiRun 2/2
 
     - name: mutation testing examples
       if: type = pull_request

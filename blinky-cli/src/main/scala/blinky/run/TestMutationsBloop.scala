@@ -25,7 +25,12 @@ object TestMutationsBloop {
             .filter(_.nonEmpty)
             .map(Json.parse(_).as[Mutant])
             .toList
+            .filter { mutant =>
+              val (numerator, denominator) = options.multiRun
+              (mutant.id % denominator) == (numerator - 1)
+            }
         )
+
       testCommand = options.testCommand
       numberOfMutants = mutationReport.length
 
