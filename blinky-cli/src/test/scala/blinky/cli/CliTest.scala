@@ -59,6 +59,8 @@ object CliTest extends TestSpec {
                |  --mutationMinimum <decimal>
                |                           Minimum mutation score, value must be between 0 and 100, with one decimal place
                |  --failOnMinimum <bool>   If set, exits with non-zero code when the mutation score is below mutationMinimum value
+               |  --multiRun <job-index/number-of-jobs>
+               |                           Only test the mutants of the given index, 1 <= job-index <= number-of-jobs
                |""".stripMargin
           }
         } &&
@@ -89,7 +91,8 @@ object CliTest extends TestSpec {
                   maxRunningTime = 60.minutes,
                   failOnMinimum = false,
                   mutationMinimum = 25.0,
-                  onlyMutateDiff = false
+                  onlyMutateDiff = false,
+                  multiRun = (1, 1)
                 )
               )
             )
@@ -112,7 +115,8 @@ object CliTest extends TestSpec {
                 maxRunningTime = 10.minutes,
                 failOnMinimum = true,
                 mutationMinimum = 66.7,
-                onlyMutateDiff = false
+                onlyMutateDiff = false,
+                multiRun = (1, 3)
               )
             )
           })
@@ -162,6 +166,15 @@ object CliTest extends TestSpec {
             )
           })
       },
+      testM("return an error multiRun field in wrong") {
+        val (zioResult, parser) = parse(getFilePath("wrongMultiRun.conf"))()
+
+        for {
+          result <- zioResult
+        } yield assert(parser.getOut)(equalTo("")) &&
+          assert(parser.getErr)(equalTo("")) &&
+          assert(result)(equalTo(Left("Invalid value, should be in 'int/int' format")))
+      },
       suite("using overrides parameters")(
         testM("return the changed parameters") {
           val params: Seq[String] = Seq(
@@ -184,7 +197,9 @@ object CliTest extends TestSpec {
             "--mutationMinimum",
             "73.9",
             "--failOnMinimum",
-            "true"
+            "true",
+            "--multiRun",
+            "2/3"
           )
 
           val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(File("."))
@@ -206,7 +221,8 @@ object CliTest extends TestSpec {
                 maxRunningTime = Duration(45, TimeUnit.MINUTES),
                 failOnMinimum = true,
                 mutationMinimum = 73.9,
-                onlyMutateDiff = true
+                onlyMutateDiff = true,
+                multiRun = (2, 3)
               )
             })
         },
@@ -256,6 +272,34 @@ object CliTest extends TestSpec {
                 s"""mutationMinimum value is invalid. It should be a number between 0 and 100.""".stripMargin
               )
             })
+        },
+        testM("return an error multiRun field in wrong (less than 1)") {
+          val (zioResult, parser) = parse("--multiRun", "0/1")()
+
+          for {
+            _ <- zioResult
+          } yield assert(parser.getOut)(equalTo("")) &&
+            assert(parser.getErr)(
+              equalTo(
+                """Error: Option --multiRun failed when given '0/1'. Invalid values, they should be >= 1
+                  |Try --help for more information.
+                  |""".stripMargin
+              )
+            )
+        },
+        testM("return an error multiRun field in wrong (index <= number)") {
+          val (zioResult, parser) = parse("--multiRun", "3/2")()
+
+          for {
+            _ <- zioResult
+          } yield assert(parser.getOut)(equalTo("")) &&
+            assert(parser.getErr)(
+              equalTo(
+                """Error: Option --multiRun failed when given '3/2'. Invalid values, they should be >= 1
+                  |Try --help for more information.
+                  |""".stripMargin
+              )
+            )
         }
       )
     )

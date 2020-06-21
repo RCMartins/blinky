@@ -65,10 +65,13 @@ object Cli extends zio.App {
           }
 
         confFileResult.flatMap { confFile =>
-          val initialMutationsConf =
-            MutationsConfig.read(confFile.contentAsString)
-          val config = overrides.foldLeft(initialMutationsConf)((conf, over) => over(conf))
-          MutationsConfigValidated.validate(config)(pwd)
+          MutationsConfig.read(confFile.contentAsString) match {
+            case Left(confError) =>
+              Left(confError.msg)
+            case Right(initialMutationsConf) =>
+              val config = overrides.foldLeft(initialMutationsConf)((conf, over) => over(conf))
+              MutationsConfigValidated.validate(config)(pwd)
+          }
         }
     }
 

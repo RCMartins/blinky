@@ -3,7 +3,7 @@ package blinky.run.config
 import com.softwaremill.quicklens._
 import metaconfig.generic.Surface
 import metaconfig.typesafeconfig._
-import metaconfig.{Conf, ConfDecoder, generic}
+import metaconfig.{Conf, ConfDecoder, ConfError, generic}
 
 case class MutationsConfig(
     projectPath: String,
@@ -29,11 +29,11 @@ object MutationsConfig {
   implicit val decoder: ConfDecoder[MutationsConfig] =
     generic.deriveDecoder(default).noTypos
 
-  def read(conf: String): MutationsConfig = {
-    val original = decoder.read(Conf.parseString(conf)).get
-    val projectName = original.projectName
-    original
-      .modifyAll(_.options.compileCommand, _.options.testCommand)
-      .setToIf(projectName.nonEmpty)(projectName)
-  }
+  def read(conf: String): Either[ConfError, MutationsConfig] =
+    decoder.read(Conf.parseString(conf)).toEither.map { original =>
+      val projectName = original.projectName
+      original
+        .modifyAll(_.options.compileCommand, _.options.testCommand)
+        .setToIf(projectName.nonEmpty)(projectName)
+    }
 }

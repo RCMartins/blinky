@@ -1,13 +1,24 @@
 package blinky.run
 
 import blinky.BuildInfo
-import blinky.run.config.Args
+import blinky.run.config.{Args, OptionsConfig}
 import com.softwaremill.quicklens._
-import scopt.{OParser, OParserBuilder}
+import scopt.{OParser, OParserBuilder, Read}
 
 import scala.concurrent.duration.Duration
 
 object Parser {
+
+  private def readMultiRun: Read[(Int, Int)] =
+    new Read[(Int, Int)] {
+      override def arity: Int = 1
+
+      override def reads: String => (Int, Int) =
+        OptionsConfig.stringToMultiRunParser(_) match {
+          case Left(message) => throw new IllegalArgumentException(message)
+          case Right(value)  => value
+        }
+    }
 
   private val builder: OParserBuilder[Args] = OParser.builder[Args]
   val parser: OParser[Unit, Args] = {
@@ -107,6 +118,15 @@ object Parser {
         }
         .text(
           "If set, exits with non-zero code when the mutation score is below mutationMinimum value"
+        )
+        .maxOccurs(1),
+      opt[(Int, Int)]("multiRun")(readMultiRun)
+        .valueName("<job-index/number-of-jobs>")
+        .action { (fraction, config) =>
+          config.add(_.modify(_.options.multiRun).setTo(fraction))
+        }
+        .text(
+          "Only test the mutants of the given index, 1 <= job-index <= number-of-jobs"
         )
         .maxOccurs(1)
     )

@@ -83,6 +83,23 @@ If set, only mutates added and edited files in git diff against the master branc
 
 Default: false
 
+#### multiRun
+Only test the mutants of the given index, 1 <= job-index <= number-of-jobs
+
+This parameter helps running Blinky in parallel, useful to run Blinky in independent machines.
+E.g. If you have two Travis jobs that run Blinky on the same project and configuration, you can use:
+```
+# First Travis job:
+blinky .blinky.conf --multiRun 1/2
+
+# Second Travis job:
+blinky .blinky.conf --multiRun 2/2
+```
+This makes each travis job run half the mutations without overlapping (i.e. testing the same mutant).
+
+Format: <job-index>/<number-of-jobs>  
+Default: 1/1
+
 ### mutators (optional)
 Configuration for applying the mutations.
 
