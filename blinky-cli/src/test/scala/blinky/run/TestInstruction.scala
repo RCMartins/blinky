@@ -2,6 +2,7 @@ package blinky.run
 
 import ammonite.ops.Path
 import blinky.run.Instruction._
+import zio.test
 import zio.test.Assertion.equalTo
 import zio.test.{TestResult, assert}
 
@@ -51,7 +52,8 @@ object TestInstruction {
       args: Seq[String],
       envArgs: Map[String, String],
       path: Path,
-      next: Either[String, String] => TestInstruction[A]
+      mockResult: Either[String, String],
+      next: TestInstruction[A]
   ) extends TestInstruction[A]
 
   final case class TestMakeTemporaryDirectory[A](
@@ -84,13 +86,17 @@ object TestInstruction {
 
   final case class TestReadFile[A](
       path: Path,
-      next: String => TestInstruction[A]
+      mockResult: String,
+      next: TestInstruction[A]
   ) extends TestInstruction[A]
 
   final case class TestIsFile[A](
       path: Path,
-      next: Boolean => TestInstruction[A]
+      mockResult: Boolean,
+      next: TestInstruction[A]
   ) extends TestInstruction[A]
+
+  final case class TestForceSuccess[A]() extends TestInstruction[A]
 
   def testSucceed[A](value: A): TestReturn[A] =
     TestReturn(value)
@@ -104,13 +110,13 @@ object TestInstruction {
   def testPrintErrorLine(line: String): TestPrintErrorLine[Unit] =
     TestPrintErrorLine(line, testSucceed(()))
 
-  def testRunSync(op: String, args: Seq[String])(path: Path): TestRunSync[Unit] =
+  def testRunSync(op: String, args: Seq[String], path: Path): TestRunSync[Unit] =
     TestRunSync(op, args, path, testSucceed(()))
 
   def testRunAsync(
       op: String,
       args: Seq[String],
-      envArgs: Map[String, String] = Map.empty,
+      envArgs: Map[String, String],
       path: Path,
       mockResult: String
   ): TestRunAsync[String] =
@@ -119,16 +125,20 @@ object TestInstruction {
   def testRunAsyncSuccess(
       op: String,
       args: Seq[String],
-      envArgs: Map[String, String] = Map.empty,
+      envArgs: Map[String, String],
       path: Path,
       mockResult: Boolean
   ): TestRunAsyncSuccess[Boolean] =
     TestRunAsyncSuccess(op, args, envArgs, path, mockResult, testSucceed(mockResult))
 
-  def testRunAsyncEither(op: String, args: Seq[String], envArgs: Map[String, String] = Map.empty)(
-      path: Path
-  ): TestRunAsyncEither[Either[String, String]] =
-    TestRunAsyncEither(op, args, envArgs, path, testSucceed(_: Either[String, String]))
+  def testRunAsyncEither(
+      op: String,
+      args: Seq[String],
+      envArgs: Map[String, String],
+      path: Path,
+      mockResult: Either[String, String]
+  ): TestRunAsyncEither[Unit] =
+    TestRunAsyncEither(op, args, envArgs, path, mockResult, testSucceed(()))
 
   def testMakeTemporaryDirectory(mockResult: Path): TestMakeTemporaryDirectory[Path] =
     TestMakeTemporaryDirectory(mockResult, testSucceed(mockResult))
@@ -139,8 +149,14 @@ object TestInstruction {
   def testCopyInto(from: Path, to: Path): TestCopyInto[Unit] =
     TestCopyInto(from, to, testSucceed(()))
 
-  def testReadFile(path: Path): TestReadFile[String] =
-    TestReadFile(path, content => testSucceed(content))
+  def testReadFile(path: Path, mockResult: String): TestReadFile[Unit] =
+    TestReadFile(path, mockResult, testSucceed(()))
+
+  def testIsFile(path: Path, mockResult: Boolean): TestIsFile[Unit] =
+    TestIsFile(path, mockResult, testSucceed(()))
+
+  val testForceSuccess: TestForceSuccess[Nothing] =
+    TestForceSuccess()
 
   implicit class ConsoleSyntax[+A](self: TestInstruction[A]) {
     def map[B](f: A => B): TestInstruction[B] =
@@ -150,6 +166,8 @@ object TestInstruction {
         f: A => TestInstruction[B]
     ): TestInstruction[B] =
       self match {
+        case TestForceSuccess() =>
+          ???
         case TestReturn(value) =>
           f(value)
         case TestPrintLine(line, next) =>
@@ -162,8 +180,8 @@ object TestInstruction {
           TestRunAsync(op, args, envArgs, path, mockResult, next.flatMap(f))
         case TestRunAsyncSuccess(op, args, envArgs, path, mockResult, next) =>
           TestRunAsyncSuccess(op, args, envArgs, path, mockResult, next.flatMap(f))
-        case TestRunAsyncEither(op, args, envArgs, path, next) =>
-          TestRunAsyncEither(op, args, envArgs, path, next(_: Either[String, String]).flatMap(f))
+        case TestRunAsyncEither(op, args, envArgs, path, mockResult, next) =>
+          TestRunAsyncEither(op, args, envArgs, path, mockResult, next.flatMap(f))
         case TestMakeTemporaryDirectory(mockResult, next) =>
           TestMakeTemporaryDirectory(mockResult, next.flatMap(f))
         case TestMakeDirectory(path, next) =>
@@ -174,10 +192,10 @@ object TestInstruction {
           TestCopyResource(resource, destinationPath, next.flatMap(f))
         case TestWriteFile(path, content, next) =>
           TestWriteFile(path, content, next.flatMap(f))
-        case TestReadFile(path, next) =>
-          TestReadFile(path, next(_: String).flatMap(f))
-        case TestIsFile(path, next) =>
-          TestIsFile(path, next(_: Boolean).flatMap(f))
+        case TestReadFile(path, mockResult, next) =>
+          TestReadFile(path, mockResult, next.flatMap(f))
+        case TestIsFile(path, mockResult, next) =>
+          TestIsFile(path, mockResult, next.flatMap(f))
       }
   }
 
@@ -197,6 +215,15 @@ object TestInstruction {
           assert(path1)(equalTo(path2)) &&
           testInstruction(next1, next2)
       case (
+            RunAsync(op1, args1, envArgs1, path1, next1),
+            TestRunAsync(op2, args2, envArgs2, path2, mockResult, next2)
+          ) =>
+        assert(op1)(equalTo(op2)) &&
+          assert(args1)(equalTo(args2)) &&
+          assert(envArgs1)(equalTo(envArgs2)) &&
+          assert(path1)(equalTo(path2)) &&
+          testInstruction(next1(mockResult), next2)
+      case (
             RunAsyncSuccess(op1, args1, envArgs1, path1, next1),
             TestRunAsyncSuccess(op2, args2, envArgs2, path2, mockResult, next2)
           ) =>
@@ -206,15 +233,38 @@ object TestInstruction {
           assert(path1)(equalTo(path2)) &&
           testInstruction(next1(mockResult), next2)
       case (
+            MakeDirectory(path1, next1),
+            TestMakeDirectory(path2, next2)
+          ) =>
+        assert(path1)(equalTo(path2)) &&
+          testInstruction(next1, next2)
+      case (
+            CopyInto(from1, to1, next1),
+            TestCopyInto(from2, to2, next2)
+          ) =>
+        assert(from1)(equalTo(from2)) &&
+          assert(to1)(equalTo(to2)) &&
+          testInstruction(next1, next2)
+      case (
             CopyResource(resource1, destinationPath1, next1),
             TestCopyResource(resource2, destinationPath2, next2)
           ) =>
         assert(resource1)(equalTo(resource2)) &&
           assert(destinationPath1)(equalTo(destinationPath2)) &&
           testInstruction(next1, next2)
+      case (
+            IsFile(path1, next1),
+            TestIsFile(path2, mockResult, next2)
+          ) =>
+        assert(path1)(equalTo(path2)) &&
+          testInstruction(next1(mockResult), next2)
+      case (_, _: TestForceSuccess[_]) =>
+        test.assertCompletes
       case (other1, other2) =>
         println(other1.getClass.getSimpleName)
         println(other2.getClass.getSimpleName)
+        println(other1)
+        println(other2)
         ???
     }
 

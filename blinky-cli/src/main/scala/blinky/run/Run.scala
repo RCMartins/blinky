@@ -169,8 +169,9 @@ object Run {
             copyFilesToTempFolder.flatMap { (_: Unit) =>
               // This part is just an optimization of 'base'
               val configFileOrFolderToMutate: Path =
-                Try(Path(filesToMutate))
-                  .getOrElse(projectRealPath / RelPath(filesToMutate))
+                //TODO: Try(Path(filesToMutate)).getOrElse(
+                projectRealPath / RelPath(filesToMutate)
+              //)
 
               val configFileOrFolderToMutateStr =
                 configFileOrFolderToMutate.toString
