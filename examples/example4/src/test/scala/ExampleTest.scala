@@ -12,7 +12,7 @@ class ExampleTest extends AnyWordSpec with Matchers {
     }
 
     "return an answer when the input is None" in {
-      assert(Example.calc(None).nonEmpty)
+      Example.calc(None) mustEqual "<empty>"
     }
   }
 }
