@@ -98,8 +98,8 @@ object ConsoleReporterTest extends TestSpec {
         test("print the correct message used when the filesToMutate is empty") {
           val Instruction.PrintLine(line, _) = ConsoleReporter.filesToMutateIsEmpty
           assert(line)(equalTo {
-            s"""\u001B[32m0 files to mutate because no code change found due to --mutateOnlyDiff flag.\u001B[0m
-               |If you want all files to be tested regardless use --mutateOnlyDiff=false
+            s"""\u001B[32m0 files to mutate because no code change found due to --onlyMutateDiff flag.\u001B[0m
+               |If you want all files to be tested regardless use --onlyMutateDiff=false
                |""".stripMargin
           })
         }
