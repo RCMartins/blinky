@@ -1,7 +1,10 @@
-import org.scalatest.FunSuite
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ExampleTest extends FunSuite {
-  test("test that stuff happens") {
-    assert(Example.set2 == Set(""))
+class ExampleTest extends AnyWordSpec with Matchers {
+  "Example" must {
+    "test that stuff happens" in {
+      Example.set2 mustEqual Set("")
+    }
   }
 }

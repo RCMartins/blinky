@@ -1,15 +1,18 @@
-import org.scalatest.FunSuite
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ExampleTest extends FunSuite {
-  test("return big for the number 6") {
-    assert(Example.calc(Some(6)) == "big")
-  }
+class ExampleTest extends AnyWordSpec with Matchers {
+  "Example" must {
+    "return big for the number 6" in {
+      Example.calc(Some(6)) mustEqual "big"
+    }
 
-  test("return small for the number 4") {
-    assert(Example.calc(Some(4)) == "small")
-  }
+    "return small for the number 4" in {
+      Example.calc(Some(4)) mustEqual "small"
+    }
 
-  test("return '<empty>' when the input is None") {
-    assert(Example.calc(None) == "<empty>")
+    "return an answer when the input is None" in {
+      Example.calc(None) mustEqual "<empty>"
+    }
   }
 }
