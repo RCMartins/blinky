@@ -2,7 +2,7 @@ import $file.utils, utils._
 import ammonite.ops._
 
 @main
-def main(): Unit = {
+def main(examplesToRun: String*): Unit = {
   val basePath = pwd
   val versionNumber = publishLocalBlinky()
 
@@ -10,8 +10,8 @@ def main(): Unit = {
   val exampleDirectories = ls(basePath / "examples")
 
   val examples: Seq[(Path, CommandResult)] =
-    exampleDirectories.filterNot(_.baseName == "default").map {
-      examplePath =>
+    exampleDirectories.filterNot(_.baseName == "default").collect {
+      case examplePath if examplesToRun.isEmpty || examplesToRun.contains(examplePath.baseName) =>
         println("\n")
         val msg = s"Testing $examplePath:"
         println("-" * msg.length)

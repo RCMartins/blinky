@@ -18,4 +18,7 @@ object LiteralStrings {
   val string10 = f"$string2%20s-test"
   val string11 = raw""
   val string12 = raw"$string2\test"
+
+  val "string13" = "string13"
+  var "string14" = "string14"
 }
