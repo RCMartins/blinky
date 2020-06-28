@@ -78,20 +78,36 @@ object Instruction {
   def runSync(op: String, args: Seq[String])(path: Path): RunSync[Unit] =
     RunSync(op, args, path, succeed(()))
 
-  def runAsync(op: String, args: Seq[String], envArgs: Map[String, String] = Map.empty)(
+  def runAsync(
+      op: String,
+      args: Seq[String],
+      envArgs: Map[String, String] = Map.empty,
       path: Path
   ): RunAsync[String] =
     RunAsync(op, args, envArgs, path, succeed(_: String))
 
-  def runAsyncSuccess(op: String, args: Seq[String], envArgs: Map[String, String] = Map.empty)(
+  def runAsyncSuccess(
+      op: String,
+      args: Seq[String],
+      envArgs: Map[String, String] = Map.empty,
       path: Path
   ): RunAsyncSuccess[Boolean] =
     RunAsyncSuccess(op, args, envArgs, path, succeed(_: Boolean))
 
-  def runAsyncEither(op: String, args: Seq[String], envArgs: Map[String, String] = Map.empty)(
+  def runAsyncEither(
+      op: String,
+      args: Seq[String],
+      envArgs: Map[String, String] = Map.empty,
       path: Path
   ): RunAsyncEither[Either[String, String]] =
     RunAsyncEither(op, args, envArgs, path, succeed(_: Either[String, String]))
+
+  def runBashSuccess(
+      arg: String,
+      envArgs: Map[String, String] = Map.empty,
+      path: Path
+  ): RunAsyncSuccess[Boolean] =
+    RunAsyncSuccess("bash", Seq("-c", arg), envArgs, path, succeed(_: Boolean))
 
   def makeTemporaryFolder: MakeTemporaryDirectory[Path] =
     MakeTemporaryDirectory(path => succeed(path))

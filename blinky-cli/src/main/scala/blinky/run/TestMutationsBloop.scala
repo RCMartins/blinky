@@ -39,9 +39,8 @@ object TestMutationsBloop {
           if (options.verbose)
             for {
               _ <- printLine(
-                s"""> [BLINKY_MUTATION_${mutant.id}=1] bash -c "bloop test ${escapeString(
-                  testCommand
-                )}""""
+                s"> [BLINKY_MUTATION_${mutant.id}=1] " +
+                  s"""bash -c "bloop test ${escapeString(testCommand)}""""
               )
               _ <- printLine(
                 prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true)
@@ -52,14 +51,11 @@ object TestMutationsBloop {
             empty
 
         prints.flatMap(_ =>
-          runAsyncSuccess(
-            "bloop",
-            Seq(
-              "test",
-              escapeString(testCommand)
-            ),
-            Map(s"BLINKY_MUTATION_${mutant.id}" -> "1")
-          )(projectPath)
+          runBashSuccess(
+            s"bloop test ${escapeString(testCommand)}",
+            Map(s"BLINKY_MUTATION_${mutant.id}" -> "1"),
+            projectPath
+          )
         )
       }
 
@@ -155,8 +151,9 @@ object TestMutationsBloop {
             _ <- printLine("Running tests with original config")
             compileResult <- runAsyncEither(
               "bloop",
-              Seq("compile", escapeString(options.compileCommand))
-            )(projectPath)
+              Seq("compile", escapeString(options.compileCommand)),
+              path = projectPath
+            )
             res <- compileResult match {
               case Left(error) =>
                 val newIssueLink = "https://github.com/RCMartins/blinky/issues/new"
@@ -174,8 +171,11 @@ object TestMutationsBloop {
               case Right(_) =>
                 for {
                   originalTestInitialTime <- succeed(System.currentTimeMillis())
-                  vanillaTestResult <-
-                    runAsyncEither("bloop", Seq(s"test", escapeString(testCommand)))(projectPath)
+                  vanillaTestResult <- runAsyncEither(
+                    "bloop",
+                    Seq(s"test", escapeString(testCommand)),
+                    path = projectPath
+                  )
 
                   res <- vanillaTestResult match {
                     case Left(error) =>

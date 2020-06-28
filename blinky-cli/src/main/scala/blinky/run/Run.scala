@@ -34,9 +34,8 @@ object Run {
             else
               empty
 
-          gitResult <- runAsync("git", Seq("rev-parse", "--show-toplevel"))(
-            originalProjectRoot
-          )
+          gitResult <-
+            runAsync("git", Seq("rev-parse", "--show-toplevel"), path = originalProjectRoot)
           gitFolder = Path(gitResult)
 
           cloneProjectBaseFolder: Path = cloneProjectTempFolder / gitFolder.baseName
@@ -48,8 +47,9 @@ object Run {
             // Copy only the files tracked by git into our temporary folder
             gitResult <- runAsync(
               "git",
-              Seq("ls-files", "--others", "--exclude-standard", "--cached")
-            )(originalProjectPath)
+              Seq("ls-files", "--others", "--exclude-standard", "--cached"),
+              path = originalProjectPath
+            )
             filesToCopy = gitResult.split(System.lineSeparator()).map(RelPath(_))
 
             _ <- filesToCopy.foldLeft(succeed(()): Instruction[Unit]) { (before, fileToCopy) =>
@@ -71,9 +71,11 @@ object Run {
               // maybe copy the .git folder so it can be used by TestMutations, etc?
               //cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
               for {
-                masterHash <- runAsync("git", Seq("rev-parse", "master"))(gitFolder)
-                diffLines <- runAsync("git", Seq("--no-pager", "diff", "--name-only", masterHash))(
-                  gitFolder
+                masterHash <- runAsync("git", Seq("rev-parse", "master"), path = gitFolder)
+                diffLines <- runAsync(
+                  "git",
+                  Seq("--no-pager", "diff", "--name-only", masterHash),
+                  path = gitFolder
                 )
 
                 base: Seq[String] =
@@ -147,8 +149,9 @@ object Run {
                     s"com.github.rcmartins:${ruleName.toLowerCase}_2.12:${BuildInfo.version}",
                     "-p"
                   ),
-                  Map("COURSIER_REPOSITORIES" -> "ivy2Local|sonatype:snapshots|sonatype:releases")
-                )(projectRealPath)
+                  Map("COURSIER_REPOSITORIES" -> "ivy2Local|sonatype:snapshots|sonatype:releases"),
+                  path = projectRealPath
+                )
 
                 _ <- {
                   val params: Seq[String] =
