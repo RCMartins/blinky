@@ -17,6 +17,10 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
     tree match {
       case term: Term =>
         topTermMutations(term, parensRequired = false)
+      case Defn.Val(_, _, _, right) =>
+        topTermMutations(right, parensRequired = false)
+      case Defn.Var(_, _, _, right) =>
+        topTermMutations(right, parensRequired = false)
       case other =>
         other.children.flatMap(topTreeMutations)
     }
