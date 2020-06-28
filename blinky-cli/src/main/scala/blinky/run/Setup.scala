@@ -6,10 +6,10 @@ import blinky.run.Instruction.{CopyResource, runAsyncSuccess, runSync, succeed}
 object Setup {
 
   def setupCoursier(path: Path): Instruction[String] =
-    runAsyncSuccess("coursier", Seq("--help"))(path).flatMap {
+    runAsyncSuccess("coursier", Seq("--help"), path = path).flatMap {
       case true => succeed("coursier")
       case false =>
-        runAsyncSuccess("cs", Seq("--help"))(path).flatMap {
+        runAsyncSuccess("cs", Seq("--help"), path = path).flatMap {
           case true  => succeed("cs")
           case false => copyExeFromResources("coursier", path).map(_ => "./coursier")
         }
