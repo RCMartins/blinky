@@ -171,10 +171,9 @@ object TestMutationsBloop {
               case Right(_) =>
                 for {
                   originalTestInitialTime <- succeed(System.currentTimeMillis())
-                  vanillaTestResult <- runAsyncEither(
-                    "bloop",
-                    Seq(s"test", escapeString(testCommand)),
-                    path = projectPath
+                  vanillaTestResult <- runBashEither(
+                    s"bloop test ${escapeString(testCommand)}",
+                    projectPath
                   )
 
                   res <- vanillaTestResult match {

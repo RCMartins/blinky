@@ -109,6 +109,12 @@ object Instruction {
   ): RunAsyncSuccess[Boolean] =
     RunAsyncSuccess("bash", Seq("-c", arg), envArgs, path, succeed(_: Boolean))
 
+  def runBashEither(
+      arg: String,
+      path: Path
+  ): RunAsyncEither[Either[String, String]] =
+    RunAsyncEither("bash", Seq("-c", arg), Map.empty, path, succeed(_: Either[String, String]))
+
   def makeTemporaryFolder: MakeTemporaryDirectory[Path] =
     MakeTemporaryDirectory(path => succeed(path))
 
