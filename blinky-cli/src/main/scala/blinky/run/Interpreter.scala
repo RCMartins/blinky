@@ -32,16 +32,16 @@ object Interpreter {
           externalCalls.makeDirectory(path)
           interpreterNext(next)
         case RunSync(op, args, path, next) =>
-          externalCalls.runSync(op, args)(path)
+          externalCalls.runSync(op, args, path)
           interpreterNext(next)
         case RunAsync(op, args, envArgs, path, next) =>
-          val result = externalCalls.runAsync(op, args, envArgs)(path)
+          val result = externalCalls.runAsync(op, args, envArgs, path)
           interpreterNext(next(result.out.string.trim))
         case RunAsyncSuccess(op, args, envArgs, path, next) =>
-          val result = Try(externalCalls.runAsync(op, args, envArgs)(path))
+          val result = Try(externalCalls.runAsync(op, args, envArgs, path))
           interpreterNext(next(result.isSuccess))
         case RunAsyncEither(op, args, envArgs, path, next) =>
-          Try(externalCalls.runAsync(op, args, envArgs)(path)) match {
+          Try(externalCalls.runAsync(op, args, envArgs, path)) match {
             case Failure(exception) =>
               interpreterNext(next(Left(exception.toString)))
             case Success(value) =>

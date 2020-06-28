@@ -4,19 +4,14 @@ import ammonite.ops.{CommandResult, Path}
 
 trait ExternalCalls {
 
-  def runSync(op: String, args: Seq[String])(path: Path): Unit
+  def runSync(op: String, args: Seq[String], path: Path): Unit
 
   def runAsync(
       op: String,
       args: Seq[String],
-      envArgs: Map[String, String] = Map.empty
-  )(path: Path): CommandResult
-
-  def runBash(
-      args: Seq[String],
-      envArgs: Map[String, String] = Map.empty
-  )(path: Path): CommandResult =
-    runAsync("bash", Seq("-c", args.mkString(" ")), envArgs)(path)
+      envArgs: Map[String, String] = Map.empty,
+      path: Path
+  ): CommandResult
 
   def makeTemporaryDirectory(): Path
 
