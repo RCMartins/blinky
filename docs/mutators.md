@@ -176,26 +176,6 @@ example mutation 2:
 + val str = "mutated!"
 ```
 
-#### String - Concat into mutated
-
-name: ConcatToMutated
-
-description: Changes the string concat operator `+` and both left and right expressions into two mutations. One with empty `""` and another with `"mutated!"`.
-
-example mutation 1:
-
-```diff
-- val str = "foo" + "bar"
-+ val str = ""
-```
-
-example mutation 2:
-
-```diff
-- val str = "foo" + "bar"
-+ val str = "mutated!"
-```
-
 ---
 
 ### Scala Options
@@ -578,6 +558,40 @@ example mutation 2:
 
 group name: ScalaStrings
 
+#### String - Concat
+
+name: Concat
+
+description: Changes the string concat operator `+` and `concat` and both left and right expressions into two mutations. One with empty `""` and another with `"mutated!"`.
+
+example mutation 1:
+
+```diff
+- val str = "foo" + "bar"
++ val str = ""
+```
+
+example mutation 2:
+
+```diff
+- val str = "foo" + "bar"
++ val str = "mutated!"
+```
+
+example mutation 3:
+
+```diff
+- val str = "foo".concat("bar")
++ val str = ""
+```
+
+example mutation 4:
+
+```diff
+- val str = "foo".concat("bar")
++ val str = "mutated!"
+```
+
 #### Trim
 
 name: Trim
@@ -588,6 +602,32 @@ example:
 
 ```diff
 - val value = " foo ".trim
++ val value = " foo "
+```
+
+#### ToUpperCase
+
+name: ToUpperCase
+
+description: Removes the call to `toUpperCase` on strings. 
+
+example:
+
+```diff
+- val value = " foo ".toUpperCase
++ val value = " foo "
+```
+
+#### ToLowerCase
+
+name: ToLowerCase
+
+description: Removes the call to `toLowerCase` on strings. 
+
+example:
+
+```diff
+- val value = " foo ".toLowerCase
 + val value = " foo "
 ```
 
