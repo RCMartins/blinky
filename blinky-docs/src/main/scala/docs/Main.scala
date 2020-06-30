@@ -15,6 +15,7 @@ object Main {
           Map(
             "STABLE_VERSION" -> BuildInfo.stable,
             "SNAPSHOT_VERSION" -> BuildInfo.version,
+            "SCALA_VERSION" -> BuildInfo.scalaVersion,
             "SBT_VERSION" -> BuildInfo.sbtVersion
           )
         )
