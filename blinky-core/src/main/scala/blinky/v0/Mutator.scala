@@ -137,8 +137,7 @@ object Mutator {
         EmptyToMutated,
         EmptyInterToMutated,
         NonEmptyToMutated,
-        NonEmptyInterToMutated,
-        ConcatToMutated
+        NonEmptyInterToMutated
       )
 
     object EmptyToMutated extends SimpleMutator("EmptyToMutated") {
@@ -172,14 +171,6 @@ object Mutator {
       }
     }
 
-    object ConcatToMutated extends SimpleMutator("ConcatToMutated") {
-      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-        case concat @ Term.ApplyInfix(_, Term.Name("+"), _, _)
-            if SymbolMatcher.exact("java/lang/String#`+`().").matches(concat.symbol) =>
-          //List(left, right, Lit.String("mutated!"), Lit.String(""))
-          fullReplace(Lit.String("mutated!"), Lit.String(""))
-      }
-    }
   }
 
   object ScalaOptions extends MutatorGroup {
@@ -477,8 +468,17 @@ object Mutator {
 
     override val getSubMutators: List[Mutator] =
       List(
+        ConcatToMutated,
         Trim
       )
+
+    object ConcatToMutated extends SimpleMutator("ConcatToMutated") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case concat @ Term.ApplyInfix(_, Term.Name("+"), _, _)
+            if SymbolMatcher.exact("java/lang/String#`+`().").matches(concat.symbol) =>
+          fullReplace(Lit.String("mutated!"), Lit.String(""))
+      }
+    }
 
     object Trim extends SimpleMutator("Trim") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {

@@ -4,13 +4,13 @@ Blinky.filesToMutate = [all]
 Blinky.enabledMutators = [
   { ConditionalExpressions = [AndToOr, OrToAnd, RemoveUnaryNot] }
   { LiteralStrings = [EmptyToMutated, EmptyInterToMutated, NonEmptyToMutated,
-                      NonEmptyInterToMutated, ConcatToMutated] }
+                      NonEmptyInterToMutated] }
   { ScalaOptions = [GetOrElse, Exists, Forall, IsEmpty, NonEmpty, Fold,
                     OrElse, OrNull, Filter, FilterNot, Contains] }
   { ScalaTry = [GetOrElse, OrElse] }
   { Collections = [ListApply, SeqApply, SetApply] }
   { PartialFunctions = [RemoveOneCase] }
-  { ScalaStrings = [Trim] }
+  { ScalaStrings = [ConcatToMutated, Trim] }
 ]
  */
 package test
