@@ -140,7 +140,8 @@ object TestMutationsBloop {
             ExitCode.failure
       }
 
-      _ <- printLine(s"$numberOfMutants mutants found.")
+      numberOfFilesWithMutants = mutationReport.view.groupBy(_.fileName).size
+      _ <- printLine(s"$numberOfMutants mutants found in $numberOfFilesWithMutants scala files.")
 
       testResult <-
         if (numberOfMutants == 0)
