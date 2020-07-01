@@ -17,5 +17,5 @@ object StringMutator {
   val string3b = string1.toUpperCase(Locale.ENGLISH)
 
   val string4 = string1.toLowerCase
-  val string4b = string1.toUpperCase(Locale.ENGLISH)
+  val string4b = string1.toLowerCase(Locale.ENGLISH)
 }
