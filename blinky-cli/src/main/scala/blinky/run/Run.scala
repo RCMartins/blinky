@@ -165,7 +165,7 @@ object Run {
                       "--auto-classpath=target"
                     ).filter(_.nonEmpty)
 
-                  runSync("./scalafix", params)(projectRealPath)
+                  runSync("./scalafix", params, path = projectRealPath)
                 }
 
                 runResult <- TestMutationsBloop.run(projectRealPath, blinkyConf, config.options)

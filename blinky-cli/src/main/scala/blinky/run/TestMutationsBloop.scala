@@ -53,8 +53,11 @@ object TestMutationsBloop {
         prints.flatMap(_ =>
           runBashSuccess(
             s"bloop test ${escapeString(testCommand)}",
-            Map(s"BLINKY_MUTATION_${mutant.id}" -> "1"),
-            projectPath
+            envArgs = Map(
+              "BLINKY" -> "true",
+              s"BLINKY_MUTATION_${mutant.id}" -> "1"
+            ),
+            path = projectPath
           )
         )
       }
@@ -140,19 +143,27 @@ object TestMutationsBloop {
             ExitCode.failure
       }
 
-      numberOfFilesWithMutants = mutationReport.view.groupBy(_.fileName).size
-      _ <- printLine(s"$numberOfMutants mutants found in $numberOfFilesWithMutants scala files.")
+      _ <- {
+        val numberOfFilesWithMutants = mutationReport.view.groupBy(_.fileName).size
+        printLine(s"$numberOfMutants mutants found in $numberOfFilesWithMutants scala files.")
+      }
 
       testResult <-
         if (numberOfMutants == 0)
           printLine("Try changing the mutation settings.").map(_ => ExitCode.success)
         else
           for {
-            _ <- runSync("sbt", Seq("bloopInstall"))(projectPath)
+            _ <- runSync(
+              "sbt",
+              Seq("bloopInstall"),
+              envArgs = Map("BLINKY" -> "true"),
+              path = projectPath
+            )
             _ <- printLine("Running tests with original config")
             compileResult <- runAsyncEither(
               "bloop",
               Seq("compile", escapeString(options.compileCommand)),
+              envArgs = Map("BLINKY" -> "true"),
               path = projectPath
             )
             res <- compileResult match {
@@ -174,7 +185,8 @@ object TestMutationsBloop {
                   originalTestInitialTime <- succeed(System.currentTimeMillis())
                   vanillaTestResult <- runBashEither(
                     s"bloop test ${escapeString(testCommand)}",
-                    projectPath
+                    envArgs = Map("BLINKY" -> "true"),
+                    path = projectPath
                   )
 
                   res <- vanillaTestResult match {

@@ -21,8 +21,8 @@ package object run {
           PrintLine(line, next.flatMap(f))
         case PrintErrorLine(line, next) =>
           PrintErrorLine(line, next.flatMap(f))
-        case RunSync(op, args, path, next) =>
-          RunSync(op, args, path, next.flatMap(f))
+        case RunSync(op, args, envArgs, path, next) =>
+          RunSync(op, args, envArgs, path, next.flatMap(f))
         case RunAsync(op, args, envArgs, path, next) =>
           RunAsync(op, args, envArgs, path, next(_: String).flatMap(f))
         case RunAsyncSuccess(op, args, envArgs, path, next) =>

@@ -24,8 +24,10 @@ object Setup {
         "set ThisBuild / semanticdbEnabled := true",
         "set ThisBuild / semanticdbVersion := \"4.3.17\"",
         "compile"
-      )
-    )(path)
+      ),
+      envArgs = Map("BLINKY" -> "true"),
+      path = path
+    )
 
   def setupScalafix(path: Path): Instruction[Unit] =
     copyExeFromResources("scalafix", path)
@@ -34,7 +36,7 @@ object Setup {
     CopyResource(
       s"/$name",
       path / name,
-      runSync("chmod", Seq("+x", name))(path)
+      runSync("chmod", Seq("+x", name), path = path)
     )
 
 }

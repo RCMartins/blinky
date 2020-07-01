@@ -17,10 +17,12 @@ object Instruction {
   final case class RunSync[A](
       op: String,
       args: Seq[String],
+      envArgs: Map[String, String],
       path: Path,
       next: Instruction[A]
   ) extends Instruction[A]
 
+  // TODO: remove this one, is unsafe:
   final case class RunAsync[A](
       op: String,
       args: Seq[String],
@@ -75,9 +77,15 @@ object Instruction {
   def printErrorLine(line: String): PrintErrorLine[Unit] =
     PrintErrorLine(line, succeed(()))
 
-  def runSync(op: String, args: Seq[String])(path: Path): RunSync[Unit] =
-    RunSync(op, args, path, succeed(()))
+  def runSync(
+      op: String,
+      args: Seq[String],
+      envArgs: Map[String, String] = Map.empty,
+      path: Path
+  ): RunSync[Unit] =
+    RunSync(op, args, envArgs, path, succeed(()))
 
+  // TODO: remove this one, is unsafe:
   def runAsync(
       op: String,
       args: Seq[String],
@@ -111,9 +119,10 @@ object Instruction {
 
   def runBashEither(
       arg: String,
+      envArgs: Map[String, String] = Map.empty,
       path: Path
   ): RunAsyncEither[Either[String, String]] =
-    RunAsyncEither("bash", Seq("-c", arg), Map.empty, path, succeed(_: Either[String, String]))
+    RunAsyncEither("bash", Seq("-c", arg), envArgs, path, succeed(_: Either[String, String]))
 
   def makeTemporaryFolder: MakeTemporaryDirectory[Path] =
     MakeTemporaryDirectory(path => succeed(path))
