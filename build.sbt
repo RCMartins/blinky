@@ -100,7 +100,7 @@ lazy val cli =
       libraryDependencies += "dev.zio"                    %% "zio-test-sbt"               % "1.0.0-RC21-2" % "test",
       testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
       Test / scalacOptions -= "-Ywarn-unused:locals",
-      coverageMinimum := 31,
+      coverageMinimum := 30,
       coverageFailOnMinimum := true
     )
     .dependsOn(core)

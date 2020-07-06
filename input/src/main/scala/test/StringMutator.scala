@@ -10,7 +10,7 @@ import java.util.Locale
 object StringMutator {
   val string1 = " Foo ".trim
 
-  val string2 = string1 + ", or is it?"
+  val string2 = string1 + ", or is it?" + " who knows?"
   val string2b = string1.concat(", or is it?")
 
   val string3 = string1.toUpperCase

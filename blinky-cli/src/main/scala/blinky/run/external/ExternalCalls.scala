@@ -1,17 +1,22 @@
 package blinky.run.external
 
-import ammonite.ops.{CommandResult, Path}
+import ammonite.ops.Path
 
 trait ExternalCalls {
 
-  def runSync(op: String, args: Seq[String], path: Path): Unit
+  def runSync(
+      op: String,
+      args: Seq[String],
+      envArgs: Map[String, String],
+      path: Path
+  ): Unit
 
   def runAsync(
       op: String,
       args: Seq[String],
-      envArgs: Map[String, String] = Map.empty,
+      envArgs: Map[String, String],
       path: Path
-  ): CommandResult
+  ): Either[String, String]
 
   def makeTemporaryDirectory(): Path
 
