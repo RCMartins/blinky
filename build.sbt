@@ -109,7 +109,8 @@ lazy val tests =
   project
     .enablePlugins(ScalafixTestkitPlugin)
     .settings(
-      libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
+      libraryDependencies += "ch.epfl.scala"  % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
+      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.0"           % Test,
       scalafixTestkitOutputSourceDirectories :=
         sourceDirectories.in(output, Compile).value,
       scalafixTestkitInputSourceDirectories :=
