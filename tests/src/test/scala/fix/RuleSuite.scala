@@ -3,11 +3,13 @@ package fix
 import java.nio.file.Files
 
 import better.files._
-import scalafix.testkit.{RuleTest, SemanticRuleSuite}
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
+import scalafix.testkit.{AbstractSemanticRuleSuite, RuleTest}
 
 import scala.meta.io.{AbsolutePath, RelativePath}
 
-class RuleSuite extends SemanticRuleSuite() {
+class RuleSuite extends AbstractSemanticRuleSuite with AnyWordSpecLike with Matchers {
 
   private val only: Option[String] =
 //    Some("All1") // << to run only one test
@@ -89,25 +91,29 @@ class RuleSuite extends SemanticRuleSuite() {
   }
 
   testsData.foreach { testData =>
-    test(testData.ruleTest.path.testName) {
-      evaluateTestBody(testData.ruleTest)
-    }
+    testData.ruleTest.path.testName should {
+      testData.ruleTest.path.testName in {
+        evaluateTestBody(testData.ruleTest)
+      }
 
-    if (testData.hasMutationsFile) {
-      val mutantsExpectedFile = mutantsExpectedFileResolver(testData.ruleTest.path.testPath)
-      if (mutantsExpectedFile.exists)
-        test(testData.ruleTest.path.testName + " (mutants file)") {
-          val mutantsFile: File = mutantsFileResolver(testData.ruleTest.path.testPath)
+      if (testData.hasMutationsFile) {
+        val mutantsExpectedFile = mutantsExpectedFileResolver(testData.ruleTest.path.testPath)
+        if (mutantsExpectedFile.exists)
+          (testData.ruleTest.path.testName + " (mutants file)") in {
+            val mutantsFile: File = mutantsFileResolver(testData.ruleTest.path.testPath)
 
-          if (mutantsFile.lines == mutantsExpectedFile.lines)
-            succeed
-          else
-            fail(s"""Actual:
-                    |${mutantsFile.contentAsString}
-                    |Expected:
-                    |${mutantsExpectedFile.contentAsString}
-                    |""".stripMargin)
-        }
+            if (mutantsFile.lines == mutantsExpectedFile.lines)
+              succeed
+            else
+              fail(
+                s"""Actual:
+                   |${mutantsFile.contentAsString}
+                   |Expected:
+                   |${mutantsExpectedFile.contentAsString}
+                   |""".stripMargin
+              )
+          }
+      }
     }
   }
 
