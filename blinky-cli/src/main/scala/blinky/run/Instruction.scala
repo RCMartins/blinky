@@ -22,7 +22,6 @@ object Instruction {
       next: Instruction[A]
   ) extends Instruction[A]
 
-  // TODO: remove this one, is unsafe:
   final case class RunAsync[A](
       op: String,
       args: Seq[String],
@@ -85,7 +84,6 @@ object Instruction {
   ): RunSync[Unit] =
     RunSync(op, args, envArgs, path, succeed(()))
 
-  // TODO: remove this one, is unsafe:
   def runAsync(
       op: String,
       args: Seq[String],

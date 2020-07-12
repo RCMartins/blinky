@@ -30,7 +30,11 @@ object Cli extends zio.App {
         case Left(exitCode) =>
           ZIO.succeed(PrintErrorLine(exitCode, succeed(ExitCode.failure)))
         case Right(configValidated) =>
-          Run.run(configValidated)
+          Run
+            .run(configValidated)
+            .catchAll(throwable =>
+              ZIO.succeed(PrintErrorLine(throwable.getMessage, succeed(ExitCode.failure)))
+            )
       }
     } yield Interpreter.interpreter(external, instructions)
 

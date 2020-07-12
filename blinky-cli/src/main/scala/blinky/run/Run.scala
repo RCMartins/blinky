@@ -6,7 +6,7 @@ import blinky.run.Instruction._
 import blinky.run.config.{MutationsConfigValidated, SimpleBlinkyConfig}
 import blinky.run.modules.CliModule
 import blinky.v0.BlinkyConfig
-import zio.{ExitCode, URIO, ZIO}
+import zio.{ExitCode, RIO, ZIO}
 
 import scala.util.Try
 
@@ -14,7 +14,7 @@ object Run {
 
   private val ruleName = "Blinky"
 
-  def run(config: MutationsConfigValidated): URIO[CliModule, Instruction[ExitCode]] =
+  def run(config: MutationsConfigValidated): RIO[CliModule, Instruction[ExitCode]] =
     for {
       env <- ZIO.environment[CliModule]
       pwd <- env.cliModule.pwd
