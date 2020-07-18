@@ -492,6 +492,33 @@ example mutation 3:
 + val set = Set("a", "b")
 ```
 
+#### Reverse
+
+name: Reverse
+
+description: Removes the call to `reverse` on `List`/`SeqLike`/`IndexedSeqOptimized`.
+
+example mutation 1:
+
+```diff
+- val list = List("a", "b").reverse
++ val list = List("a", "b")
+```
+
+example mutation 2:
+
+```diff
+- val seq = Seq("a", "b").reverse
++ val seq = Seq("a", "b")
+```
+
+example mutation 3:
+
+```diff
+- val str = "tacocat".reverse
++ val str = "tacocat"
+```
+
 ---
 
 ### Partial Functions
