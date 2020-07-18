@@ -226,8 +226,9 @@ object Mutator {
     object NonEmpty extends SimpleMutator("NonEmpty") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
         case nonEmpty @ Term.Select(termName, Term.Name("nonEmpty" | "isDefined"))
-            if SymbolMatcher.exact("scala/Option#nonEmpty().").matches(nonEmpty.symbol) ||
-              SymbolMatcher.exact("scala/Option#isDefined().").matches(nonEmpty.symbol) =>
+            if SymbolMatcher
+              .exact("scala/Option#nonEmpty().", "scala/Option#isDefined().")
+              .matches(nonEmpty.symbol) =>
           default(Term.Select(termName, Term.Name("isEmpty")))
       }
     }
@@ -314,7 +315,8 @@ object Mutator {
       List(
         ListApply,
         SeqApply,
-        SetApply
+        SetApply,
+        Reverse
       )
 
     private val MaxSize = 25
@@ -380,6 +382,20 @@ object Mutator {
           ),
           minimum = 2
         )
+
+    object Reverse extends SimpleMutator("Reverse") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case reverse @ Term.Select(term, Term.Name("reverse"))
+            if SymbolMatcher
+              .exact(
+                "scala/collection/SeqLike#reverse().",
+                "scala/collection/immutable/List#reverse().",
+                "scala/collection/IndexedSeqOptimized#reverse()."
+              )
+              .matches(reverse.symbol) =>
+          default(term)
+      }
+    }
 
   }
 
