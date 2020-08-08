@@ -48,7 +48,7 @@ lazy val core =
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.9.0",
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
       libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.2.0",
-      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.0" % "test",
+      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.1" % "test",
       coverageMinimum := 94,
       coverageFailOnMinimum := true,
       buildInfoPackage := "blinky",
@@ -110,7 +110,7 @@ lazy val tests =
     .enablePlugins(ScalafixTestkitPlugin)
     .settings(
       libraryDependencies += "ch.epfl.scala"  % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
-      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.0"           % Test,
+      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.1"           % Test,
       scalafixTestkitOutputSourceDirectories :=
         sourceDirectories.in(output, Compile).value,
       scalafixTestkitInputSourceDirectories :=
