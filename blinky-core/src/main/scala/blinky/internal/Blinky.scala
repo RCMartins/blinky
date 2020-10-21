@@ -66,13 +66,12 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       val (finalPatch, mutantsFound): (Seq[Patch], Seq[Seq[Mutant]]) =
         findMutations
           .topTreeMutations(doc.tree)
-          .flatMap {
-            case (original, MutatedTerms(mutationsFound, needsParens)) =>
-              val mutantSeq =
-                mutationsFound
-                  .filterNot(_.structure == original.structure)
-                  .map(mutated => createMutant(original, mutated, fileName))
-              createPatch(mutantSeq, needsParens = needsParens)
+          .flatMap { case (original, MutatedTerms(mutationsFound, needsParens)) =>
+            val mutantSeq =
+              mutationsFound
+                .filterNot(_.structure == original.structure)
+                .map(mutated => createMutant(original, mutated, fileName))
+            createPatch(mutantSeq, needsParens = needsParens)
           }
           .unzip
 

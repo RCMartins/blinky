@@ -113,9 +113,8 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
           matchTerm,
           topMainTermMutations(expr).map(mutated => Term.Match(mutated, cases)) ++
             cases.zipWithIndex
-              .flatMap {
-                case (Case(pat, cond, body), index) =>
-                  topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
+              .flatMap { case (Case(pat, cond, body), index) =>
+                topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
               }
               .map { case (mutated, index) => Term.Match(expr, cases.updated(index, mutated)) },
           cases.flatMap(caseTerm =>
@@ -127,9 +126,8 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
         selectSmallerMutation(
           parFunc,
           cases.zipWithIndex
-            .flatMap {
-              case (Case(pat, cond, body), index) =>
-                topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
+            .flatMap { case (Case(pat, cond, body), index) =>
+              topMainTermMutations(body).map(mutated => (Case(pat, cond, mutated), index))
             }
             .map { case (mutated, index) => Term.PartialFunction(cases.updated(index, mutated)) },
           cases.flatMap(caseTerm =>
@@ -176,9 +174,8 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
           newAnonymous,
           inits.zipWithIndex
             .flatMap { case (init, index) => initMutateMain(init).map((_, index)) }
-            .map {
-              case (mutated, index) =>
-                Term.NewAnonymous(Template(early, inits.updated(index, mutated), self, stats))
+            .map { case (mutated, index) =>
+              Term.NewAnonymous(Template(early, inits.updated(index, mutated), self, stats))
             } ++
             Seq.empty, //TODO when the top stats are completely done we should update this
           inits
@@ -211,15 +208,13 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
     init.argss
       .map(_.zipWithIndex)
       .zipWithIndex
-      .flatMap {
-        case (args, index) =>
-          args.flatMap {
-            case (arg, indexInner) => topMainTermMutations(arg).map((_, (index, indexInner)))
-          }
+      .flatMap { case (args, index) =>
+        args.flatMap { case (arg, indexInner) =>
+          topMainTermMutations(arg).map((_, (index, indexInner)))
+        }
       }
-      .map {
-        case (mutated, (index, indexInner)) =>
-          val argsUpdated = init.argss(index).updated(indexInner, mutated)
-          Init(init.tpe, init.name, init.argss.updated(index, argsUpdated))
+      .map { case (mutated, (index, indexInner)) =>
+        val argsUpdated = init.argss(index).updated(indexInner, mutated)
+        Init(init.tpe, init.name, init.argss.updated(index, argsUpdated))
       }
 }

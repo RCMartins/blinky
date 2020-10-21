@@ -7,8 +7,10 @@ object Example {
   case object String extends ValueType
 
   def show(values: List[ValueType]): String =
-    values.map {
-      case Number => "<number>"
-      case String => "<string>"
-    }.mkString("[", ", ", "]")
+    values
+      .map {
+        case Number => "<number>"
+        case String => "<string>"
+      }
+      .mkString("[", ", ", "]")
 }

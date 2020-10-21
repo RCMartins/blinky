@@ -138,8 +138,12 @@ object Run {
                     SimpleBlinkyConfig.blinkyConfigEncoder.write(blinkyConf).show.trim
 
                   val confFile = cloneProjectTempFolder / ".scalafix.conf"
-                  WriteFile(confFile, s"""rules = $ruleName
-                                         |Blinky $scalaFixConf""".stripMargin, succeed(confFile))
+                  WriteFile(
+                    confFile,
+                    s"""rules = $ruleName
+                       |Blinky $scalaFixConf""".stripMargin,
+                    succeed(confFile)
+                  )
                 }
 
                 toolPath <- runAsync(
