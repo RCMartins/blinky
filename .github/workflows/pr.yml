@@ -1,0 +1,17 @@
+name: Pull Request Testing
+
+on:
+  pull_request:
+
+jobs:
+  integration:
+    name: Testing full sbt projects
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v10
+      - uses: laughedelic/coursier-setup@v1
+        with:
+          jvm: adopt:8
+          apps: bloop ammonite
+      - run: ./travis/setup.sh && amm travis/runExamples.sc

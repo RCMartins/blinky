@@ -47,10 +47,10 @@ jobs:
 #      script:
 #        - ./travis/setup.sh && amm travis/runCurrentVersion.sc "travis/cli.blinky.conf" --multiRun 2/2
 #
-    - name: mutation testing examples
-      if: type = pull_request
-      script:
-        - ./travis/setup.sh && amm travis/runExamples.sc
+#    - name: mutation testing examples
+#      if: type = pull_request
+#      script:
+#        - ./travis/setup.sh && amm travis/runExamples.sc
 #
 #    - stage: release
 #      name: release
