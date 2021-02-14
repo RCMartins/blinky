@@ -8,6 +8,7 @@ import scala.sys.process._
 def main(examplesToRun: String*): Unit = {
   val basePath = pwd
   val versionNumber = publishLocalBlinky()
+  println("versionNumber: " + versionNumber)
 
   val defaultDirectory = basePath / "examples" / "default"
   val exampleDirectories = ls(basePath / "examples")
@@ -46,6 +47,8 @@ def main(examplesToRun: String*): Unit = {
           "true"
         )(examplePath)
 
+//        println(result)
+
       ???
     }
 
@@ -60,7 +63,7 @@ def main(examplesToRun: String*): Unit = {
 
 private def runStuff(command: String*)(path: Path): Unit = {
 //  Process(command = command, cwd = path.toNIO.toFile).run(ProcessLogger(s => println(s)))
-  Process(command = command, cwd = path.toNIO.toFile).!!
+  Process(command = command, cwd = path.toNIO.toFile).!
 }
 
 private def preProcessDirectory(defaultDirectory: Path, testDirectory: Path): Unit = {

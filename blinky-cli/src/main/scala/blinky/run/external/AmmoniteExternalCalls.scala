@@ -4,6 +4,7 @@ import ammonite.ops.Shellable.StringShellable
 import ammonite.ops._
 
 import scala.util.{Failure, Success, Try}
+import scala.sys.process._
 
 object AmmoniteExternalCalls extends ExternalCalls {
 
@@ -17,8 +18,10 @@ object AmmoniteExternalCalls extends ExternalCalls {
     println(s"{{{path: $path}}}")
     println(s"Executing ${envArgs.mkString("[", ", ", "]")} $op(${args.mkString(", ")})")
     println("#" * 80)
-    Command(Vector.empty, envArgs, Shellout.executeInteractive)
-      .applyDynamic(op)(args.map(StringShellable): _*)(path)
+//    Command(Vector.empty, envArgs, Shellout.executeInteractive)
+//      .applyDynamic(op)(args.map(StringShellable): _*)(path)
+
+    Process(op +: args, cwd = path.toNIO.toFile, extraEnv = envArgs.toVector: _*).!
   }
 
   def runAsync(
