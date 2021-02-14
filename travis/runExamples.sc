@@ -59,7 +59,8 @@ def main(examplesToRun: String*): Unit = {
 }
 
 private def runStuff(command: String*)(path: Path): Unit = {
-  Process(command = command, cwd = path.toNIO.toFile).run(ProcessLogger(s => println(s)))
+//  Process(command = command, cwd = path.toNIO.toFile).run(ProcessLogger(s => println(s)))
+  Process(command = command, cwd = path.toNIO.toFile).!!
 }
 
 private def preProcessDirectory(defaultDirectory: Path, testDirectory: Path): Unit = {
