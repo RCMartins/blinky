@@ -8,7 +8,6 @@ def main(examplesToRun: String*): Unit = {
   val basePath = pwd
   val versionNumber = publishLocalBlinky()
   println("versionNumber: " + versionNumber)
-  ???
 
   val defaultDirectory = basePath / "examples" / "default"
   val exampleDirectories = ls(basePath / "examples")

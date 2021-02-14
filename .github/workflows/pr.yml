@@ -13,5 +13,5 @@ jobs:
       - uses: laughedelic/coursier-setup@v1
         with:
           jvm: adopt:8
-          apps: bloop ammonite
+          apps: bloop ammonite scalafix
       - run: ./travis/setup.sh && amm travis/runExamples.sc
