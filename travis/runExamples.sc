@@ -24,17 +24,29 @@ def main(examplesToRun: String*): Unit = {
         preProcessDirectory(defaultDirectory, examplePath)
 
         val confPath = examplePath / ".blinky.conf"
-        val result = %%(
+//        val result = %%(
+//          "cs",
+//          "launch",
+//          s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
+//          "--",
+//          confPath,
+//          "--verbose",
+//          "true"
+//        )(examplePath)
+//        println(result.out.string)
+//        (examplePath, result)
+
+        val result = runStuff(
           "cs",
           "launch",
           s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
           "--",
-          confPath,
+          confPath.toString,
           "--verbose",
           "true"
         )(examplePath)
-        println(result.out.string)
-        (examplePath, result)
+
+      ???
     }
 
   val brokenExamples = examples.filter(_._2.exitCode != 0)
@@ -46,6 +58,10 @@ def main(examplesToRun: String*): Unit = {
   }
 }
 
+private def runStuff(command: String*)(path: Path): Unit = {
+  Process(command = command, cwd = path.toNIO.toFile).run()
+}
+
 private def preProcessDirectory(defaultDirectory: Path, testDirectory: Path): Unit = {
   println("trying to run:")
   println("-" * 40)
@@ -53,7 +69,7 @@ private def preProcessDirectory(defaultDirectory: Path, testDirectory: Path): Un
   println("-" * 40)
 
 //  %("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")(pwd)
-  Process(command = Seq("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory"""), cwd = pwd.toNIO.toFile).run()
+  runStuff("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")(pwd)
 
   val startupScriptName = "startup.sh"
   if (exists(testDirectory / startupScriptName)) {
