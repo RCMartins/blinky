@@ -12,9 +12,14 @@ object AmmoniteExternalCalls extends ExternalCalls {
       args: Seq[String],
       envArgs: Map[String, String],
       path: Path
-  ): Unit =
+  ): Unit = {
+    println("#" * 80)
+    println(s"{{{path: $path}}}")
+    println(s"Executing ${envArgs.mkString("[", ", ", "]")} $op(${args.mkString(", ")})")
+    println("#" * 80)
     Command(Vector.empty, envArgs, Shellout.executeInteractive)
       .applyDynamic(op)(args.map(StringShellable): _*)(path)
+  }
 
   def runAsync(
       op: String,
