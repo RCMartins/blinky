@@ -44,6 +44,11 @@ def main(examplesToRun: String*): Unit = {
 }
 
 private def preProcessDirectory(defaultDirectory: Path, testDirectory: Path): Unit = {
+  println("trying to run:")
+  println("-" * 40)
+  println(s"""cp -nr $defaultDirectory/* $testDirectory""")
+  println("-" * 40)
+
   %("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")(pwd)
 
   val startupScriptName = "startup.sh"
