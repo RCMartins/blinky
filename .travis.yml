@@ -1,16 +1,16 @@
-language: scala
-scala:
-  - 2.12.11
-jdk:
-  - openjdk8
-before_install:
-  - git fetch --tags
-before_script:
-  - shopt -s expand_aliases
-  - alias sbt="sbt -Dsbt.color=always"
-  - export PATH="$PATH:$(pwd)/bin:$HOME/.local/share/coursier/bin"
-jobs:
-  include:
+#language: scala
+#scala:
+#  - 2.12.11
+#jdk:
+#  - openjdk8
+#before_install:
+#  - git fetch --tags
+#before_script:
+#  - shopt -s expand_aliases
+#  - alias sbt="sbt -Dsbt.color=always"
+#  - export PATH="$PATH:$(pwd)/bin:$HOME/.local/share/coursier/bin"
+#jobs:
+#  include:
 #    - stage: testing
 #      name: running unit tests
 #      if: (type = pull_request) OR (branch = master AND type = push)
@@ -57,8 +57,8 @@ jobs:
 #      if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
 #      script:
 #        - sbt ci-release docs/docusaurusPublishGhpages
-cache:
-  directories:
-    - "$HOME/.ivy2/cache"
-    - "$HOME/.sbt/boot/"
-    - "$HOME/.cache/coursier"
+#cache:
+#  directories:
+#    - "$HOME/.ivy2/cache"
+#    - "$HOME/.sbt/boot/"
+#    - "$HOME/.cache/coursier"
