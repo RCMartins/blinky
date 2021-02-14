@@ -1,6 +1,9 @@
 import $file.utils, utils._
 import ammonite.ops._
 
+import java.io.File
+import scala.sys.process._
+
 @main
 def main(examplesToRun: String*): Unit = {
   val basePath = pwd
@@ -10,7 +13,7 @@ def main(examplesToRun: String*): Unit = {
   val exampleDirectories = ls(basePath / "examples")
 
   val examples: Seq[(Path, CommandResult)] =
-    exampleDirectories.filterNot(_.baseName == "default").collect {
+    exampleDirectories.filterNot(_.baseName == "default").take(1).collect {
       case examplePath if examplesToRun.isEmpty || examplesToRun.contains(examplePath.baseName) =>
         println("\n")
         val msg = s"Testing $examplePath:"
@@ -49,7 +52,8 @@ private def preProcessDirectory(defaultDirectory: Path, testDirectory: Path): Un
   println(s"""cp -nr $defaultDirectory/* $testDirectory""")
   println("-" * 40)
 
-  %("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")(pwd)
+//  %("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")(pwd)
+  Process(command = Seq("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory"""), cwd = pwd.toNIO.toFile).run()
 
   val startupScriptName = "startup.sh"
   if (exists(testDirectory / startupScriptName)) {
