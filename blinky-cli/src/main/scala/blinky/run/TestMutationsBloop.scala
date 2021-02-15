@@ -18,18 +18,24 @@ object TestMutationsBloop {
   ): Instruction[ExitCode] = {
 
     for {
-
       mutationReport <- readFile(Path(blinkyConfig.mutantsOutputFile))
-        .map(
-          _.split("\n")
-            .filter(_.nonEmpty)
-            .map(Json.parse(_).as[Mutant])
-            .toList
-            .filter { mutant =>
-              val (numerator, denominator) = options.multiRun
-              (mutant.id % denominator) == (numerator - 1)
-            }
-        )
+        .map {
+          case Left(error) =>
+            printErrorLine(s"""Blinky failed to load mutants file:
+                              |${blinkyConfig.mutantsOutputFile}
+                              |""".stripMargin)
+            List.empty
+          case Right(fileData) =>
+            fileData
+              .split("\n")
+              .filter(_.nonEmpty)
+              .map(Json.parse(_).as[Mutant])
+              .toList
+              .filter { mutant =>
+                val (numerator, denominator) = options.multiRun
+                (mutant.id % denominator) == (numerator - 1)
+              }
+        }
 
       testCommand = options.testCommand
       numberOfMutants = mutationReport.length

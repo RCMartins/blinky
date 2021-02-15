@@ -40,7 +40,7 @@ package object run {
         case WriteFile(path, content, next) =>
           WriteFile(path, content, next.flatMap(f))
         case ReadFile(path, next) =>
-          ReadFile(path, next(_: String).flatMap(f))
+          ReadFile(path, next(_: Either[Throwable, String]).flatMap(f))
         case IsFile(path, next) =>
           IsFile(path, next(_: Boolean).flatMap(f))
       }

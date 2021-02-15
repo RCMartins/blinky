@@ -52,8 +52,8 @@ object AmmoniteExternalCalls extends ExternalCalls {
   def writeFile(filePath: Path, content: String): Unit =
     write(filePath, content)
 
-  def readFile(path: Path): String =
-    read(path)
+  def readFile(path: Path): Either[Throwable, String] =
+    Try(read(path)).toEither
 
   def isFile(path: Path): Boolean =
     path.isFile

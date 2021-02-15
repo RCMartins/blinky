@@ -58,7 +58,8 @@ object Instruction {
   final case class WriteFile[A](path: Path, content: String, next: Instruction[A])
       extends Instruction[A]
 
-  final case class ReadFile[A](path: Path, next: String => Instruction[A]) extends Instruction[A]
+  final case class ReadFile[A](path: Path, next: Either[Throwable, String] => Instruction[A])
+      extends Instruction[A]
 
   final case class IsFile[A](path: Path, next: Boolean => Instruction[A]) extends Instruction[A]
 
@@ -131,6 +132,7 @@ object Instruction {
   def copyInto(from: Path, to: Path): CopyInto[Unit] =
     CopyInto(from, to, succeed(()))
 
-  def readFile(path: Path): ReadFile[String] =
-    ReadFile(path, content => succeed(content))
+  def readFile(path: Path): ReadFile[Either[Throwable, String]] =
+    ReadFile(path, succeed(_: Either[Throwable, String]))
+
 }
