@@ -1,4 +1,3 @@
-import $file.utils, utils._
 import ammonite.ops._
 
 import scala.sys.process._
@@ -13,7 +12,7 @@ def main(examplesToRun: String*): Unit = {
   val exampleDirectories = ls(basePath / "examples")
 
   val examples: Seq[(Path, CommandResult)] =
-    exampleDirectories.filterNot(_.baseName == "default").take(1).collect {
+    exampleDirectories.filterNot(_.baseName == "default").collect {
       case examplePath if examplesToRun.isEmpty || examplesToRun.contains(examplePath.baseName) =>
         println("\n")
         val msg = s"Testing $examplePath:"
@@ -24,31 +23,17 @@ def main(examplesToRun: String*): Unit = {
         preProcessDirectory(defaultDirectory, examplePath)
 
         val confPath = examplePath / ".blinky.conf"
-//        val result = %%(
-//          "cs",
-//          "launch",
-//          s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
-//          "--",
-//          confPath,
-//          "--verbose",
-//          "true"
-//        )(examplePath)
-//        println(result.out.string)
-//        (examplePath, result)
-
-        val result = runStuff(
+        val result = %%(
           "cs",
           "launch",
           s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
           "--",
-          confPath.toString,
+          confPath,
           "--verbose",
           "true"
         )(examplePath)
-
-//        println(result)
-
-      ???
+        println(result.out.string)
+        (examplePath, result)
     }
 
   val brokenExamples = examples.filter(_._2.exitCode != 0)
@@ -60,19 +45,11 @@ def main(examplesToRun: String*): Unit = {
   }
 }
 
-private def runStuff(command: String*)(path: Path): Unit = {
-//  Process(command = command, cwd = path.toNIO.toFile).run(ProcessLogger(s => println(s)))
-  Process(command = command, cwd = path.toNIO.toFile).!
-}
-
 private def preProcessDirectory(defaultDirectory: Path, testDirectory: Path): Unit = {
-  println("trying to run:")
-  println("-" * 40)
-  println(s"""cp -nr $defaultDirectory/* $testDirectory""")
-  println("-" * 40)
-
-//  %("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")(pwd)
-  runStuff("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")(pwd)
+  Process(
+    command = Seq("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory"""),
+    cwd = pwd.toNIO.toFile
+  ).!
 
   val startupScriptName = "startup.sh"
   if (exists(testDirectory / startupScriptName)) {
