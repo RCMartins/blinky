@@ -48,10 +48,12 @@ def main(examplesToRun: String*): Unit = {
 }
 
 private def preProcessDirectory(defaultDirectory: Path, testDirectory: Path): Unit = {
+  println("pos1")
   Process(
     command = Seq("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory"""),
     cwd = pwd.toNIO.toFile
   ).!
+  println("pos2")
 
   val startupScriptName = "startup.sh"
   if (exists(testDirectory / startupScriptName)) {
