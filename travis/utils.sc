@@ -15,5 +15,12 @@ def publishLocalBlinky(): String = {
   ////  println("bla4")
   ////  val ExtractVersion = "blinky_2\\.12.* :: (\\d+\\.\\d+\\.\\d+[a-zA-Z0-9_\\-+]+) :: ".r
   ////  ExtractVersion.findFirstMatchIn(commandStr).get.group(1)
+//  ???
+
+//  val command = %%("sbt", "publishLocal")(pwd)
+//  val ExtractVersion = "blinky_2\\.12.* :: (\\d+\\.\\d+\\.\\d+[a-zA-Z0-9_\\-+]+) :: ".r
+//  ExtractVersion.findFirstMatchIn(command.out.string).get.group(1)
+
+  %("sbt", "publishLocal")(pwd)
   ???
 }
