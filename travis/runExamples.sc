@@ -33,6 +33,7 @@ def main(examplesToRun: String*): Unit = {
           "--verbose",
           "true"
         )(examplePath)
+        println("?" * 80)
         println(result.out.string)
         (examplePath, result)
     }
