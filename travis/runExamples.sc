@@ -5,6 +5,7 @@ import scala.sys.process._
 
 @main
 def main(examplesToRun: String*): Unit = {
+  println("pos0")
   val basePath = pwd
   val versionNumber = publishLocalBlinky()
   println("versionNumber: " + versionNumber)

@@ -15,4 +15,4 @@ jobs:
         with:
           jvm: adopt:8
           apps: bloop #ammonite
-      - run: ./travis/setup.sh && echo "exit" | amm && amm travis/runExamples.sc
+      - run: ./travis/setup.sh && amm travis/runExamples.sc
