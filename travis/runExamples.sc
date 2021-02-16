@@ -5,7 +5,13 @@ import scala.sys.process._
 
 @main
 def main(examplesToRun: String*): Unit = {
-  println("test")
+  println("pos0")
+  val basePath = pwd
+  val versionNumber = publishLocalBlinky()
+  println("versionNumber: " + versionNumber)
+
+  val defaultDirectory = basePath / "examples" / "default"
+  val exampleDirectories = ls(basePath / "examples")
 }
 
 private def preProcessDirectory(defaultDirectory: Path, testDirectory: Path): Unit = {
