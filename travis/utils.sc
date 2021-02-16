@@ -2,11 +2,12 @@ import ammonite.ops._
 
 import java.io.File
 import scala.sys.process._
+import scala.util.Try
 
 def publishLocalBlinky(): String = {
 //  val command = %%("sbt", "publishLocal")(pwd)
   println("bla0")
-  val commandStr = Process(command = "sbt publishLocal", cwd = pwd.toNIO.toFile).!!(ProcessLogger.apply(new File("out.txt")))
+  val commandStr = Try(Process(command = "sbt publishLocal", cwd = pwd.toNIO.toFile).!!(ProcessLogger.apply(new File("out.txt"))))
 //  println("bla1")
   ////  println(commandStr.take(100))
   ////  println("bla2")
