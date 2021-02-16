@@ -7,12 +7,12 @@ import scala.util.Try
 def publishLocalBlinky(): String = {
 //  val command = %%("sbt", "publishLocal")(pwd)
   println("&" * 20)
-   Try(Process(command = "echo 'bla'", cwd = pwd.toNIO.toFile).!!(ProcessLogger.apply(new File("echo.txt"))))
+   Try(Process(command = "echo 'bla'", cwd = pwd.toNIO.toFile).!(ProcessLogger.apply(new File("echo.txt"))))
   println("+" * 20)
-  val commandStr = Try(Process(command = "sbt publishLocal", cwd = pwd.toNIO.toFile).!!(ProcessLogger.apply(new File("out.txt"))))
+  val commandStr = Try(Process(command = "sbt publishLocal", cwd = pwd.toNIO.toFile).!(ProcessLogger.apply(new File("out.txt"))))
   println(commandStr)
   println("-" * 20)
-  val commandStr2 = Try(Process(command = "sbt publishLocal", cwd = pwd.toNIO.toFile).!!(ProcessLogger(println(_))))
+  val commandStr2 = Try(Process(command = "sbt publishLocal", cwd = pwd.toNIO.toFile).!(ProcessLogger(println(_))))
     println(commandStr2)
   println("*" * 20)
 
