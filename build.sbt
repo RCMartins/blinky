@@ -128,3 +128,27 @@ lazy val docs =
       mdoc := run.in(Compile).evaluated
     )
     .dependsOn(core)
+
+import complete.DefaultParsers._
+
+val runCurrent = inputKey[Unit]("Run current blinky version on itself")
+val runExamples = inputKey[Unit]("Run examples tests")
+
+lazy val ciTests =
+  project
+    .in(file("ci-tests"))
+    .settings(
+      moduleName := "ci-tests"
+    )
+
+runCurrent := {
+  val _ = publishLocal
+  val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
+  RunCurrentVersion.run(version.value, args)
+}
+
+runExamples := {
+  val _ = publishLocal
+  val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
+  RunExamples.run(version.value, args)
+}

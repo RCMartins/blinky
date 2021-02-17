@@ -1,9 +1,17 @@
-name: Pull Request Testing
+name: PR
 
 on:
   pull_request:
 
 jobs:
+  checks:
+    name: Scalafmt
+#    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v10
+      - run: sbt scalafmtCheckAll scalafmtSbtCheck
   integration:
     name: Testing full sbt projects
 #    runs-on: ubuntu-latest
@@ -14,5 +22,5 @@ jobs:
       - uses: laughedelic/coursier-setup@v1
         with:
           jvm: adopt:8
-          apps: bloop #ammonite
-      - run: ./travis/setup.sh && amm travis/runExamples.sc
+          apps: bloop ammonite
+      - run: ./ci-tests/setup.sh && sbt RunExamples
