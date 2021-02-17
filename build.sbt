@@ -130,17 +130,17 @@ lazy val docs =
     )
     .dependsOn(core)
 
-val runCurrent = inputKey[Unit]("Run current blinky version on itself")
-val runExamples = inputKey[Unit]("Run examples tests")
+lazy val runCurrent = inputKey[Unit]("Run current blinky version on itself")
+lazy val runExamples = inputKey[Unit]("Run examples tests")
 
 runCurrent := {
-  val _ = publishLocal.value
   val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
+  val _ = (cli / publishLocal).value
   RunCurrentVersion.run(version.value, args)
 }
 
 runExamples := {
-  val _ = publishLocal.value
+  val _ = (cli / publishLocal).value
   val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
   RunExamples.run(version.value, args)
 }
