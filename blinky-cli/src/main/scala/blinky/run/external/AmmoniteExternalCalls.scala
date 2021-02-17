@@ -4,7 +4,6 @@ import ammonite.ops.Shellable.StringShellable
 import ammonite.ops._
 
 import scala.util.{Failure, Success, Try}
-import scala.sys.process._
 
 object AmmoniteExternalCalls extends ExternalCalls {
 
