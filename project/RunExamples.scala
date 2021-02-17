@@ -10,13 +10,18 @@ object RunExamples {
     val defaultDirectory = basePath / "ci-tests" / "examples" / "default"
     val exampleDirectories = ls(basePath / "ci-tests" / "examples")
 
-    val examplesToRun =
+    val examplesToRun: Seq[Path] =
       exampleDirectories.filterNot(_.baseName == "default").filter { examplePath =>
         args.isEmpty || args.contains(examplePath.baseName)
       }
 
+    if (examplesToRun.isEmpty) {
+      Console.err.println("No example tests found.")
+      System.exit(1)
+    }
+
     val examples: Seq[(Path, CommandResult)] =
-      exampleDirectories.filterNot(_.baseName == "default").map { examplePath =>
+      examplesToRun.filterNot(_.baseName == "default").map { examplePath =>
         println("\n")
         val msg = s"Testing $examplePath:"
         println("-" * msg.length)
@@ -45,16 +50,15 @@ object RunExamples {
       Console.err.println("There were broken tests:")
       println(brokenExamples.map { case (path, _) => s"$path" }.mkString("\n"))
       System.exit(1)
-    }
+    } else
+      println("All tests were successful!")
   }
 
   private def preProcessDirectory(defaultDirectory: Path, testDirectory: Path): Unit = {
-    println("pos1")
     Process(
       command = Seq("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory"""),
       cwd = pwd.toNIO.toFile
     ).!
-    println("pos2")
 
     val startupScriptName = "startup.sh"
     if (exists(testDirectory / startupScriptName)) {
