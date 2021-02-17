@@ -8,8 +8,8 @@ object RunExamples {
     val examplesToRun = args
     val basePath = pwd
 
-    val defaultDirectory = basePath / "examples" / "default"
-    val exampleDirectories = ls(basePath / "examples")
+    val defaultDirectory = basePath / "ci-tests" / "examples" / "default"
+    val exampleDirectories = ls(basePath / "ci-tests" / "examples")
 
     val examples: Seq[(Path, CommandResult)] =
       exampleDirectories.filterNot(_.baseName == "default").collect {

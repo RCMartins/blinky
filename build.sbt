@@ -4,6 +4,7 @@ import sbt.Keys._
 import sbt.nio.file.FileAttributes
 import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
+import complete.DefaultParsers._
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -129,17 +130,8 @@ lazy val docs =
     )
     .dependsOn(core)
 
-import complete.DefaultParsers._
-
 val runCurrent = inputKey[Unit]("Run current blinky version on itself")
 val runExamples = inputKey[Unit]("Run examples tests")
-
-lazy val ciTests =
-  project
-    .in(file("ci-tests"))
-    .settings(
-      moduleName := "ci-tests"
-    )
 
 runCurrent := {
   val _ = publishLocal
