@@ -33,11 +33,11 @@ object Run {
               printLine(s"Temporary project folder: $cloneProjectTempFolder")
             else
               empty
-
+          _ <- printLine("test1")
           gitResult <-
             runAsync("git", Seq("rev-parse", "--show-toplevel"), path = originalProjectRoot)
           gitFolder = Path(gitResult)
-
+          _ <- printLine("test2")
           cloneProjectBaseFolder: Path = cloneProjectTempFolder / gitFolder.baseName
           _ <- makeDirectory(cloneProjectBaseFolder)
           projectRealRelPath: RelPath = originalProjectPath.relativeTo(gitFolder)
@@ -45,13 +45,14 @@ object Run {
 
           copyFilesToTempFolder: Instruction[Unit] = for {
             // Copy only the files tracked by git into our temporary folder
+            _ <- printLine("test3")
             gitResult <- runAsync(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               path = originalProjectPath
             )
             filesToCopy = gitResult.split(System.lineSeparator()).map(RelPath(_))
-
+            _ <- printLine("test4")
             _ <- filesToCopy.foldLeft(succeed(()): Instruction[Unit]) { (before, fileToCopy) =>
               before.flatMap(_ =>
                 MakeDirectory(
