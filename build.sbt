@@ -134,13 +134,13 @@ val runCurrent = inputKey[Unit]("Run current blinky version on itself")
 val runExamples = inputKey[Unit]("Run examples tests")
 
 runCurrent := {
-  val _ = cli / publishLocal
+  val _ = cli / publishLocal.value
   val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
   RunCurrentVersion.run(version.value, args)
 }
 
 runExamples := {
-  val _ = cli / publishLocal
+  val _ = cli / publishLocal.value
   val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
   RunExamples.run(version.value, args)
 }
