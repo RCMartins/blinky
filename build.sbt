@@ -135,12 +135,14 @@ lazy val runExamples = inputKey[Unit]("Run examples tests")
 
 runCurrent := {
   val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
-  val _ = (cli / publishLocal).value
+  val a = (core / publishLocal).value
+  val b = (cli / publishLocal).value
   RunCurrentVersion.run(version.value, args)
 }
 
 runExamples := {
-  val _ = (cli / publishLocal).value
+  val a = (core / publishLocal).value
+  val b = (cli / publishLocal).value
   val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
   RunExamples.run(version.value, args)
 }
