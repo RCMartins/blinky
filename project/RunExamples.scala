@@ -5,35 +5,38 @@ import ammonite.ops._
 object RunExamples {
 
   def run(versionNumber: String, args: Array[String]): Unit = {
-    val examplesToRun = args
     val basePath = pwd
 
     val defaultDirectory = basePath / "ci-tests" / "examples" / "default"
     val exampleDirectories = ls(basePath / "ci-tests" / "examples")
 
+    val examplesToRun =
+      exampleDirectories.filterNot(_.baseName == "default").filter { examplePath =>
+        args.isEmpty || args.contains(examplePath.baseName)
+      }
+
     val examples: Seq[(Path, CommandResult)] =
-      exampleDirectories.filterNot(_.baseName == "default").collect {
-        case examplePath if examplesToRun.isEmpty || examplesToRun.contains(examplePath.baseName) =>
-          println("\n")
-          val msg = s"Testing $examplePath:"
-          println("-" * msg.length)
-          println(msg)
-          println("-" * msg.length)
+      exampleDirectories.filterNot(_.baseName == "default").map { examplePath =>
+        println("\n")
+        val msg = s"Testing $examplePath:"
+        println("-" * msg.length)
+        println(msg)
+        println("-" * msg.length)
 
-          preProcessDirectory(defaultDirectory, examplePath)
+        preProcessDirectory(defaultDirectory, examplePath)
 
-          val confPath = examplePath / ".blinky.conf"
-          val result = %%(
-            "cs",
-            "launch",
-            s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
-            "--",
-            confPath,
-            "--verbose",
-            "true"
-          )(examplePath)
-          println(result.out.string)
-          (examplePath, result)
+        val confPath = examplePath / ".blinky.conf"
+        val result = %%(
+          "cs",
+          "launch",
+          s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
+          "--",
+          confPath,
+          "--verbose",
+          "true"
+        )(examplePath)
+        println(result.out.string)
+        (examplePath, result)
       }
 
     val brokenExamples = examples.filter(_._2.exitCode != 0)
