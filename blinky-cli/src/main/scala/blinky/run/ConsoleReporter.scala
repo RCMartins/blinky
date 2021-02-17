@@ -61,5 +61,7 @@ object ConsoleReporter {
          |If you want all files to be tested regardless use --onlyMutateDiff=false
          |""".stripMargin
     )
+  def gitIssues(error: String): Instruction[Unit] =
+    printLine(red(s"git command error: $error"))
 
 }

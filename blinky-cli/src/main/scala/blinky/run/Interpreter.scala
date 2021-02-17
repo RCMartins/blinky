@@ -36,7 +36,7 @@ object Interpreter {
         case RunAsync(op, args, envArgs, path, next) =>
           println((op, args, envArgs, path))
           val result = externalCalls.runAsync(op, args, envArgs, path)
-          interpreterNext(next(result.right.get))
+          interpreterNext(next(result))
         case RunAsyncSuccess(op, args, envArgs, path, next) =>
           val result = externalCalls.runAsync(op, args, envArgs, path)
           interpreterNext(next(result.isRight))
