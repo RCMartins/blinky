@@ -75,7 +75,7 @@ object Run {
                     } yield ()
 
                     // Setup files to mutate ('scalafix --diff' does not work like I want...)
-                    filesToMutate <-
+                    filesToMutateEither <- {
                       if (config.options.onlyMutateDiff)
                         // maybe copy the .git folder so it can be used by TestMutations, etc?
                         //cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
@@ -83,7 +83,7 @@ object Run {
                           case Left(commandError) =>
                             ConsoleReporter
                               .gitIssues(commandError)
-                              .map(_ => ExitCode.success)
+                              .map(_ => Left(ExitCode.success))
                           case Right(masterHash) =>
                             for {
                               diffLines <- runAsync(
@@ -126,16 +126,19 @@ object Run {
                                         )
                                     )
                                   }
-                            } yield result
+                            } yield Right(result)
                         }
                       else
-                        copyFilesToTempFolder.flatMap(_ => succeed(Seq("all")))
+                        copyFilesToTempFolder.map(_ => Right(Seq("all")))
+                    }
 
-                    runResult <-
-                      if (filesToMutate.isEmpty)
+                    runResult <- filesToMutateEither match {
+                      case Left(value) =>
+                        succeed(value)
+                      case Right(Seq()) =>
                         ConsoleReporter.filesToMutateIsEmpty
                           .map(_ => ExitCode.success)
-                      else
+                      case Right(filesToMutate) =>
                         for {
                           coursier <- Setup.setupCoursier(projectRealPath)
                           _ <- Setup.sbtCompileWithSemanticDB(projectRealPath)
@@ -195,6 +198,7 @@ object Run {
                           runResult <-
                             TestMutationsBloop.run(projectRealPath, blinkyConf, config.options)
                         } yield runResult
+                    }
                   } yield runResult
               }
         } yield runResult
