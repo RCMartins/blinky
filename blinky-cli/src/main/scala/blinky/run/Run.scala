@@ -79,51 +79,55 @@ object Run {
                       if (config.options.onlyMutateDiff)
                         // maybe copy the .git folder so it can be used by TestMutations, etc?
                         //cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
-                        for {
-                          masterHash <-
-                            runAsync("git", Seq("rev-parse", "master"), path = gitFolder)
-                              .map(_.right.get)
-                          diffLines <- runAsync(
-                            "git",
-                            Seq("--no-pager", "diff", "--name-only", masterHash),
-                            path = gitFolder
-                          ).map(_.right.get)
+                        runAsync("git", Seq("rev-parse", "master"), path = gitFolder).flatMap {
+                          case Left(commandError) =>
+                            ConsoleReporter
+                              .gitIssues(commandError)
+                              .map(_ => ExitCode.success)
+                          case Right(masterHash) =>
+                            for {
+                              diffLines <- runAsync(
+                                "git",
+                                Seq("--no-pager", "diff", "--name-only", masterHash),
+                                path = gitFolder
+                              ).map(_.right.get)
 
-                          base: Seq[String] =
-                            diffLines
-                              .split(System.lineSeparator())
-                              .toSeq
-                              .map(file => cloneProjectBaseFolder / RelPath(file))
-                              .filter(file => file.ext == "scala" || file.ext == "sbt")
-                              .map(_.toString)
+                              base: Seq[String] =
+                                diffLines
+                                  .split(System.lineSeparator())
+                                  .toSeq
+                                  .map(file => cloneProjectBaseFolder / RelPath(file))
+                                  .filter(file => file.ext == "scala" || file.ext == "sbt")
+                                  .map(_.toString)
 
-                          result <-
-                            if (base.isEmpty)
-                              succeed(base)
-                            else
-                              copyFilesToTempFolder.flatMap { (_: Unit) =>
-                                // This part is just an optimization of 'base'
-                                val configFileOrFolderToMutate: Path =
-                                  Try(Path(config.filesToMutate))
-                                    .getOrElse(projectRealPath / RelPath(config.filesToMutate))
+                              result <-
+                                if (base.isEmpty)
+                                  succeed(base)
+                                else
+                                  copyFilesToTempFolder.flatMap { (_: Unit) =>
+                                    // This part is just an optimization of 'base'
+                                    val configFileOrFolderToMutate: Path =
+                                      Try(Path(config.filesToMutate))
+                                        .getOrElse(projectRealPath / RelPath(config.filesToMutate))
 
-                                val configFileOrFolderToMutateStr =
-                                  configFileOrFolderToMutate.toString
+                                    val configFileOrFolderToMutateStr =
+                                      configFileOrFolderToMutate.toString
 
-                                IsFile(
-                                  configFileOrFolderToMutate,
-                                  if (_)
-                                    if (base.contains(configFileOrFolderToMutateStr))
-                                      succeed(Seq(configFileOrFolderToMutateStr))
-                                    else
-                                      succeed(Seq.empty[String])
-                                  else
-                                    succeed(
-                                      base.filter(_.startsWith(configFileOrFolderToMutateStr))
+                                    IsFile(
+                                      configFileOrFolderToMutate,
+                                      if (_)
+                                        if (base.contains(configFileOrFolderToMutateStr))
+                                          succeed(Seq(configFileOrFolderToMutateStr))
+                                        else
+                                          succeed(Seq.empty[String])
+                                      else
+                                        succeed(
+                                          base.filter(_.startsWith(configFileOrFolderToMutateStr))
+                                        )
                                     )
-                                )
-                              }
-                        } yield result
+                                  }
+                            } yield result
+                        }
                       else
                         copyFilesToTempFolder.flatMap(_ => succeed(Seq("all")))
 
