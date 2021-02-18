@@ -4,7 +4,7 @@ on:
   pull_request:
 
 jobs:
-  checks:
+#  checks:
 #    name: Scalafmt
 ##    runs-on: ubuntu-latest
 #    runs-on: self-hosted
