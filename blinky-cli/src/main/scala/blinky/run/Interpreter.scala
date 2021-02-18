@@ -31,11 +31,9 @@ object Interpreter {
           externalCalls.makeDirectory(path)
           interpreterNext(next)
         case RunSync(op, args, envArgs, path, next) =>
-          println((op, args, envArgs, path))
           externalCalls.runSync(op, args, envArgs, path)
           interpreterNext(next)
         case RunAsync(op, args, envArgs, path, next) =>
-          println((op, args, envArgs, path))
           val result = externalCalls.runAsync(op, args, envArgs, path)
           interpreterNext(next(result))
         case RunAsyncSuccess(op, args, envArgs, path, next) =>

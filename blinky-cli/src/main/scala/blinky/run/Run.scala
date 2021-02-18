@@ -33,7 +33,6 @@ object Run {
               printLine(s"Temporary project folder: $cloneProjectTempFolder")
             else
               empty
-          _ <- printLine("test1")
           runResult <-
             runAsync("git", Seq("rev-parse", "--show-toplevel"), path = originalProjectRoot)
               .flatMap {
@@ -43,23 +42,20 @@ object Run {
                     .map(_ => ExitCode.failure)
                 case Right(gitRevParse) =>
                   val gitFolder = Path(gitRevParse)
+                  val cloneProjectBaseFolder: Path = cloneProjectTempFolder / gitFolder.baseName
                   for {
-                    _ <- printLine("test2")
-                    cloneProjectBaseFolder: Path = cloneProjectTempFolder / gitFolder.baseName
                     _ <- makeDirectory(cloneProjectBaseFolder)
                     projectRealRelPath: RelPath = originalProjectPath.relativeTo(gitFolder)
                     projectRealPath: Path = cloneProjectBaseFolder / projectRealRelPath
 
                     copyFilesToTempFolder: Instruction[Unit] = for {
                       // Copy only the files tracked by git into our temporary folder
-                      _ <- printLine("test3")
                       gitResult <- runAsync(
                         "git",
                         Seq("ls-files", "--others", "--exclude-standard", "--cached"),
                         path = originalProjectPath
                       ).map(_.right.get)
                       filesToCopy = gitResult.split(System.lineSeparator()).map(RelPath(_))
-                      _ <- printLine("test4")
                       _ <- filesToCopy.foldLeft(succeed(()): Instruction[Unit]) {
                         (before, fileToCopy) =>
                           before.flatMap(_ =>
