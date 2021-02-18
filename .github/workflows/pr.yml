@@ -13,7 +13,7 @@ jobs:
       - uses: olafurpg/setup-scala@v10
       - run: sbt scalafmtCheckAll scalafmtSbtCheck
   self-checks:
-    name: self blinky tests
+    name: Self Blinky tests
     #    runs-on: ubuntu-latest
     runs-on: self-hosted
     steps:
@@ -26,7 +26,7 @@ jobs:
       - run: ./.github/scripts/setup.sh
       - run: sbt "runCurrent \"travis/core.blinky.conf\" --multiRun 1/2"
   integration:
-    name: integration
+    name: Integration
 #    runs-on: ubuntu-latest
     runs-on: self-hosted
     steps:
