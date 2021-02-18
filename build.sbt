@@ -136,7 +136,7 @@ lazy val runExamples = inputKey[Unit]("Run examples tests")
 runCurrent := {
   val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
   println("-" * 40)
-  println(args)
+  println(args.toList)
   println("-" * 40)
   val a = (core / publishLocal).value
   val b = (cli / publishLocal).value

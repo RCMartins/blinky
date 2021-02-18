@@ -12,7 +12,8 @@ object RunExamples {
 
     val examplesToRun: Seq[Path] =
       exampleDirectories.filterNot(_.baseName == "default").filter { examplePath =>
-        (args.isEmpty || args.contains(examplePath.baseName)) && !(exists ! (pwd / "disabled"))
+        (args.isEmpty || args.contains(examplePath.baseName)) &&
+        !(exists ! (examplePath / "disabled"))
       }
 
     if (examplesToRun.isEmpty) {
