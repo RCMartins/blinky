@@ -40,7 +40,7 @@ object Run {
                 case Left(commandError) =>
                   ConsoleReporter
                     .gitIssues(commandError)
-                    .map(_ => ExitCode.success)
+                    .map(_ => ExitCode.failure)
                 case Right(gitRevParse) =>
                   val gitFolder = Path(gitRevParse)
                   for {
@@ -83,7 +83,7 @@ object Run {
                           case Left(commandError) =>
                             ConsoleReporter
                               .gitIssues(commandError)
-                              .map(_ => Left(ExitCode.success))
+                              .map(_ => Left(ExitCode.failure))
                           case Right(masterHash) =>
                             for {
                               diffLines <- runAsync(
@@ -133,8 +133,8 @@ object Run {
                     }
 
                     runResult <- filesToMutateEither match {
-                      case Left(value) =>
-                        succeed(value)
+                      case Left(exitCode) =>
+                        succeed(exitCode)
                       case Right(Seq()) =>
                         ConsoleReporter.filesToMutateIsEmpty
                           .map(_ => ExitCode.success)
