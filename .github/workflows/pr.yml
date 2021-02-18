@@ -4,16 +4,29 @@ on:
   pull_request:
 
 jobs:
-#  checks:
-#    name: Scalafmt
-##    runs-on: ubuntu-latest
-#    runs-on: self-hosted
-#    steps:
-#      - uses: actions/checkout@v2
-#      - uses: olafurpg/setup-scala@v10
-#      - run: sbt scalafmtCheckAll scalafmtSbtCheck
+  checks:
+    name: Scalafmt
+#    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v10
+      - run: sbt scalafmtCheckAll scalafmtSbtCheck
+  self-checks:
+    name: self blinky tests
+    #    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v10
+      - uses: laughedelic/coursier-setup@v1
+        with:
+          jvm: adopt:8
+          apps: bloop
+      - run: ./.github/scripts/setup.sh
+      - run: sbt "runCurrent \"travis/core.blinky.conf\" --multiRun 1/2"
   integration:
-    name: Testing full sbt projects
+    name: integration
 #    runs-on: ubuntu-latest
     runs-on: self-hosted
     steps:
@@ -23,8 +36,5 @@ jobs:
         with:
           jvm: adopt:8
           apps: bloop
-      - run: mkdir -p ~/.cache/coursier/v1/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.64
-      - run: curl https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.64/bcprov-jdk15on-1.64.pom > ~/.cache/coursier/v1/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.64/bcprov-jdk15on-1.64.pom
-      - run: curl https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.64/bcprov-jdk15on-1.64.jar > ~/.cache/coursier/v1/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.64/bcprov-jdk15on-1.64.jar
-      - run: git fetch --tags && git fetch --unshallow && git branch master origin/master
+      - run: ./.github/scripts/setup.sh
       - run: sbt runExamples
