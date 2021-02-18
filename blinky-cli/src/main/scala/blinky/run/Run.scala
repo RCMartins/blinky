@@ -170,7 +170,7 @@ object Run {
                               "COURSIER_REPOSITORIES" -> "ivy2Local|sonatype:snapshots|sonatype:releases"
                             ),
                             path = projectRealPath
-                          )
+                          ).map(_.right.get)
 
                           _ <- {
                             val params: Seq[String] =
