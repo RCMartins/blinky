@@ -1,0 +1,31 @@
+name: PR
+
+on:
+  pull_request:
+
+jobs:
+#  checks:
+#    name: Scalafmt
+##    runs-on: ubuntu-latest
+#    runs-on: self-hosted
+#    steps:
+#      - uses: actions/checkout@v2
+#      - uses: olafurpg/setup-scala@v10
+#      - run: sbt scalafmtCheckAll scalafmtSbtCheck
+  integration:
+    name: Testing full sbt projects
+#    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v10
+      - uses: laughedelic/coursier-setup@v1
+        with:
+          jvm: adopt:8
+          apps: bloop
+      - run: mkdir -p ~/.cache/coursier/v1/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.64
+      - run: curl https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.64/bcprov-jdk15on-1.64.pom > ~/.cache/coursier/v1/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.64/bcprov-jdk15on-1.64.pom
+      - run: curl https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.64/bcprov-jdk15on-1.64.jar > ~/.cache/coursier/v1/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.64/bcprov-jdk15on-1.64.jar
+      - run: git fetch --tags
+      - run: git fetch --unshallow
+      - run: sbt runExamples
