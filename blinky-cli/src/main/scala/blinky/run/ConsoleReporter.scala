@@ -62,6 +62,10 @@ object ConsoleReporter {
          |""".stripMargin
     )
   def gitIssues(error: String): Instruction[Unit] =
-    printLine(red(s"git command error: $error"))
+    printLine(
+      s"""${red("GIT command error:")}
+         |$error
+         |""".stripMargin
+    )
 
 }
