@@ -13,7 +13,7 @@ jobs:
       - uses: olafurpg/setup-scala@v10
       - run: sbt scalafmtCheckAll scalafmtSbtCheck
   self-checks-core:
-    name: Self Blinky core
+    name: Self Blinky core module
     #    runs-on: ubuntu-latest
     runs-on: self-hosted
     steps:
@@ -26,7 +26,7 @@ jobs:
       - run: ./.github/scripts/setup.sh
       - run: sbt "runCurrent \"ci-tests/core.blinky.conf\" --multiRun 1/1"
   self-checks-cli:
-    name: Self Blinky core
+    name: Self Blinky cli module
     #    runs-on: ubuntu-latest
     runs-on: self-hosted
     steps:
