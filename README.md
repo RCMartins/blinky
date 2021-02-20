@@ -13,7 +13,7 @@ It is a type of White Box Testing which is mainly used for Unit Testing.
 _Blinky_ has 3 main steps:
 * Copy the git project to a temporary folder (where the source code can be safely modified)
 * Run the scalafix tool with the _Blinky_ rule (on the copy project)
-* Run the project tests on the mutated code (usually with only 1 mutation active each time)
+* Run the project tests on the mutated code (usually with only 1 mutant active each time)
 
 We use _Blinky_ to test this repository, improving the test code quality.
 

@@ -2,6 +2,7 @@
 target
 .history
 .bloop
+.bsp
 
 bin/cs
 /output/.blinky-cache
