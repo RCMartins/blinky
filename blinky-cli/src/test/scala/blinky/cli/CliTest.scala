@@ -131,7 +131,9 @@ object CliTest extends TestSpec {
           config = result.toOption
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
-          assert(config.map(_.projectPath))(equalSome(File(".") / "examples" / "example1")) &&
+          assert(config.map(_.projectPath))(
+            equalSome(File(".") / "ci-tests" / "examples" / "example1")
+          ) &&
           assert(config.map(_.filesToMutate))(equalSome("src/main/scala/Example.scala")) &&
           assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
           assert(config.map(_.options.testCommand))(equalSome("example1"))
@@ -179,7 +181,7 @@ object CliTest extends TestSpec {
         testM("return the changed parameters") {
           val params: Seq[String] = Seq(
             "--projectPath",
-            "examples/example2",
+            "ci-tests/examples/example2",
             "--projectName",
             "example2",
             "--filesToMutate",
@@ -209,7 +211,9 @@ object CliTest extends TestSpec {
             config = result.toOption
           } yield assert(parser.getOut)(equalTo("")) &&
             assert(parser.getErr)(equalTo("")) &&
-            assert(config.map(_.projectPath))(equalSome(File(".") / "examples" / "example2")) &&
+            assert(config.map(_.projectPath))(
+              equalSome(File(".") / "ci-tests" / "examples" / "example2")
+            ) &&
             assert(config.map(_.filesToMutate))(equalSome("src/main/scala/Example.scala")) &&
             assert(config.map(_.filesToExclude))(equalSome("src/main/scala/Utils.scala")) &&
             assert(config.map(_.options))(equalSome {

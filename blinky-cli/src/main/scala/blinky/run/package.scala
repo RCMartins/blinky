@@ -24,7 +24,7 @@ package object run {
         case RunSync(op, args, envArgs, path, next) =>
           RunSync(op, args, envArgs, path, next.flatMap(f))
         case RunAsync(op, args, envArgs, path, next) =>
-          RunAsync(op, args, envArgs, path, next(_: String).flatMap(f))
+          RunAsync(op, args, envArgs, path, next(_: Either[String, String]).flatMap(f))
         case RunAsyncSuccess(op, args, envArgs, path, next) =>
           RunAsyncSuccess(op, args, envArgs, path, next(_: Boolean).flatMap(f))
         case RunAsyncEither(op, args, envArgs, path, next) =>
@@ -40,7 +40,7 @@ package object run {
         case WriteFile(path, content, next) =>
           WriteFile(path, content, next.flatMap(f))
         case ReadFile(path, next) =>
-          ReadFile(path, next(_: String).flatMap(f))
+          ReadFile(path, next(_: Either[Throwable, String]).flatMap(f))
         case IsFile(path, next) =>
           IsFile(path, next(_: Boolean).flatMap(f))
       }
