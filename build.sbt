@@ -4,6 +4,7 @@ import sbt.Keys._
 import sbt.nio.file.FileAttributes
 import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
+import complete.DefaultParsers._
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -47,8 +48,8 @@ lazy val core =
       libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.9.1",
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
-      libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.2.0",
-      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.2" % "test",
+      libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.3.8",
+      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.5" % "test",
       coverageMinimum := 94,
       coverageFailOnMinimum := true,
       buildInfoPackage := "blinky",
@@ -110,7 +111,7 @@ lazy val tests =
     .enablePlugins(ScalafixTestkitPlugin)
     .settings(
       libraryDependencies += "ch.epfl.scala"  % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
-      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.2"           % Test,
+      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.5"           % Test,
       scalafixTestkitOutputSourceDirectories :=
         sourceDirectories.in(output, Compile).value,
       scalafixTestkitInputSourceDirectories :=
@@ -128,3 +129,20 @@ lazy val docs =
       mdoc := run.in(Compile).evaluated
     )
     .dependsOn(core)
+
+lazy val runCurrent = inputKey[Unit]("Run current blinky version on itself")
+lazy val runExamples = inputKey[Unit]("Run examples tests")
+
+runCurrent := {
+  val a = (core / publishLocal).value
+  val b = (cli / publishLocal).value
+  val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
+  RunCurrentVersion.run(version.value, args)
+}
+
+runExamples := {
+  val a = (core / publishLocal).value
+  val b = (cli / publishLocal).value
+  val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
+  RunExamples.run(version.value, args)
+}
