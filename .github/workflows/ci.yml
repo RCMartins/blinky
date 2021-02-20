@@ -12,4 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v10
-      - run: sbt tests/test cli/test
+      - run: |
+          if [[ -n "$COVERALLS_REPO_TOKEN" ]]; then
+            sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport \
+              && sbt coverageAggregate coveralls;
+          else
+            sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport;
+          fi

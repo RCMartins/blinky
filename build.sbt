@@ -134,12 +134,9 @@ lazy val runCurrent = inputKey[Unit]("Run current blinky version on itself")
 lazy val runExamples = inputKey[Unit]("Run examples tests")
 
 runCurrent := {
-  val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
-  println("-" * 40)
-  println(args.toList)
-  println("-" * 40)
   val a = (core / publishLocal).value
   val b = (cli / publishLocal).value
+  val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
   RunCurrentVersion.run(version.value, args)
 }
 

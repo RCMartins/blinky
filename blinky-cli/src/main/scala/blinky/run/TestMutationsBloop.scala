@@ -21,11 +21,11 @@ object TestMutationsBloop {
       mutationReport <- readFile(Path(blinkyConfig.mutantsOutputFile))
         .flatMap {
           case Left(_) =>
-            for {
-              _ <- printErrorLine(s"""Blinky failed to load mutants file:
-                                     |${blinkyConfig.mutantsOutputFile}
-                                     |""".stripMargin)
-            } yield List.empty[Mutant]
+            printErrorLine(
+              s"""Blinky failed to load mutants file:
+                 |${blinkyConfig.mutantsOutputFile}
+                 |""".stripMargin
+            ).map(_ => List.empty[Mutant])
           case Right(fileData) =>
             succeed(
               fileData
