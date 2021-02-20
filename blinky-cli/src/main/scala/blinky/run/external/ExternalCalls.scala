@@ -26,7 +26,7 @@ trait ExternalCalls {
 
   def writeFile(filePath: Path, content: String): Unit
 
-  def readFile(path: Path): String
+  def readFile(path: Path): Either[Throwable, String]
 
   def isFile(path: Path): Boolean
 

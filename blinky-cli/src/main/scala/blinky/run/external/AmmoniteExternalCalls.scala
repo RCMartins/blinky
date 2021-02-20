@@ -7,6 +7,8 @@ import scala.util.{Failure, Success, Try}
 
 object AmmoniteExternalCalls extends ExternalCalls {
 
+  //TODO: all commands need an error side, Either or Option
+
   def runSync(
       op: String,
       args: Seq[String],
@@ -44,8 +46,8 @@ object AmmoniteExternalCalls extends ExternalCalls {
   def writeFile(filePath: Path, content: String): Unit =
     write(filePath, content)
 
-  def readFile(path: Path): String =
-    read(path)
+  def readFile(path: Path): Either[Throwable, String] =
+    Try(read(path)).toEither
 
   def isFile(path: Path): Boolean =
     path.isFile
