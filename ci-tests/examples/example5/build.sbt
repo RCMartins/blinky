@@ -1,2 +1,2 @@
 scalaVersion := "2.12.11"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.2" % Test
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.5" % Test
