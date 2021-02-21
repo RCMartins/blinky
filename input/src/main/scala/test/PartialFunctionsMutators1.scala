@@ -15,8 +15,8 @@ object PartialFunctionsMutators1 {
     }
 
   val value2 =
-    List(10, 20).map {
-      case _ => false
+    List(10, 20).map { case _ =>
+      false
     }
 
   val value3 =
