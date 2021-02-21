@@ -1,0 +1,1 @@
+{"id":1,"diff":"@@ -8,6 +8,6 @@ package test\n \n object ParensTest {\n \n-  val result: Int = Seq(\"string\").size\n+  val result: Int = Seq().size\n \n }","fileName":"test/ParensTest.scala","original":"Seq(\"string\")","mutated":"Seq()"}

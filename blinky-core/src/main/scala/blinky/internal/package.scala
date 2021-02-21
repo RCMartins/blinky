@@ -9,6 +9,13 @@ package object internal {
   }
 
   def syntaxParens(term: Term, needsParens: Boolean): String =
-    if (needsParens) "(" + term.syntax + ")" else term.syntax
+    term match {
+      case _: Term.Apply =>
+        term.syntax
+      case _ if !needsParens =>
+        term.syntax
+      case _ =>
+        "(" + term.syntax + ")"
+    }
 
 }
