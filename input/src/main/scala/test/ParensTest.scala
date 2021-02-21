@@ -2,13 +2,13 @@
 rule = Blinky
 Blinky.mutantsOutputFile = ???
 Blinky.filesToMutate = [all]
-Blinky.enabledMutators = [ConditionalExpressions, Collections]
+Blinky.enabledMutators = [LiteralStrings, ConditionalExpressions, Collections]
  */
 package test
 
 object ParensTest {
 
-  val seq1: Int = Seq("string").size
+  val seq1: Int = Seq(100).size
 
   val bool = true
 
@@ -17,5 +17,7 @@ object ParensTest {
       case _ if !bool => 10
       case _          => 20
     }
+
+  val map = Map("test" -> bool)
 
 }
