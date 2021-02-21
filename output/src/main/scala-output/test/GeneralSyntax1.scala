@@ -15,8 +15,8 @@ object GeneralSyntax1 {
     case _      => if (???) true else false
   }
 
-  val partial = list.collect {
-    case true => if (???) true else false
+  val partial = list.collect { case true =>
+    if (???) true else false
   }
 
   val list2 = list.map(_ => if (???) false else true)
