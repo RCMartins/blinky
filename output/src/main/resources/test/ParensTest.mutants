@@ -1,1 +1,2 @@
-{"id":1,"diff":"@@ -8,6 +8,6 @@ package test\n \n object ParensTest {\n \n-  val result: Int = Seq(\"string\").size\n+  val result: Int = Seq().size\n \n }","fileName":"test/ParensTest.scala","original":"Seq(\"string\")","mutated":"Seq()"}
+{"id":1,"diff":"@@ -8,7 +8,7 @@ package test\n \n object ParensTest {\n \n-  val seq1: Int = Seq(\"string\").size\n+  val seq1: Int = Seq().size\n \n   val bool = true\n ","fileName":"test/ParensTest.scala","original":"Seq(\"string\")","mutated":"Seq()"}
+{"id":2,"diff":"@@ -14,7 +14,7 @@ object ParensTest {\n \n   val result =\n     seq1 match {\n-      case _ if !bool => 10\n+      case _ if bool => 10\n       case _          => 20\n     }\n ","fileName":"test/ParensTest.scala","original":"!bool","mutated":"bool"}

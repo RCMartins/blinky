@@ -1,6 +1,6 @@
 package blinky
 
-import scala.meta.Term
+import scala.meta.{Lit, Term}
 
 package object internal {
 
@@ -10,7 +10,7 @@ package object internal {
 
   def syntaxParens(term: Term, needsParens: Boolean): String =
     term match {
-      case _: Term.Apply =>
+      case _: Lit | _: Term.Apply | _: Term.Name =>
         term.syntax
       case _ if !needsParens =>
         term.syntax
