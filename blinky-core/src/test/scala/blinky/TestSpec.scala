@@ -1,4 +1,4 @@
-package blinky.v0
+package blinky
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec

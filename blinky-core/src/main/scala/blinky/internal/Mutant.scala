@@ -9,7 +9,8 @@ case class Mutant(
     diff: String,
     fileName: String,
     original: Term,
-    mutated: Term
+    mutated: Term,
+    needsParens: Boolean
 )
 
 object Mutant {
@@ -20,6 +21,6 @@ object Mutant {
         "diff" -> mutant.diff,
         "fileName" -> mutant.fileName,
         "original" -> mutant.original.syntax,
-        "mutated" -> mutant.mutated.syntax
+        "mutated" -> syntaxParens(mutant.mutated, mutant.needsParens)
       )
 }
