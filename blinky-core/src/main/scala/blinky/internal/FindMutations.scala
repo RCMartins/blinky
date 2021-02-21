@@ -1,5 +1,6 @@
 package blinky.internal
 
+import blinky.internal.MutatedTerms.{PlaceholderMutatedTerms, StandardMutatedTerms}
 import blinky.v0.Mutator
 import scalafix.v1.SemanticDocument
 
@@ -36,20 +37,26 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
       parensRequired: Boolean,
       overrideOriginal: Option[Term] = None
   ): Seq[(Term, MutatedTerms)] =
-    termMutations(term, mainTermsOnly = false).collect {
-      // Disable rules on Term.Placeholder until we can handle this case properly
-      case (original, _) if original.collect { case Term.Placeholder() => }.nonEmpty =>
-        None
-      case (original, mutatedTerms) if parensRequired && original == term =>
-        Some((original, mutatedTerms.copy(needsParens = true)))
-      case (original, mutatedTerms) if original == term && overrideOriginal.nonEmpty =>
-        Some((overrideOriginal.get, mutatedTerms))
-      case other =>
-        Some(other)
-    }.flatten
+    termMutations(term, mainTermsOnly = false).flatMap {
+      case (original, mutatedTerms) =>
+        Placeholders.replacePlaceholders(original, mutatedTerms).flatMap {
+          case (original, mutatedTerms: StandardMutatedTerms)
+              if parensRequired && original == term =>
+            Some((original, mutatedTerms.copy(needsParens = true)))
+          case (original, mutatedTerms: PlaceholderMutatedTerms)
+              if parensRequired && original == term =>
+            Some((original, mutatedTerms.copy(needsParens = true)))
+          case (original, mutatedTerms) if original == term && overrideOriginal.nonEmpty =>
+            Some((overrideOriginal.get, mutatedTerms))
+          case other =>
+            Some(other)
+        }
+    }
 
   def topMainTermMutations(term: Term): Seq[Term] =
-    termMutations(term, mainTermsOnly = true).flatMap { case (_, mutations) => mutations.mutated }
+    termMutations(term, mainTermsOnly = true).flatMap {
+      case (_, StandardMutatedTerms(mutations, _)) => mutations
+    }
 
   def termMutations(mainTerm: Term, mainTermsOnly: Boolean): Seq[(Term, MutatedTerms)] = {
     def selectSmallerMutation(
