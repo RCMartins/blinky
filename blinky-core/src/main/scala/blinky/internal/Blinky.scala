@@ -88,39 +88,41 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
     val mutatedSyntax = syntaxParens(mutated, needsParens)
     val mutatedInput = input.substring(0, pos.start) + mutatedSyntax + input.substring(pos.end)
 
-    val gitDiff: String =
-      mutantsOutputFileOpt match {
-        case None =>
-          ""
-        case Some(_) =>
-          File.temporaryFile() { originalFile =>
-            originalFile.writeText(original.pos.input.text)
-
-            File.temporaryFile() { mutatedFile =>
-              mutatedFile.writeText(mutatedInput)
-
-              val gitDiff =
-                Try(
-                  %%(
-                    'git,
-                    'diff,
-                    "--no-index",
-                    originalFile.toString,
-                    mutatedFile.toString
-                  )(
-                    pwd
-                  )
-                ).failed.get.toString
-                  .split("\n")
-                  .drop(5)
-                  .mkString("\n")
-
-              gitDiff
-            }
-          }
-      }
+    val gitDiff: String = calculateGitDiff(original, mutatedInput)
     Mutant(nextIndex, gitDiff, fileName, original, mutated, needsParens)
   }
+
+  def calculateGitDiff(original: Term, mutatedInput: String): String =
+    mutantsOutputFileOpt match {
+      case None =>
+        ""
+      case Some(_) =>
+        File.temporaryFile() { originalFile =>
+          originalFile.writeText(original.pos.input.text)
+
+          File.temporaryFile() { mutatedFile =>
+            mutatedFile.writeText(mutatedInput)
+
+            val gitDiff =
+              Try(
+                %%(
+                  'git,
+                  'diff,
+                  "--no-index",
+                  originalFile.toString,
+                  mutatedFile.toString
+                )(
+                  pwd
+                )
+              ).failed.get.toString
+                .split("\n")
+                .drop(5)
+                .mkString("\n")
+
+            gitDiff
+          }
+        }
+    }
 
   def saveNewMutantsToFile(mutantsFound: Seq[Mutant]): Unit =
     if (mutantsFound.nonEmpty)

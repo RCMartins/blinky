@@ -1,5 +1,7 @@
 package blinky.v0
 
+import blinky.TestSpec
+
 class BlinkyConfigTest extends TestSpec {
 
   "BlinkyConfig.default" should {
