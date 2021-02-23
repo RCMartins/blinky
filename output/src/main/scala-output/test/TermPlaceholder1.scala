@@ -1,6 +1,7 @@
 package test
 
 object TermPlaceholder1 {
+
   def concat(str: String): String = str + "test"
 
   //ignore placeholder issues:

@@ -1,11 +1,13 @@
 /*
 rule = Blinky
+Blinky.mutantsOutputFile = ???
 Blinky.filesToMutate = [all]
-Blinky.enabledMutators = [ArithmeticOperators, ScalaOptions, LiteralBooleans]
+Blinky.enabledMutators = [ArithmeticOperators]
  */
 package test
 
 object TermPlaceholder1 {
+
   def concat(str: String): String = str + "test"
 
   //ignore placeholder issues:

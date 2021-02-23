@@ -1,5 +1,5 @@
 object Example {
-  def calc(nOpt: Option[Int]): String = {
+  def calc(nOpt: Option[Int]): String =
     nOpt
       .map { n =>
         if (n > 5)
@@ -8,5 +8,4 @@ object Example {
           "small"
       }
       .getOrElse("<empty>")
-  }
 }

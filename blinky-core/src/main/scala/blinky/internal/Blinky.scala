@@ -1,9 +1,10 @@
 package blinky.internal
 
 import java.util.concurrent.atomic.AtomicInteger
+
 import ammonite.ops._
 import better.files.File
-import blinky.internal.MutatedTerms.{PlaceholderMutatedTerms, StandardMutatedTerms}
+import blinky.internal.MutatedTerms._
 import blinky.v0.BlinkyConfig
 import metaconfig.Configured
 import play.api.libs.json.Json
@@ -56,20 +57,19 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                 (0, result)
             }
 
-          val finalSyntax = if (needsParens) "(" + mutatedStr.syntax + ")" else mutatedStr.syntax
-          (Patch.replaceTree(original, finalSyntax), mutantSeq)
+          (Patch.replaceTree(original, syntaxParens(mutatedStr, needsParens)), mutantSeq)
         }
 
       val (finalPatch, mutantsFound): (Seq[Patch], Seq[Seq[Mutant]]) =
         findMutations
           .topTreeMutations(doc.tree)
           .flatMap {
-            case (original, StandardMutatedTerms(mutationsFound, needsParens)) =>
-              val mutantSeq =
-                mutationsFound
+            case (original, StandardMutatedTerms(mutantsFound, needsParens)) =>
+              val mutantsSeq =
+                mutantsFound
                   .filterNot(_.structure == original.structure)
-                  .map(mutated => createMutant(original, mutated, mutated, fileName))
-              createPatch(mutantSeq, needsParens = needsParens)
+                  .map(mutated => createMutant(original, mutated, mutated, needsParens, fileName))
+              createPatch(mutantsSeq, needsParens = needsParens)
             case (
                   original,
                   PlaceholderMutatedTerms(originalReplaced, mutationsFound, _, needsParens)
@@ -104,42 +104,49 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       original: Term,
       mutated: Term,
       mutatedForDiff: Term,
+      needsParens: Boolean,
       fileName: String
   ): Mutant = {
     val pos = original.pos
     val input = pos.input.text
-    val mutatedInput =
-      input.substring(0, pos.start) + mutatedForDiff.syntax + input.substring(pos.end)
 
-    File.temporaryFile() { originalFile =>
-      originalFile.writeText(original.pos.input.text)
+    val mutatedSyntax = syntaxParens(mutatedForDiff, needsParens)
+    val mutatedInput = input.substring(0, pos.start) + mutatedSyntax + input.substring(pos.end)
 
-      File.temporaryFile() { mutatedFile =>
-        mutatedFile.writeText(mutatedInput)
-
-        val gitDiff =
-          Try(
-            %%(
-              'git,
-              'diff,
-              "--no-index",
-              originalFile.toString,
-              mutatedFile.toString
-            )(pwd)
-          ).failed.get.toString
-            .split("\n")
-            .drop(5)
-            .mkString("\n")
-
-        println("=" * 40)
-        println("DIFF")
-        println(gitDiff)
-        println("=" * 40)
-
-        Mutant(nextIndex, gitDiff, fileName, original, mutated)
-      }
-    }
+    val gitDiff: String = calculateGitDiff(original, mutatedInput)
+    // mutatedForDiff?
+    Mutant(nextIndex, gitDiff, fileName, original, mutated, needsParens)
   }
+
+  def calculateGitDiff(original: Term, mutatedInput: String): String =
+    mutantsOutputFileOpt match {
+      case None =>
+        ""
+      case Some(_) =>
+        File.temporaryFile() { originalFile =>
+          originalFile.writeText(original.pos.input.text)
+
+          File.temporaryFile() { mutatedFile =>
+            mutatedFile.writeText(mutatedInput)
+
+            val gitDiff =
+              Try(
+                %%(
+                  'git,
+                  'diff,
+                  "--no-index",
+                  originalFile.toString,
+                  mutatedFile.toString
+                )(pwd)
+              ).failed.get.toString
+                .split("\n")
+                .drop(5)
+                .mkString("\n")
+
+            gitDiff
+          }
+        }
+    }
 
   def saveNewMutantsToFile(mutantsFound: Seq[Mutant]): Unit =
     if (mutantsFound.nonEmpty)
@@ -147,4 +154,5 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
         val jsonMutationReport = mutantsFound.map(Json.toJson(_)).map(_.toString)
         mutantsOutputFile.appendLines(jsonMutationReport: _*)
       }
+
 }

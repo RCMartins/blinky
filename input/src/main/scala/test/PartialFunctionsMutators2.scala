@@ -13,7 +13,7 @@ object PartialFunctionsMutators2 {
     case 'i' | 'o'       => '#'
   }
 
-  List(Foo("bar", true)).collect {
-    case Foo("abc" | "bar", _) => 123
+  List(Foo("bar", true)).collect { case Foo("abc" | "bar", _) =>
+    123
   }
 }
