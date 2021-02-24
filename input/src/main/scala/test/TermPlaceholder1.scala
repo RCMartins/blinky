@@ -10,7 +10,6 @@ object TermPlaceholder1 {
 
   def concat(str: String): String = str + "test"
 
-  //ignore placeholder issues:
   val func1: String => Int = concat(_).length + 5
 
   //convert only the right side
