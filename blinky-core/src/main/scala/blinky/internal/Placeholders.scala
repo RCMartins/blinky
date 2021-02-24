@@ -25,28 +25,32 @@ object Placeholders {
              |${mutatedTerms.mutated.mkString("\n")}""".stripMargin
         )
         original match {
-//          case ApplyInfix(Select(Apply(_, placeholdersList), _), _, _, _)
-//              if containsPlaceholders(placeholdersList) =>
-//            println(mutatedTerms.mutated.map(_.structure))
-//
-//            val newVar = Term.Name(s"blinky_${UUID.randomUUID().toString}")
-//            println(newVar)
-//
-//            val placeholderFunction = generatePlaceholderFunction(original, newVar)
-//            val mutatedReplaced =
-//              mutatedTerms.mutated.map(term => (term, replaceFirstPlaceholder(term, newVar)))
-//
-//            Some(
-//              (
-//                original,
-//                PlaceholderMutatedTerms(
-//                  placeholderFunction,
-//                  mutatedReplaced,
-//                  Seq(newVar),
-//                  mutatedTerms.needsParens
-//                )
-//              )
-//            )
+          case ApplyInfix(Select(Apply(_, placeholdersList), _), _, _, _)
+              if containsPlaceholders(placeholdersList) =>
+            println(mutatedTerms.mutated.map(_.structure))
+
+            val newVar = Term.Name(s"blinky_${UUID.randomUUID().toString}")
+            println(newVar)
+
+            val placeholderFunction = generatePlaceholderFunction(newVar)
+            val mutatedReplaced =
+              mutatedTerms.mutated.map(term => (term, replaceFirstPlaceholder(term, newVar)))
+
+            val originalReplaced =
+              replaceFirstPlaceholder(original, newVar)
+
+            Some(
+              (
+                original,
+                PlaceholderMutatedTerms(
+                  originalReplaced,
+                  placeholderFunction,
+                  mutatedReplaced,
+                  Seq(newVar.value),
+                  mutatedTerms.needsParens
+                )
+              )
+            )
           case _ =>
             None
         }
@@ -60,7 +64,7 @@ object Placeholders {
       case _                  => false
     }
 
-  private def generatePlaceholderFunction(original: Term, newVar: Term.Name): Term => Term =
+  private def generatePlaceholderFunction(newVar: Term.Name): Term => Term =
     (body: Term) =>
       Term.Function(
         List(Term.Param(List.empty, newVar, None, None)),

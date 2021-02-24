@@ -15,12 +15,14 @@ import scala.meta.inputs.Input.VirtualFile
 import scala.util.Try
 
 class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
-  private val mutationId: AtomicInteger = new AtomicInteger(1)
+  private val mutantId: AtomicInteger = new AtomicInteger(1)
+  private val tempVarId: AtomicInteger = new AtomicInteger(1)
   private val mutantsOutputFileOpt: Option[File] =
     Some(config.mutantsOutputFile).filter(_.nonEmpty).map(File(_))
   mutantsOutputFileOpt.foreach(_.createFileIfNotExists())
 
-  private def nextIndex: Int = mutationId.getAndIncrement()
+  private def nextMutantIndex: Int = mutantId.getAndIncrement()
+  private def nextTempVarIndex: Int = tempVarId.getAndIncrement()
 
   private val fileShouldBeMutated: String => Boolean =
     if (config.filesToMutate == Seq("all"))
@@ -44,18 +46,34 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       Patch.empty
     else {
       def createPatch(
+          original: Term,
           mutantSeq: Seq[Mutant],
+          placeholderFunction: Term => Term,
+          replaceTempVars: Seq[(String, Term)],
           needsParens: Boolean
       ): Option[(Patch, Seq[Mutant])] =
-        mutantSeq.headOption.map(_.original).map { original =>
+        mutantSeq.headOption.map(_.original).map { originalReplaced =>
+          def replacer(initialTerm: Term): Term =
+            replaceTempVars
+              .foldLeft(initialTerm: Tree) { case (updatedTerm, (from, to)) =>
+                updatedTerm.transform { case Term.Name(`from`) => to }
+              }
+              .asInstanceOf[Term]
+
           val (_, mutatedStr) =
-            mutantSeq.map(mutant => (mutant.id, mutant.mutated)).foldRight((0, original)) {
+            mutantSeq.map(mutant => (mutant.id, mutant.mutated)).foldRight((0, originalReplaced)) {
               case ((id, mutatedTerm), (_, originalTerm)) =>
                 val mutantId = Lit.String(s"BLINKY_MUTATION_$id")
                 val result =
                   q"""if (_root_.scala.sys.env.contains($mutantId)) ($mutatedTerm) else ($originalTerm)"""
-                (0, result)
+                (0, replacer(placeholderFunction(result)))
             }
+
+          println("/" * 40)
+          println(original)
+          println(originalReplaced)
+          println(syntaxParens(mutatedStr, needsParens))
+          println("\\" * 40)
 
           (Patch.replaceTree(original, syntaxParens(mutatedStr, needsParens)), mutantSeq)
         }
@@ -68,30 +86,59 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
               val mutantsSeq =
                 mutantsFound
                   .filterNot(_.structure == original.structure)
-                  .map(mutated => createMutant(original, mutated, mutated, needsParens, fileName))
-              createPatch(mutantsSeq, needsParens = needsParens)
+                  .map(mutated =>
+                    createMutant(original, original, mutated, mutated, needsParens, fileName)
+                  )
+              createPatch(original, mutantsSeq, identity, Seq.empty, needsParens = needsParens)
             case (
-                  original,
-                  PlaceholderMutatedTerms(originalReplaced, mutationsFound, _, needsParens)
+                  originalWithP,
+                  PlaceholderMutatedTerms(
+                    originalWithoutP,
+                    placeholderFunction,
+                    mutationsFound,
+                    newVars,
+                    needsParens
+                  )
                 ) =>
               println(
                 s"""***************
-                   |$original
-                   |$originalReplaced
+                   |$originalWithP
+                   |$originalWithoutP
+                   |$placeholderFunction
                    |$mutationsFound
                    |$needsParens
                    |***************
                    |""".stripMargin
               )
 
-              val mutantSeq =
+              val mutantSeq: Seq[Mutant] =
                 mutationsFound
-                  .filterNot(_.structure == original.structure)
-                  .map {
-                    case (termWithP, termWithoutP) =>
-                      createMutant(original, termWithoutP, termWithP, fileName)
+                  .filterNot { case (termWithP, _) =>
+                    termWithP.structure == originalWithP.structure
                   }
-              createPatch(mutantSeq, needsParens = needsParens)
+                  .map { case (termWithP, termWithoutP) =>
+                    createMutant(
+                      originalWithoutP,
+                      originalWithP,
+                      termWithoutP,
+                      termWithP,
+                      needsParens,
+                      fileName
+                    )
+                  }
+
+              val tempVarsReplaces =
+                newVars.map {
+                  (_, Term.Name(s"_BLINKY_TEMP_$nextTempVarIndex"))
+                }
+
+              createPatch(
+                originalWithP,
+                mutantSeq,
+                placeholderFunction,
+                tempVarsReplaces,
+                needsParens = needsParens
+              )
           }
           .unzip
 
@@ -102,20 +149,30 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
 
   def createMutant(
       original: Term,
+      originalForDiff: Term,
       mutated: Term,
       mutatedForDiff: Term,
       needsParens: Boolean,
       fileName: String
   ): Mutant = {
-    val pos = original.pos
+    val pos = originalForDiff.pos
     val input = pos.input.text
 
     val mutatedSyntax = syntaxParens(mutatedForDiff, needsParens)
     val mutatedInput = input.substring(0, pos.start) + mutatedSyntax + input.substring(pos.end)
 
-    val gitDiff: String = calculateGitDiff(original, mutatedInput)
+    val gitDiff: String = calculateGitDiff(originalForDiff, mutatedInput)
     // mutatedForDiff?
-    Mutant(nextIndex, gitDiff, fileName, original, mutated, needsParens)
+    Mutant(
+      nextMutantIndex,
+      gitDiff,
+      fileName,
+      original,
+      originalForDiff,
+      mutated,
+      mutatedForDiff,
+      needsParens
+    )
   }
 
   def calculateGitDiff(original: Term, mutatedInput: String): String =
@@ -142,6 +199,11 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                 .split("\n")
                 .drop(5)
                 .mkString("\n")
+
+            println("=" * 40)
+            println("DIFF")
+            println(gitDiff)
+            println("=" * 40)
 
             gitDiff
           }
