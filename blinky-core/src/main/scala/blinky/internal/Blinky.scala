@@ -60,15 +60,16 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
               }
               .asInstanceOf[Term]
 
-          val (_, mutatedStr) =
+          val (_, mutatedStrBefore) =
             mutantSeq.map(mutant => (mutant.id, mutant.mutated)).foldRight((0, originalReplaced)) {
               case ((id, mutatedTerm), (_, originalTerm)) =>
                 val mutantId = Lit.String(s"BLINKY_MUTATION_$id")
                 val result =
                   q"""if (_root_.scala.sys.env.contains($mutantId)) ($mutatedTerm) else ($originalTerm)"""
-                (0, replacer(placeholderFunction(result)))
+                (0, result)
             }
 
+          val mutatedStr = replacer(placeholderFunction(mutatedStrBefore))
           println("/" * 40)
           println(original)
           println(originalReplaced)
@@ -129,7 +130,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
 
               val tempVarsReplaces =
                 newVars.map {
-                  (_, Term.Name(s"_BLINKY_TEMP_$nextTempVarIndex"))
+                  (_, Term.Name(s"_BLINKY_TEMP_${nextTempVarIndex}_"))
                 }
 
               createPatch(
