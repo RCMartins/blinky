@@ -12,7 +12,6 @@ object TermPlaceholder1 {
 
   val func1: String => Int = concat(_).length + 5
 
-  //convert only the right side
   val func2: String => String = concat(_) + (1 + 1).toString
 
 }

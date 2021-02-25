@@ -160,10 +160,10 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
     val input = pos.input.text
 
     val mutatedSyntax = syntaxParens(mutatedForDiff, needsParens)
-    val mutatedInput = input.substring(0, pos.start) + mutatedSyntax + input.substring(pos.end)
+    val mutatedStr = input.substring(0, pos.start) + mutatedSyntax + input.substring(pos.end)
 
-    val gitDiff: String = calculateGitDiff(originalForDiff, mutatedInput)
-    // mutatedForDiff?
+    val gitDiff: String = calculateGitDiff(originalForDiff, mutatedStr)
+
     Mutant(
       nextMutantIndex,
       gitDiff,
@@ -176,7 +176,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
     )
   }
 
-  def calculateGitDiff(original: Term, mutatedInput: String): String =
+  def calculateGitDiff(original: Term, mutatedStr: String): String =
     mutantsOutputFileOpt match {
       case None =>
         ""
@@ -185,7 +185,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
           originalFile.writeText(original.pos.input.text)
 
           File.temporaryFile() { mutatedFile =>
-            mutatedFile.writeText(mutatedInput)
+            mutatedFile.writeText(mutatedStr)
 
             val gitDiff =
               Try(

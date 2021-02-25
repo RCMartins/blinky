@@ -1,0 +1,2 @@
+{"id":1,"diff":"@@ -8,6 +8,6 @@ package test\n \n object TermPlaceholder2 {\n \n-  val concat2: String => String = \"test\" + _\n+  val concat2: String => String = _ => \"mutated!\"\n \n }","fileName":"test/TermPlaceholder2.scala","original":"\"test\" + _","mutated":"_ => \"mutated!\""}
+{"id":2,"diff":"@@ -8,6 +8,6 @@ package test\n \n object TermPlaceholder2 {\n \n-  val concat2: String => String = \"test\" + _\n+  val concat2: String => String = _ => \"\"\n \n }","fileName":"test/TermPlaceholder2.scala","original":"\"test\" + _","mutated":"_ => \"\""}
