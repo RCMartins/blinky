@@ -29,6 +29,8 @@ object Placeholders {
           original match {
             case ApplyInfix(Placeholder(), _, _, _) =>
               true
+            case ApplyInfix(_, _, _, placeholdersList) if containsPlaceholders(placeholdersList) =>
+              true
             case ApplyInfix(Select(Apply(_, placeholdersList), _), _, _, _)
                 if containsPlaceholders(placeholdersList) =>
               true
