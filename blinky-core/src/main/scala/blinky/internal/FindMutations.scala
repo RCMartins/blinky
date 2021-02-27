@@ -37,26 +37,24 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
       parensRequired: Boolean,
       overrideOriginal: Option[Term] = None
   ): Seq[(Term, MutatedTerms)] =
-    termMutations(term, mainTermsOnly = false).flatMap {
-      case (original, mutatedTerms) =>
-        Placeholders.replacePlaceholders(original, mutatedTerms).flatMap {
-          case (original, mutatedTerms: StandardMutatedTerms)
-              if parensRequired && original == term =>
-            Some((original, mutatedTerms.copy(needsParens = true)))
-          case (original, mutatedTerms: PlaceholderMutatedTerms)
-              if parensRequired && original == term =>
-            Some((original, mutatedTerms.copy(needsParens = true)))
-          case (original, mutatedTerms) if original == term && overrideOriginal.nonEmpty =>
-            Some((overrideOriginal.get, mutatedTerms))
-          case other =>
-            Some(other)
-        }
+    termMutations(term, mainTermsOnly = false).flatMap { case (original, mutatedTerms) =>
+      Placeholders.replacePlaceholders(original, mutatedTerms).flatMap {
+        case (original, mutatedTerms: StandardMutatedTerms) if parensRequired && original == term =>
+          Some((original, mutatedTerms.copy(needsParens = true)))
+        case (original, mutatedTerms: PlaceholderMutatedTerms)
+            if parensRequired && original == term =>
+          Some((original, mutatedTerms.copy(needsParens = true)))
+        case (original, mutatedTerms) if original == term && overrideOriginal.nonEmpty =>
+          Some((overrideOriginal.get, mutatedTerms))
+        case other =>
+          Some(other)
+      }
     }
 
   def topMainTermMutations(term: Term): Seq[Term] =
-    termMutations(term, mainTermsOnly = true).flatMap {
+    termMutations(term, mainTermsOnly = true).collect {
       case (_, StandardMutatedTerms(mutations, _)) => mutations
-    }
+    }.flatten
 
   def termMutations(mainTerm: Term, mainTermsOnly: Boolean): Seq[(Term, MutatedTerms)] = {
     def selectSmallerMutation(
