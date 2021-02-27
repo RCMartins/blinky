@@ -1,29 +1,21 @@
 package blinky.run.modules
 
 import scopt.{DefaultOParserSetup, OParserSetup}
-import zio.ZIO
-
-trait ParserModule {
-  def parserModule: ParserModule.Service[Any]
-}
+import zio.{Layer, ZIO, ZLayer}
 
 object ParserModule {
 
-  trait Service[R] {
-    def parser: ZIO[R, Nothing, OParserSetup]
+  trait Service {
+    def parser: ZIO[Any, Nothing, OParserSetup]
   }
 
-  trait Live extends ParserModule {
-    override def parserModule: Service[Any] =
-      new Service[Any] {
-        override def parser: ZIO[Any, Nothing, OParserSetup] =
-          ZIO.succeed(new DefaultOParserSetup() {})
-      }
-  }
+  def parser: ZIO[ParserModule, Nothing, OParserSetup] =
+    ZIO.accessM[ParserModule](_.get.parser)
 
-  object factory extends ParserModule.Service[ParserModule] {
-    override def parser: ZIO[ParserModule, Nothing, OParserSetup] =
-      ZIO.accessM[ParserModule](_.parserModule.parser)
-  }
+  val live: Layer[Nothing, ParserModule] =
+    ZLayer.succeed(new Service {
+      override def parser: ZIO[Any, Nothing, OParserSetup] =
+        ZIO.succeed(new DefaultOParserSetup() {})
+    })
 
 }

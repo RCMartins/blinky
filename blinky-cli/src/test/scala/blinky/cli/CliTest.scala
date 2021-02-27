@@ -1,21 +1,19 @@
 package blinky.cli
 
-import java.io.ByteArrayOutputStream
-import java.util.concurrent.TimeUnit
-
 import better.files.File
 import blinky.BuildInfo.version
 import blinky.TestSpec
 import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
-import blinky.run.modules.TestModules.{TestCliModule, TestParserModule}
-import blinky.run.modules.{CliModule, ParserModule}
+import blinky.run.modules.{CliModule, ParserModule, TestModules}
 import blinky.v0.Mutators
 import scopt.DefaultOParserSetup
-import zio.UIO
 import zio.test.Assertion._
 import zio.test._
 import zio.test.environment._
+import zio.{Layer, UIO}
 
+import java.io.ByteArrayOutputStream
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 
 object CliTest extends TestSpec {
@@ -331,12 +329,11 @@ object CliTest extends TestSpec {
   ): (UIO[Either[String, MutationsConfigValidated]], MyParser) = {
     val myParser = new MyParser()
 
-    val parserEnv: ParserModule with CliModule = new ParserModule with CliModule {
-      override val parserModule: ParserModule.Service[Any] = new TestParserModule(myParser._parser)
-      override val cliModule: CliModule.Service[Any] = new TestCliModule(pwd)
-    }
+    val parserEnv: Layer[Nothing, ParserModule with CliModule] =
+      TestModules.testParserModule(myParser._parser) ++
+        TestModules.testCliModule(pwd)
 
-    (Cli.parse(args.toList).provide(parserEnv), myParser)
+    (Cli.parse(args.toList).provideLayer(parserEnv), myParser)
   }
 
 }

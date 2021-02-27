@@ -15,16 +15,13 @@ object Cli extends zio.App {
   private type ParserEnvironment = ParserModule with CliModule
 
   override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
-    parseAndRun(args).provide {
-      new ParserModule.Live with ExternalModule.Live with CliModule.Live {
-        override val pwdLive: File = File(".")
-      }
+    parseAndRun(args).provideLayer {
+      ParserModule.live ++ CliModule.live(File(".")) ++ ExternalModule.live
     }
 
   private def parseAndRun(strArgs: List[String]): URIO[FullEnvironment, ExitCode] =
     for {
-      env <- ZIO.environment[ExternalModule]
-      external <- env.externalModule.external
+      external <- ExternalModule.external
       parseResult <- parse(strArgs)
       instructions <- parseResult match {
         case Left(exitCode) =>
@@ -42,9 +39,8 @@ object Cli extends zio.App {
       strArgs: List[String]
   ): URIO[ParserEnvironment, Either[String, MutationsConfigValidated]] =
     for {
-      env <- ZIO.environment[ParserEnvironment]
-      parser <- env.parserModule.parser
-      pwd <- env.cliModule.pwd
+      parser <- ParserModule.parser
+      pwd <- CliModule.pwd
       args <- ZIO.succeed(OParser.parse(Parser.parser, strArgs, Args(), parser))
     } yield args match {
       case None =>
