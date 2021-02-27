@@ -18,14 +18,14 @@ object Placeholders {
         None
       case (original, mutatedTerms: StandardMutatedTerms)
           if original.collect { case Placeholder() => }.nonEmpty =>
-        println(
-          s"""${"-" * 80}
-             |$original
-             |${original.structure}
-             |${"#" * 0}
-             |${mutatedTerms.mutated.zipWithIndex.map { case (m, i) => s"$i: $m" }.mkString("\n")}
-             |""".stripMargin
-        )
+//        println(
+//          s"""${"-" * 80}
+//             |$original
+//             |${original.structure}
+//             |${"#" * 0}
+//             |${mutatedTerms.mutated.zipWithIndex.map { case (m, i) => s"$i: $m" }.mkString("\n")}
+//             |""".stripMargin
+//        )
         val isBasicPlaceholderCase =
           original match {
             case ApplyInfix(Placeholder(), _, _, _) =>
@@ -42,7 +42,7 @@ object Placeholders {
           }
 
         if (isBasicPlaceholderCase) {
-          println(mutatedTerms.mutated.map(_.structure))
+//          println(mutatedTerms.mutated.map(_.structure))
 
 //          val newVar = Term.Name(s"blinky_${UUID.randomUUID().toString}")
 //          println(newVar)
@@ -73,12 +73,12 @@ object Placeholders {
 
           val placeholderFunction = generatePlaceholderFunction(vars)
 
-          println("%" * 60)
-          println(placeholderMode)
-          println(originalReplaced)
-          println(mutantsReplaced)
-          println(vars)
-          println("%" * 60)
+//          println("%" * 60)
+//          println(placeholderMode)
+//          println(originalReplaced)
+//          println(mutantsReplaced)
+//          println(vars)
+//          println("%" * 60)
 
           Some(
             (
@@ -115,7 +115,7 @@ object Placeholders {
     ): (Boolean, Term, Seq[(Term, Term)], List[Name]) = {
 
       val newVar = Term.Name(s"blinky_${UUID.randomUUID().toString}")
-      println(newVar)
+//      println(newVar)
 
       val mutatedReplacedOriginal: Seq[(Term, (Term, Boolean))] =
         finalMutants.map { case (termO, termP) =>
@@ -132,13 +132,13 @@ object Placeholders {
           case (withP, (withoutP, false)) => (defaultPlaceholderFunction(withP), withoutP)
         }
 
-      println("#" * 50)
-      println(originalWasReplaced)
-      println(anyMutantsReplaced)
-      println("-" * 5)
-      println(originalReplaced)
-      println(mutatedReplaced)
-      println("#" * 50)
+//      println("#" * 50)
+//      println(originalWasReplaced)
+//      println(anyMutantsReplaced)
+//      println("-" * 5)
+//      println(originalReplaced)
+//      println(mutatedReplaced)
+//      println("#" * 50)
 
       if (anyMutantsReplaced)
         loop(
