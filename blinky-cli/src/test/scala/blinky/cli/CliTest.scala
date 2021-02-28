@@ -7,8 +7,6 @@ import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyC
 import blinky.run.modules.{CliModule, ParserModule, TestModules}
 import blinky.v0.Mutators
 import scopt.DefaultOEffectSetup
-import zio.UIO
-import scopt.DefaultOParserSetup
 import zio.test.Assertion._
 import zio.test._
 import zio.test.environment._
