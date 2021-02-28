@@ -43,115 +43,6 @@ object TestMutationsBloop {
       testCommand = options.testCommand
       numberOfMutants = mutationReport.length
 
-      runInBloop: (Mutant => Instruction[Boolean]) = { (mutant: Mutant) =>
-        val prints =
-          if (options.verbose)
-            for {
-              _ <- printLine(
-                s"> [BLINKY_MUTATION_${mutant.id}=1] " +
-                  s"""bash -c "bloop test ${escapeString(testCommand)}""""
-              )
-              _ <- printLine(
-                prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true)
-              )
-              _ <- printLine("--v--" * 5)
-            } yield ()
-          else
-            empty
-
-        prints.flatMap(_ =>
-          runBashSuccess(
-            s"bloop test ${escapeString(testCommand)}",
-            envArgs = Map(
-              "BLINKY" -> "true",
-              s"BLINKY_MUTATION_${mutant.id}" -> "1"
-            ),
-            path = projectPath
-          )
-        )
-      }
-
-      runMutant: (Mutant => Instruction[(Int, Boolean)]) = { (mutant: Mutant) =>
-        val id = mutant.id
-        for {
-          time <- succeed(System.currentTimeMillis())
-          testResult <- runInBloop(mutant)
-
-          _ <-
-            if (testResult)
-              printLine(red(s"Mutant #$id was not killed!")).flatMap(_ =>
-                if (!options.verbose)
-                  printLine(
-                    prettyDiff(
-                      mutant.diff,
-                      mutant.fileName,
-                      projectPath.toString,
-                      color = true
-                    )
-                  )
-                else
-                  empty
-              )
-            else
-              printLine(green(s"Mutant #$id was killed."))
-
-          _ <-
-            if (options.verbose)
-              printLine(s"time: ${System.currentTimeMillis() - time}").flatMap(_ =>
-                printLine("-" * 40)
-              )
-            else
-              empty
-
-        } yield id -> !testResult
-      }
-
-      runMutations: (List[Mutant] => Long => Instruction[List[(Int, Boolean)]]) = {
-        (initialMutants: List[Mutant]) => (initialTime: Long) =>
-          def loop(mutants: List[Mutant]): Instruction[List[(Int, Boolean)]] =
-            mutants match {
-              case Nil =>
-                succeed(Nil)
-              case _
-                  if System.currentTimeMillis() - initialTime > options.maxRunningTime.toMillis =>
-                printLine(
-                  s"Timed out - maximum of ${options.maxRunningTime} " +
-                    s"(this can be changed with --maxRunningTime parameter)"
-                ).map(_ => Nil)
-              case mutant :: othersMutants =>
-                runMutant(mutant).flatMap(mutantResult =>
-                  loop(othersMutants).map(mutantResult :: _)
-                )
-            }
-
-          loop(initialMutants)
-      }
-
-      runMutationsSetup: (Long => Instruction[ExitCode]) = { (originalTestTime: Long) =>
-        val mutationsToTest =
-          if (originalTestTime * numberOfMutants >= options.maxRunningTime.toMillis)
-            Random.shuffle(mutationReport)
-          else
-            mutationReport
-
-        for {
-          _ <- printLine(
-            s"Running the same tests on mutated code (maximum of ${options.maxRunningTime})"
-          )
-
-          initialTime = System.currentTimeMillis()
-          results <- runMutations(mutationsToTest)(initialTime)
-          totalTime = System.currentTimeMillis() - initialTime
-
-          result <-
-            ConsoleReporter.reportMutationResult(results, totalTime, numberOfMutants, options)
-        } yield
-          if (result)
-            ExitCode.success
-          else
-            ExitCode.failure
-      }
-
       _ <- {
         val numberOfFilesWithMutants = mutationReport.view.groupBy(_.fileName).size
         printLine(s"$numberOfMutants mutants found in $numberOfFilesWithMutants scala files.")
@@ -227,12 +118,159 @@ object TestMutationsBloop {
                                  |""".stripMargin
                             ).map(_ => ExitCode.success)
                           else
-                            runMutationsSetup(originalTestTime)
+                            runMutationsSetup(
+                              projectPath,
+                              options,
+                              originalTestTime,
+                              numberOfMutants,
+                              mutationReport
+                            )
                       } yield res
                   }
                 } yield res
             }
           } yield res
     } yield testResult
+  }
+
+  def runMutationsSetup(
+      projectPath: Path,
+      options: OptionsConfig,
+      originalTestTime: Long,
+      numberOfMutants: Int,
+      mutationReport: List[Mutant]
+  ): Instruction[ExitCode] = {
+    val mutationsToTest =
+      if (originalTestTime * numberOfMutants >= options.maxRunningTime.toMillis)
+        Random.shuffle(mutationReport)
+      else
+        mutationReport
+
+    for {
+      _ <- printLine(
+        s"Running the same tests on mutated code (maximum of ${options.maxRunningTime})"
+      )
+
+      initialTime = System.currentTimeMillis()
+      results <- runMutations(projectPath, options, originalTestTime, mutationsToTest, initialTime)
+      totalTime = System.currentTimeMillis() - initialTime
+
+      result <-
+        ConsoleReporter.reportMutationResult(results, totalTime, numberOfMutants, options)
+    } yield
+      if (result)
+        ExitCode.success
+      else
+        ExitCode.failure
+  }
+
+  def runMutations(
+      projectPath: Path,
+      options: OptionsConfig,
+      originalTestTime: Long,
+      initialMutants: List[Mutant],
+      initialTime: Long
+  ): Instruction[List[(Int, RunResult)]] = {
+    def loop(mutants: List[Mutant]): Instruction[List[(Int, RunResult)]] =
+      mutants match {
+        case Nil =>
+          succeed(Nil)
+        case _ if System.currentTimeMillis() - initialTime > options.maxRunningTime.toMillis =>
+          printLine(
+            s"Timed out - maximum of ${options.maxRunningTime} " +
+              s"(this can be changed with --maxRunningTime parameter)"
+          ).map(_ => Nil)
+        case mutant :: othersMutants =>
+          for {
+            mutantResult <- runMutant(projectPath, options, originalTestTime, mutant)
+            result <- loop(othersMutants)
+          } yield mutantResult :: result
+      }
+
+    loop(initialMutants)
+  }
+
+  def runMutant(
+      projectPath: Path,
+      options: OptionsConfig,
+      originalTestTime: Long,
+      mutant: Mutant
+  ): Instruction[(Int, RunResult)] = {
+    val id = mutant.id
+    for {
+      time <- succeed(System.currentTimeMillis())
+      testResult <- runInBloop(projectPath, options, originalTestTime, mutant)
+
+      _ <- testResult match {
+        case RunResult.MutantSurvived =>
+          printLine(red(s"Mutant #$id was not killed!")).flatMap(_ =>
+            if (!options.verbose)
+              printLine(
+                prettyDiff(
+                  mutant.diff,
+                  mutant.fileName,
+                  projectPath.toString,
+                  color = true
+                )
+              )
+            else
+              empty
+          )
+        case RunResult.MutantKilled =>
+          printLine(green(s"Mutant #$id was killed."))
+        case RunResult.Timeout =>
+          printLine(green(s"Mutant #$id timeout."))
+      }
+
+      _ <-
+        if (options.verbose)
+          printLine(s"time: ${System.currentTimeMillis() - time}").flatMap(_ => printLine("-" * 40))
+        else
+          empty
+
+    } yield id -> testResult
+  }
+
+  def runInBloop(
+      projectPath: Path,
+      options: OptionsConfig,
+      originalTestTime: Long,
+      mutant: Mutant
+  ): Instruction[RunResult] = {
+    val prints =
+      if (options.verbose)
+        for {
+          _ <- printLine(
+            s"> [BLINKY_MUTATION_${mutant.id}=1] " +
+              s"""bash -c "bloop test ${escapeString(options.testCommand)}""""
+          )
+          _ <- printLine(
+            prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true)
+          )
+          _ <- printLine("--v--" * 5)
+        } yield ()
+      else
+        empty
+
+    val runBloop: Instruction[Boolean] =
+      prints.flatMap(_ =>
+        runBashSuccess(
+          s"bloop test ${escapeString(options.testCommand)}",
+          envArgs = Map(
+            "BLINKY" -> "true",
+            s"BLINKY_MUTATION_${mutant.id}" -> "1"
+          ),
+          path = projectPath
+        )
+      )
+
+    runWithTimeout(
+      runBloop,
+      (originalTestTime * options.timeoutFactor + options.timeout.toMillis).toLong
+    ).map {
+      case Some(true)  => RunResult.MutantSurvived
+      case Some(false) => RunResult.MutantKilled
+      case None        => RunResult.Timeout
+    }
   }
 }

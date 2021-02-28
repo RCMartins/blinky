@@ -23,8 +23,8 @@ object Mutators {
             .getOrElse(Configured.Ok(Mutators(list.flatMap(_.get.mutations))))
         case Conf.Obj(values) =>
           val list =
-            values.map {
-              case (mutatorName, conf) => readerMutationsAux(s"$mutatorName.").read(conf)
+            values.map { case (mutatorName, conf) =>
+              readerMutationsAux(s"$mutatorName.").read(conf)
             }
           list
             .find(_.isNotOk)

@@ -15,7 +15,9 @@ case class OptionsConfig(
     failOnMinimum: Boolean,
     mutationMinimum: Double,
     onlyMutateDiff: Boolean,
-    multiRun: (Int, Int)
+    multiRun: (Int, Int),
+    timeoutFactor: Double,
+    timeout: Duration
 )
 
 object OptionsConfig {
@@ -28,7 +30,9 @@ object OptionsConfig {
     failOnMinimum = false,
     mutationMinimum = 25.0,
     onlyMutateDiff = false,
-    multiRun = (1, 1)
+    multiRun = (1, 1),
+    timeoutFactor = 1.5,
+    timeout = 5.second
   )
 
   implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.instance[Duration] {

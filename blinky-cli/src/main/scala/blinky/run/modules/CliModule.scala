@@ -1,30 +1,21 @@
 package blinky.run.modules
 
 import better.files.File
-import zio.ZIO
-
-trait CliModule {
-  def cliModule: CliModule.Service[Any]
-}
+import zio.{Layer, ZIO, ZLayer}
 
 object CliModule {
 
-  trait Service[R] {
-    def pwd: ZIO[R, Nothing, File]
+  trait Service {
+    def pwd: ZIO[Any, Nothing, File]
   }
 
-  trait Live extends CliModule {
-    val pwdLive: File
+  def pwd: ZIO[CliModule, Nothing, File] =
+    ZIO.accessM[CliModule](_.get.pwd)
 
-    override val cliModule: Service[Any] = new Service[Any] {
+  def live(pwdLive: File): Layer[Nothing, CliModule] =
+    ZLayer.succeed(new Service {
       override def pwd: ZIO[Any, Nothing, File] =
         ZIO.succeed(pwdLive)
-    }
-  }
-
-  object factory extends CliModule.Service[CliModule] {
-    override def pwd: ZIO[CliModule, Nothing, File] =
-      ZIO.accessM[CliModule](_.cliModule.pwd)
-  }
+    })
 
 }

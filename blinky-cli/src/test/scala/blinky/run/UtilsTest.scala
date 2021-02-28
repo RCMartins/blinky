@@ -1,11 +1,9 @@
 package blinky.run
 
 import blinky.TestSpec
-import zio.test.{Spec, TestFailure, TestSuccess, suite}
-import zio.test.environment.TestEnvironment
-
 import zio.test.Assertion._
 import zio.test._
+import zio.test.environment.TestEnvironment
 
 object UtilsTest extends TestSpec {
 
