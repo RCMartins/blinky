@@ -128,6 +128,22 @@ object Parser {
         .text(
           "Only test the mutants of the given index, 1 <= job-index <= number-of-jobs"
         )
+        .maxOccurs(1),
+      opt[Double]("timeoutFactor")
+        .valueName("<decimal>")
+        .action { (timeoutFactor, config) =>
+          config.add(_.modify(_.options.timeoutFactor).setTo(timeoutFactor))
+        }
+        .text(s"Time factor for each mutant test")
+        .maxOccurs(1),
+      opt[Duration]("timeout")
+        .valueName("<duration>")
+        .action { (timeout, config) =>
+          config.add(_.modify(_.options.timeout).setTo(timeout))
+        }
+        .text(
+          s"Duration of additional flat timeout for each mutant test"
+        )
         .maxOccurs(1)
     )
   }

@@ -7,15 +7,15 @@ import blinky.run.config.OptionsConfig
 object ConsoleReporter {
 
   def reportMutationResult(
-      results: Seq[(Int, Boolean)],
+      results: Seq[(Int, RunResult)],
       totalTime: Long,
       numberOfMutants: Int,
       options: OptionsConfig
   ): Instruction[Boolean] = {
     val mutantsToTestSize = results.size
     val mutantsToTestPerc = mutantsToTestSize * 100 / numberOfMutants
-    val totalKilled = results.count(_._2)
-    val totalNotKilled = mutantsToTestSize - results.count(_._2)
+    val totalKilled = results.count(_._2 != RunResult.MutantSurvived)
+    val totalNotKilled = mutantsToTestSize - totalKilled
     val score = (totalKilled * 1000.0 / mutantsToTestSize).floor / 10.0
     val scoreFormatted = "%4.1f".format(score)
     val avgTimeFormatted = {
