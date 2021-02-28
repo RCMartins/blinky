@@ -92,6 +92,22 @@ If using SBT, <em>Blinky</em> will run: <code>sbt &lt;testCommand&gt;</code></p>
 <h4><a class="anchor" aria-hidden="true" id="maxrunningtime"></a><a href="#maxrunningtime" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>maxRunningTime</h4>
 <p>Maximum time to run tests.</p>
 <p>Default: <code>60 minutes</code></p>
+<h4><a class="anchor" aria-hidden="true" id="timeoutfactor"></a><a href="#timeoutfactor" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>timeoutFactor</h4>
+<p>see <a href="#timeout">timeout</a>.</p>
+<p>Default: <code>1.5</code></p>
+<h4><a class="anchor" aria-hidden="true" id="timeout"></a><a href="#timeout" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>timeout</h4>
+<p>When <em>Blinky</em> mutates code, it cannot determine whether a code mutation results
+in an infinite loop (see <a href="https://en.wikipedia.org/wiki/Halting_problem">Halting problem</a>).
+In order to deal with mutants that create infinite loops, the test run is terminated
+after a certain period of time.
+<em>Blinky</em> will consider that the mutant was <strong>killed</strong> in a case of a timeout.
+This period is configurable with two settings: timeout and timeoutFactor.
+Formula used:</p>
+<pre><code class="hljs"><span class="hljs-attr">timeoutForEachTest</span> = netTime * timeoutFactor + timeout
+</code></pre>
+<p><code>netTime</code> is calculated during the initial test run (when no mutants are active).</p>
+<p>Default: <code>1 second</code></p>
+<p>timeoutForTestRun = netTime * timeoutFactor + timeout</p>
 <h4><a class="anchor" aria-hidden="true" id="mutationminimum"></a><a href="#mutationminimum" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>mutationMinimum</h4>
 <p>Minimum mutation score to fail (only useful if failOnMinimum is <code>true</code>).
 Value must be between 0 and 100. Can have one decimal place of precision.</p>
@@ -107,14 +123,14 @@ E.g. If we test <code>200</code> mutations and <code>90</code> are killed by the
 <h4><a class="anchor" aria-hidden="true" id="multirun"></a><a href="#multirun" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>multiRun</h4>
 <p>Only test the mutants of the given index, 1 &lt;= job-index &lt;= number-of-jobs</p>
 <p>This parameter helps running Blinky in parallel, useful to run Blinky in independent machines.
-E.g. If you have two Travis jobs that run Blinky on the same project and configuration, you can use:</p>
-<pre><code class="hljs"># First Travis job:
+E.g. If you have two CI jobs that run Blinky on the same project and configuration, you can use:</p>
+<pre><code class="hljs"># First CI job:
 <span class="hljs-keyword">blinky </span>.<span class="hljs-keyword">blinky.conf </span>--<span class="hljs-keyword">multiRun </span><span class="hljs-number">1</span>/<span class="hljs-number">2</span>
 
-# Second Travis job:
+# Second CI job:
 <span class="hljs-keyword">blinky </span>.<span class="hljs-keyword">blinky.conf </span>--<span class="hljs-keyword">multiRun </span><span class="hljs-number">2</span>/<span class="hljs-number">2</span>
 </code></pre>
-<p>This makes each travis job run half the mutations without overlapping (i.e. testing the same mutant).</p>
+<p>This makes each CI job run half the mutations without overlapping (i.e. testing the same mutant).</p>
 <p>Format: &lt;job-index&gt;/&lt;number-of-jobs&gt;<br>
 Default: 1/1</p>
 <h3><a class="anchor" aria-hidden="true" id="mutators-optional"></a><a href="#mutators-optional" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>mutators (optional)</h3>
