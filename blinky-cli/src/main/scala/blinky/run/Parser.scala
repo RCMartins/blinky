@@ -1,7 +1,6 @@
 package blinky.run
 
 import blinky.BuildInfo
-import blinky.run.config.OptionsConfig.default
 import blinky.run.config.{Args, OptionsConfig}
 import com.softwaremill.quicklens._
 import scopt.{OParser, OParserBuilder, Read}
@@ -135,7 +134,7 @@ object Parser {
         .action { (timeoutFactor, config) =>
           config.add(_.modify(_.options.timeoutFactor).setTo(timeoutFactor))
         }
-        .text(s"Time factor for each mutant test (default: ${default.timeoutFactor})")
+        .text(s"Time factor for each mutant test")
         .maxOccurs(1),
       opt[Duration]("timeout")
         .valueName("<duration>")
@@ -143,7 +142,7 @@ object Parser {
           config.add(_.modify(_.options.timeout).setTo(timeout))
         }
         .text(
-          s"Duration of additional flat timeout for each mutant test (default: ${default.timeout})"
+          s"Duration of additional flat timeout for each mutant test"
         )
         .maxOccurs(1)
     )

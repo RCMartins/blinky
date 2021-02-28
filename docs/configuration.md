@@ -71,9 +71,10 @@ Default: `1.5`
 
 #### timeout
 
-When _Blinky_ mutates code, it cannot determine indefinitely whether a code mutation results
+When _Blinky_ mutates code, it cannot determine whether a code mutation results
 in an infinite loop (see [Halting problem](https://en.wikipedia.org/wiki/Halting_problem)).
-In order to battle infinite loops, a test run is terminated after a certain period of time.
+In order to deal with mutants that create infinite loops, the test run is terminated 
+after a certain period of time.
 _Blinky_ will consider that the mutant was **killed** in a case of a timeout.
 This period is configurable with two settings: timeout and timeoutFactor.
 Formula used:
@@ -109,15 +110,15 @@ Default: false
 Only test the mutants of the given index, 1 <= job-index <= number-of-jobs
 
 This parameter helps running Blinky in parallel, useful to run Blinky in independent machines.
-E.g. If you have two Travis jobs that run Blinky on the same project and configuration, you can use:
+E.g. If you have two CI jobs that run Blinky on the same project and configuration, you can use:
 ```
-# First Travis job:
+# First CI job:
 blinky .blinky.conf --multiRun 1/2
 
-# Second Travis job:
+# Second CI job:
 blinky .blinky.conf --multiRun 2/2
 ```
-This makes each travis job run half the mutations without overlapping (i.e. testing the same mutant).
+This makes each CI job run half the mutations without overlapping (i.e. testing the same mutant).
 
 Format: <job-index>/<number-of-jobs>  
 Default: 1/1

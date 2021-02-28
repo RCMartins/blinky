@@ -60,8 +60,8 @@ object CliTest extends TestSpec {
                |  --multiRun <job-index/number-of-jobs>
                |                           Only test the mutants of the given index, 1 <= job-index <= number-of-jobs
                |  --timeoutFactor <decimal>
-               |                           Time factor for each mutant test (default: 1.5)
-               |  --timeout <duration>     Duration of additional flat timeout for each mutant test (default: 1 second)
+               |                           Time factor for each mutant test
+               |  --timeout <duration>     Duration of additional flat timeout for each mutant test
                |""".stripMargin
           }
         } &&
@@ -95,7 +95,7 @@ object CliTest extends TestSpec {
                   onlyMutateDiff = false,
                   multiRun = (1, 1),
                   timeoutFactor = 1.5,
-                  timeout = 1.second
+                  timeout = 5.second
                 )
               )
             )
@@ -121,7 +121,7 @@ object CliTest extends TestSpec {
                 onlyMutateDiff = false,
                 multiRun = (1, 3),
                 timeoutFactor = 2.0,
-                timeout = 5.second
+                timeout = 10.second
               )
             )
           })

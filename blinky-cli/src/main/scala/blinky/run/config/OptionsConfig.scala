@@ -32,7 +32,7 @@ object OptionsConfig {
     onlyMutateDiff = false,
     multiRun = (1, 1),
     timeoutFactor = 1.5,
-    timeout = 1.second
+    timeout = 5.second
   )
 
   implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.instance[Duration] {
