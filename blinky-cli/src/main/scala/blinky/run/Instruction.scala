@@ -63,6 +63,12 @@ object Instruction {
 
   final case class IsFile[A](path: Path, next: Boolean => Instruction[A]) extends Instruction[A]
 
+  final case class Timeout[+A](
+      runFunction: Instruction[Boolean],
+      millis: Long,
+      next: Option[Boolean] => Instruction[A]
+  ) extends Instruction[A]
+
   def succeed[A](value: => A): Return[A] =
     Return(() => value)
 
@@ -134,5 +140,11 @@ object Instruction {
 
   def readFile(path: Path): ReadFile[Either[Throwable, String]] =
     ReadFile(path, succeed(_: Either[Throwable, String]))
+
+  def runWithTimeout(
+      runFunction: Instruction[Boolean],
+      millis: Long
+  ): Timeout[Option[Boolean]] =
+    Timeout(runFunction, millis, succeed(_: Option[Boolean]))
 
 }

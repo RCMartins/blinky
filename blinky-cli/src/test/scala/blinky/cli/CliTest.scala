@@ -1,21 +1,19 @@
 package blinky.cli
 
-import java.io.ByteArrayOutputStream
-import java.util.concurrent.TimeUnit
-
 import better.files.File
 import blinky.BuildInfo.version
 import blinky.TestSpec
 import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
-import blinky.run.modules.TestModules.{TestCliModule, TestParserModule}
-import blinky.run.modules.{CliModule, ParserModule}
+import blinky.run.modules.{CliModule, ParserModule, TestModules}
 import blinky.v0.Mutators
-import scopt.DefaultOParserSetup
-import zio.UIO
+import scopt.DefaultOEffectSetup
 import zio.test.Assertion._
 import zio.test._
 import zio.test.environment._
+import zio.{Layer, UIO}
 
+import java.io.ByteArrayOutputStream
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 
 object CliTest extends TestSpec {
@@ -61,6 +59,9 @@ object CliTest extends TestSpec {
                |  --failOnMinimum <bool>   If set, exits with non-zero code when the mutation score is below mutationMinimum value
                |  --multiRun <job-index/number-of-jobs>
                |                           Only test the mutants of the given index, 1 <= job-index <= number-of-jobs
+               |  --timeoutFactor <decimal>
+               |                           Time factor for each mutant test
+               |  --timeout <duration>     Duration of additional flat timeout for each mutant test
                |""".stripMargin
           }
         } &&
@@ -92,7 +93,9 @@ object CliTest extends TestSpec {
                   failOnMinimum = false,
                   mutationMinimum = 25.0,
                   onlyMutateDiff = false,
-                  multiRun = (1, 1)
+                  multiRun = (1, 1),
+                  timeoutFactor = 1.5,
+                  timeout = 5.second
                 )
               )
             )
@@ -116,7 +119,9 @@ object CliTest extends TestSpec {
                 failOnMinimum = true,
                 mutationMinimum = 66.7,
                 onlyMutateDiff = false,
-                multiRun = (1, 3)
+                multiRun = (1, 3),
+                timeoutFactor = 2.0,
+                timeout = 10.second
               )
             )
           })
@@ -201,7 +206,11 @@ object CliTest extends TestSpec {
             "--failOnMinimum",
             "true",
             "--multiRun",
-            "2/3"
+            "2/3",
+            "--timeoutFactor",
+            "1.75",
+            "--timeout",
+            "3 seconds"
           )
 
           val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(File("."))
@@ -226,7 +235,9 @@ object CliTest extends TestSpec {
                 failOnMinimum = true,
                 mutationMinimum = 73.9,
                 onlyMutateDiff = true,
-                multiRun = (2, 3)
+                multiRun = (2, 3),
+                timeoutFactor = 1.75,
+                timeout = 3.second
               )
             })
         },
@@ -291,7 +302,7 @@ object CliTest extends TestSpec {
               )
             )
         },
-        testM("return an error multiRun field in wrong (index <= number)") {
+        testM("return an error multiRun field in wrong (index <= total)") {
           val (zioResult, parser) = parse("--multiRun", "3/2")()
 
           for {
@@ -312,12 +323,11 @@ object CliTest extends TestSpec {
     private val outCapture = new ByteArrayOutputStream
     private val errCapture = new ByteArrayOutputStream
 
-    val _parser: DefaultOParserSetup =
-      new DefaultOParserSetup() {
+    val _parser: DefaultOEffectSetup =
+      new DefaultOEffectSetup {
         override def terminate(exitState: Either[String, Unit]): Unit = ()
         override def displayToOut(msg: String): Unit = outCapture.write((msg + "\n").getBytes)
         override def displayToErr(msg: String): Unit = errCapture.write((msg + "\n").getBytes)
-        override def errorOnUnknownArgument: Boolean = true
       }
 
     def getOut: String = removeCarriageReturns(outCapture.toString)
@@ -331,12 +341,11 @@ object CliTest extends TestSpec {
   ): (UIO[Either[String, MutationsConfigValidated]], MyParser) = {
     val myParser = new MyParser()
 
-    val parserEnv: ParserModule with CliModule = new ParserModule with CliModule {
-      override val parserModule: ParserModule.Service[Any] = new TestParserModule(myParser._parser)
-      override val cliModule: CliModule.Service[Any] = new TestCliModule(pwd)
-    }
+    val parserEnv: Layer[Nothing, ParserModule with CliModule] =
+      TestModules.testParserModule(myParser._parser) ++
+        TestModules.testCliModule(pwd)
 
-    (Cli.parse(args.toList).provide(parserEnv), myParser)
+    (Cli.parse(args.toList).provideLayer(parserEnv), myParser)
   }
 
 }

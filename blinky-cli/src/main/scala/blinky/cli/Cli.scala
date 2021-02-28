@@ -6,25 +6,24 @@ import blinky.run._
 import blinky.run.config._
 import blinky.run.modules.{CliModule, ExternalModule, ParserModule}
 import scopt.OParser
+import zio.clock.Clock
 import zio.{ExitCode, URIO, ZEnv, ZIO}
 
 object Cli extends zio.App {
 
-  private type FullEnvironment = ParserModule with ExternalModule with CliModule
+  private type FullEnvironment = ParserModule with ExternalModule with CliModule with Clock
 
   private type ParserEnvironment = ParserModule with CliModule
 
+  type InterpreterEnvironment = ExternalModule with Clock
+
   override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
-    parseAndRun(args).provide {
-      new ParserModule.Live with ExternalModule.Live with CliModule.Live {
-        override val pwdLive: File = File(".")
-      }
+    parseAndRun(args).provideLayer {
+      ParserModule.live ++ CliModule.live(File(".")) ++ ExternalModule.live ++ Clock.live
     }
 
   private def parseAndRun(strArgs: List[String]): URIO[FullEnvironment, ExitCode] =
     for {
-      env <- ZIO.environment[ExternalModule]
-      external <- env.externalModule.external
       parseResult <- parse(strArgs)
       instructions <- parseResult match {
         case Left(exitCode) =>
@@ -36,15 +35,15 @@ object Cli extends zio.App {
               ZIO.succeed(PrintErrorLine(throwable.getMessage, succeed(ExitCode.failure)))
             )
       }
-    } yield Interpreter.interpreter(external, instructions)
+      result <- Interpreter.interpreter(instructions)
+    } yield result
 
   private[cli] def parse(
       strArgs: List[String]
   ): URIO[ParserEnvironment, Either[String, MutationsConfigValidated]] =
     for {
-      env <- ZIO.environment[ParserEnvironment]
-      parser <- env.parserModule.parser
-      pwd <- env.cliModule.pwd
+      parser <- ParserModule.parser
+      pwd <- CliModule.pwd
       args <- ZIO.succeed(OParser.parse(Parser.parser, strArgs, Args(), parser))
     } yield args match {
       case None =>
