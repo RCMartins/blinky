@@ -1,8 +1,5 @@
 package blinky.cli
 
-import java.io.ByteArrayOutputStream
-import java.util.concurrent.TimeUnit
-
 import better.files.File
 import blinky.BuildInfo.version
 import blinky.TestSpec
@@ -10,12 +7,14 @@ import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyC
 import blinky.run.modules.TestModules.{TestCliModule, TestParserModule}
 import blinky.run.modules.{CliModule, ParserModule}
 import blinky.v0.Mutators
-import scopt.DefaultOParserSetup
+import scopt.DefaultOEffectSetup
 import zio.UIO
 import zio.test.Assertion._
 import zio.test._
 import zio.test.environment._
 
+import java.io.ByteArrayOutputStream
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 
 object CliTest extends TestSpec {
@@ -312,12 +311,11 @@ object CliTest extends TestSpec {
     private val outCapture = new ByteArrayOutputStream
     private val errCapture = new ByteArrayOutputStream
 
-    val _parser: DefaultOParserSetup =
-      new DefaultOParserSetup() {
+    val _parser: DefaultOEffectSetup =
+      new DefaultOEffectSetup {
         override def terminate(exitState: Either[String, Unit]): Unit = ()
         override def displayToOut(msg: String): Unit = outCapture.write((msg + "\n").getBytes)
         override def displayToErr(msg: String): Unit = errCapture.write((msg + "\n").getBytes)
-        override def errorOnUnknownArgument: Boolean = true
       }
 
     def getOut: String = removeCarriageReturns(outCapture.toString)

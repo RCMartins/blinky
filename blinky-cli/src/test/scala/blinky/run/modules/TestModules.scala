@@ -2,14 +2,14 @@ package blinky.run.modules
 
 import better.files.File
 import blinky.run.external.ExternalCalls
-import scopt.OParserSetup
+import scopt.OEffectSetup
 import zio.ZIO
 
 object TestModules {
 
-  class TestParserModule(oParserSetup: OParserSetup) extends ParserModule.Service[Any] {
-    override def parser: ZIO[Any, Nothing, OParserSetup] =
-      ZIO.succeed(oParserSetup)
+  class TestParserModule(oEffectSetup: OEffectSetup) extends ParserModule.Service[Any] {
+    override def parser: ZIO[Any, Nothing, OEffectSetup] =
+      ZIO.succeed(oEffectSetup)
   }
 
   class TestExternalModule(externalCalls: ExternalCalls) extends ExternalModule.Service[Any] {
