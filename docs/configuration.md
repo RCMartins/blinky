@@ -64,6 +64,28 @@ Maximum time to run tests.
 
 Default: `60 minutes`
 
+#### timeoutFactor
+see [timeout](#timeout).
+
+Default: `1.5`
+
+#### timeout
+
+When _Blinky_ mutates code, it cannot determine indefinitely whether a code mutation results
+in an infinite loop (see [Halting problem](https://en.wikipedia.org/wiki/Halting_problem)).
+In order to battle infinite loops, a test run is terminated after a certain period of time.
+_Blinky_ will consider that the mutant was **killed** in a case of a timeout.
+This period is configurable with two settings: timeout and timeoutFactor.
+Formula used:
+```
+timeoutForEachTest = netTime * timeoutFactor + timeout
+```
+`netTime` is calculated during the initial test run (when no mutants are active).
+
+Default: `1 second`
+
+timeoutForTestRun = netTime * timeoutFactor + timeout
+
 #### mutationMinimum
 Minimum mutation score to fail (only useful if failOnMinimum is `true`).
 Value must be between 0 and 100. Can have one decimal place of precision.

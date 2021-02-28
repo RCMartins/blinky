@@ -59,6 +59,9 @@ object CliTest extends TestSpec {
                |  --failOnMinimum <bool>   If set, exits with non-zero code when the mutation score is below mutationMinimum value
                |  --multiRun <job-index/number-of-jobs>
                |                           Only test the mutants of the given index, 1 <= job-index <= number-of-jobs
+               |  --timeoutFactor <decimal>
+               |                           Time factor for each mutant test (default: 1.5)
+               |  --timeout <duration>     Duration of additional flat timeout for each mutant test (default: 1 second)
                |""".stripMargin
           }
         } &&
@@ -90,7 +93,9 @@ object CliTest extends TestSpec {
                   failOnMinimum = false,
                   mutationMinimum = 25.0,
                   onlyMutateDiff = false,
-                  multiRun = (1, 1)
+                  multiRun = (1, 1),
+                  timeoutFactor = 1.5,
+                  timeout = 1.second
                 )
               )
             )
@@ -114,7 +119,9 @@ object CliTest extends TestSpec {
                 failOnMinimum = true,
                 mutationMinimum = 66.7,
                 onlyMutateDiff = false,
-                multiRun = (1, 3)
+                multiRun = (1, 3),
+                timeoutFactor = 2.0,
+                timeout = 5.second
               )
             )
           })
@@ -199,7 +206,11 @@ object CliTest extends TestSpec {
             "--failOnMinimum",
             "true",
             "--multiRun",
-            "2/3"
+            "2/3",
+            "--timeoutFactor",
+            "1.75",
+            "--timeout",
+            "3 seconds"
           )
 
           val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(File("."))
@@ -224,7 +235,9 @@ object CliTest extends TestSpec {
                 failOnMinimum = true,
                 mutationMinimum = 73.9,
                 onlyMutateDiff = true,
-                multiRun = (2, 3)
+                multiRun = (2, 3),
+                timeoutFactor = 1.75,
+                timeout = 3.second
               )
             })
         },
@@ -289,7 +302,7 @@ object CliTest extends TestSpec {
               )
             )
         },
-        testM("return an error multiRun field in wrong (index <= number)") {
+        testM("return an error multiRun field in wrong (index <= total)") {
           val (zioResult, parser) = parse("--multiRun", "3/2")()
 
           for {
