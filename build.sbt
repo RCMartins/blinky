@@ -23,7 +23,7 @@ inThisBuild(
     scalaVersion := V.scala212,
     addCompilerPlugin(scalafixSemanticdb),
     scalacOptions ++= SBTDefaults.defaultScalacFlags,
-    scalacOptions -= (if (sys.env.contains("CI")) "" else "-Xfatal-warnings"),
+    scalacOptions -= (if (sys.env.contains("CI")) "" else "-Werror"),
     coverageEnabled := false,
     fork in Test := false,
     skip in publish := true
