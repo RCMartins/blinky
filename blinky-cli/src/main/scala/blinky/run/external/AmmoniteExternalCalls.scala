@@ -52,4 +52,14 @@ object AmmoniteExternalCalls extends ExternalCalls {
   def isFile(path: Path): Boolean =
     path.isFile
 
+  def copyRelativeFiles(
+      filesToCopy: Seq[RelPath],
+      fromPath: Path,
+      toPath: Path
+  ): Unit =
+    filesToCopy.foreach { fileToCopy =>
+      makeDirectory(toPath / fileToCopy / up)
+      copyInto(fromPath / fileToCopy, toPath / fileToCopy / up)
+    }
+
 }
