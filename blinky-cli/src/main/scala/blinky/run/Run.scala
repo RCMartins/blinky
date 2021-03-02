@@ -1,6 +1,6 @@
 package blinky.run
 
-import ammonite.ops.{Path, RelPath, up}
+import ammonite.ops.{Path, RelPath}
 import blinky.BuildInfo
 import blinky.run.Instruction._
 import blinky.run.config.{MutationsConfigValidated, SimpleBlinkyConfig}
@@ -55,18 +55,7 @@ object Run {
                         path = originalProjectPath
                       ).map(_.right.get)
                       filesToCopy = gitResult.split(System.lineSeparator()).map(RelPath(_))
-                      _ <- filesToCopy.foldLeft(succeed(()): Instruction[Unit]) {
-                        (before, fileToCopy) =>
-                          before.flatMap(_ =>
-                            MakeDirectory(
-                              projectRealPath / fileToCopy / up,
-                              copyInto(
-                                originalProjectRoot / fileToCopy,
-                                projectRealPath / fileToCopy / up
-                              )
-                            )
-                          )
-                      }
+                      _ <- copyRelativeFiles(filesToCopy, originalProjectRoot, projectRealPath)
                     } yield ()
 
                     // Setup files to mutate ('scalafix --diff' does not work like I want...)
