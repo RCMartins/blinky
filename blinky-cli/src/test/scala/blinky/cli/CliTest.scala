@@ -68,7 +68,8 @@ object CliTest extends TestSpec {
           assert(parser.getErr)(equalTo(""))
       },
       testM("blinky empty.conf should return the default config options") {
-        val (zioResult, parser) = parse(getFilePath("empty.conf"))()
+        val (zioResult, parser) =
+          parse(getFilePath("empty.conf"))(File(getFilePath("some-project")))
 
         for {
           result <- zioResult
@@ -77,7 +78,7 @@ object CliTest extends TestSpec {
           assert(result)(equalTo {
             Right(
               MutationsConfigValidated(
-                projectPath = File(getFilePath(".")),
+                projectPath = File(getFilePath("some-project")),
                 filesToMutate = "src/main/scala",
                 filesToExclude = "",
                 mutators = SimpleBlinkyConfig(
@@ -102,7 +103,8 @@ object CliTest extends TestSpec {
           })
       },
       testM("blinky options1.conf should return the correct options") {
-        val (zioResult, parser) = parse(getFilePath("options1.conf"))()
+        val (zioResult, parser) =
+          parse(getFilePath("options1.conf"))(File(getFilePath("some-project")))
 
         for {
           result <- zioResult
@@ -127,23 +129,66 @@ object CliTest extends TestSpec {
           })
       },
       testM(
-        "blinky simple1.conf should return the correct projectName, compileCommand and testCommand"
+        "blinky simple1.conf returns the correct projectName, compileCommand and testCommand"
       ) {
-        val (zioResult, parser) = parse(getFilePath("simple1.conf"))(File("."))
+        val (zioResult, parser) = parse(getFilePath("simple1.conf"))()
 
         for {
           result <- zioResult
           config = result.toOption
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
-          assert(config.map(_.projectPath))(
-            equalSome(File(".") / "ci-tests" / "examples" / "example1")
-          ) &&
+          assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
           assert(config.map(_.filesToMutate))(equalSome("src/main/scala/Example.scala")) &&
           assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
           assert(config.map(_.options.testCommand))(equalSome("example1"))
       },
-      testM("blinky <no conf file> should return an error if there is no .blinky.conf file") {
+      testM(
+        "blinky simple2.conf returns the correct projectName, compileCommand and testCommand"
+      ) {
+        val (zioResult, parser) = parse(getFilePath("simple2.conf"))()
+
+        for {
+          result <- zioResult
+          config = result.toOption
+        } yield assert(parser.getOut)(equalTo("")) &&
+          assert(parser.getErr)(equalTo("")) &&
+          assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
+          assert(config.map(_.filesToMutate))(equalSome("src/main/scala/Example.scala")) &&
+          assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
+          assert(config.map(_.options.testCommand))(equalSome("example1"))
+      },
+      testM(
+        "blinky wrongPath1.conf returns an error when the 'filesToMutate' param is invalid"
+      ) {
+        val (zioResult, parser) = parse(getFilePath("wrongPath1.conf"))()
+
+        for {
+          result <- zioResult
+        } yield assert(parser.getOut)(equalTo("")) &&
+          assert(parser.getErr)(equalTo("")) &&
+          assert(result)(equalTo {
+            Left(
+              "--filesToMutate 'src/main/scala/UnknownFile.scala' does not exist."
+            )
+          })
+      },
+      testM(
+        "blinky wrongPath2.conf returns an error when the 'filesToMutate' param is invalid"
+      ) {
+        val (zioResult, parser) = parse(getFilePath("wrongPath2.conf"))()
+
+        for {
+          result <- zioResult
+        } yield assert(parser.getOut)(equalTo("")) &&
+          assert(parser.getErr)(equalTo("")) &&
+          assert(result)(equalTo {
+            Left(
+              "--filesToMutate 'src/main/scala/UnknownFile' does not exist."
+            )
+          })
+      },
+      testM("blinky <no conf file> returns an error if there is no default .blinky.conf file") {
         val pwdFolder = File(".")
         val (zioResult, parser) = parse()(pwdFolder)
 
@@ -158,7 +203,7 @@ object CliTest extends TestSpec {
             )
           })
       },
-      testM("blinky <non-existent-file> should return an error if there is no unknown.conf file") {
+      testM("blinky <non-existent-file> returns an error if there is no unknown.conf file") {
         val pwdFolder = File(getFilePath("."))
         val (zioResult, parser) = parse("unknown.conf")(pwdFolder)
 
@@ -186,11 +231,11 @@ object CliTest extends TestSpec {
         testM("return the changed parameters") {
           val params: Seq[String] = Seq(
             "--projectPath",
-            "ci-tests/examples/example2",
+            "some-project",
             "--projectName",
             "example2",
             "--filesToMutate",
-            "src/main/scala/Example.scala",
+            "src/main/scala/Main.scala",
             "--filesToExclude",
             "src/main/scala/Utils.scala",
             "--verbose",
@@ -213,7 +258,7 @@ object CliTest extends TestSpec {
             "3 seconds"
           )
 
-          val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(File("."))
+          val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)()
 
           for {
             result <- zioResult
@@ -221,9 +266,9 @@ object CliTest extends TestSpec {
           } yield assert(parser.getOut)(equalTo("")) &&
             assert(parser.getErr)(equalTo("")) &&
             assert(config.map(_.projectPath))(
-              equalSome(File(".") / "ci-tests" / "examples" / "example2")
+              equalSome(File(getFilePath("some-project")))
             ) &&
-            assert(config.map(_.filesToMutate))(equalSome("src/main/scala/Example.scala")) &&
+            assert(config.map(_.filesToMutate))(equalSome("src/main/scala/Main.scala")) &&
             assert(config.map(_.filesToExclude))(equalSome("src/main/scala/Utils.scala")) &&
             assert(config.map(_.options))(equalSome {
               OptionsConfig(
@@ -244,10 +289,10 @@ object CliTest extends TestSpec {
         testM("return an error if projectPath does not exist") {
           val params: Seq[String] = Seq(
             "--projectPath",
-            "examples/non-existent"
+            "non-existent/project-path"
           )
 
-          val pwd = File(".")
+          val pwd = File(getFilePath("."))
           val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(pwd)
 
           for {
@@ -256,7 +301,7 @@ object CliTest extends TestSpec {
             assert(parser.getErr)(equalTo("")) &&
             assert(result)(equalTo {
               Left(
-                s"""--projectPath '${pwd / "examples" / "non-existent"}' does not exists.""".stripMargin
+                s"""--projectPath '${pwd / "non-existent" / "project-path"}' does not exist.""".stripMargin
               )
             })
         }
