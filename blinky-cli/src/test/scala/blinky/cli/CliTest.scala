@@ -68,7 +68,8 @@ object CliTest extends TestSpec {
           assert(parser.getErr)(equalTo(""))
       },
       testM("blinky empty.conf should return the default config options") {
-        val (zioResult, parser) = parse(getFilePath("empty.conf"))()
+        val (zioResult, parser) =
+          parse(getFilePath("empty.conf"))(File(getFilePath("some-project")))
 
         for {
           result <- zioResult
@@ -77,7 +78,7 @@ object CliTest extends TestSpec {
           assert(result)(equalTo {
             Right(
               MutationsConfigValidated(
-                projectPath = File(getFilePath(".")),
+                projectPath = File(getFilePath("some-project")),
                 filesToMutate = "src/main/scala",
                 filesToExclude = "",
                 mutators = SimpleBlinkyConfig(
@@ -102,7 +103,8 @@ object CliTest extends TestSpec {
           })
       },
       testM("blinky options1.conf should return the correct options") {
-        val (zioResult, parser) = parse(getFilePath("options1.conf"))()
+        val (zioResult, parser) =
+          parse(getFilePath("options1.conf"))(File(getFilePath("some-project")))
 
         for {
           result <- zioResult
