@@ -34,6 +34,6 @@ trait ExternalCalls {
       filesToCopy: Seq[RelPath],
       fromPath: Path,
       toPath: Path
-  ): Unit
+  ): Either[Throwable, Unit]
 
 }

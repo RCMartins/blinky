@@ -56,10 +56,15 @@ object AmmoniteExternalCalls extends ExternalCalls {
       filesToCopy: Seq[RelPath],
       fromPath: Path,
       toPath: Path
-  ): Unit =
-    filesToCopy.foreach { fileToCopy =>
-      makeDirectory(toPath / fileToCopy / up)
-      copyInto(fromPath / fileToCopy, toPath / fileToCopy / up)
-    }
+  ): Either[Throwable, Unit] =
+    Try(
+      filesToCopy.foreach { fileToCopy =>
+        val fromFile = fromPath / fileToCopy
+        if (exists(fromFile)) {
+          mkdir(toPath / fileToCopy / up)
+          cp.into(fromFile, toPath / fileToCopy / up)
+        }
+      }
+    ).toEither
 
 }
