@@ -23,7 +23,8 @@ inThisBuild(
     scalaVersion := V.scala212,
     addCompilerPlugin(scalafixSemanticdb),
     scalacOptions ++= SBTDefaults.defaultScalacFlags,
-    scalacOptions -= (if (sys.env.contains("CI")) "" else "-Xfatal-warnings"),
+    scalacOptions -= (if (sys.env.contains("CI") && !sys.env.contains("BLINKY")) ""
+                      else "-Xfatal-warnings"),
     coverageEnabled := false,
     fork in Test := false,
     skip in publish := true
@@ -94,7 +95,7 @@ lazy val cli =
       moduleName := "blinky-cli",
       libraryDependencies += "com.geirsson"               %% "metaconfig-core"            % "0.9.10",
       libraryDependencies += "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.10",
-      libraryDependencies += "com.github.scopt"           %% "scopt"                      % "4.0.0-RC2",
+      libraryDependencies += "com.github.scopt"           %% "scopt"                      % "4.0.0",
       libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.6.1",
       libraryDependencies += "dev.zio"                    %% "zio"                        % "1.0.4-2",
       libraryDependencies += "dev.zio"                    %% "zio-test"                   % "1.0.4-2" % "test",

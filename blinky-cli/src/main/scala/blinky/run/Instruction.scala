@@ -1,6 +1,6 @@
 package blinky.run
 
-import ammonite.ops.Path
+import ammonite.ops.{Path, RelPath}
 
 sealed trait Instruction[+A]
 
@@ -62,6 +62,19 @@ object Instruction {
       extends Instruction[A]
 
   final case class IsFile[A](path: Path, next: Boolean => Instruction[A]) extends Instruction[A]
+
+  final case class CopyRelativeFiles[A](
+      filesToCopy: Seq[RelPath],
+      fromPath: Path,
+      toPath: Path,
+      next: Instruction[A]
+  ) extends Instruction[A]
+
+  final case class Timeout[+A](
+      runFunction: Instruction[Boolean],
+      millis: Long,
+      next: Option[Boolean] => Instruction[A]
+  ) extends Instruction[A]
 
   def succeed[A](value: => A): Return[A] =
     Return(() => value)
@@ -134,5 +147,18 @@ object Instruction {
 
   def readFile(path: Path): ReadFile[Either[Throwable, String]] =
     ReadFile(path, succeed(_: Either[Throwable, String]))
+
+  def copyRelativeFiles(
+      filesToCopy: Seq[RelPath],
+      fromPath: Path,
+      toPath: Path
+  ): CopyRelativeFiles[Unit] =
+    CopyRelativeFiles(filesToCopy, fromPath, toPath, succeed(()))
+
+  def runWithTimeout(
+      runFunction: Instruction[Boolean],
+      millis: Long
+  ): Timeout[Option[Boolean]] =
+    Timeout(runFunction, millis, succeed(_: Option[Boolean]))
 
 }

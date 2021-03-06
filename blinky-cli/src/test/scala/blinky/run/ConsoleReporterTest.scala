@@ -3,6 +3,7 @@ package blinky.run
 import blinky.TestSpec
 import blinky.run.ConsoleReporter._
 import blinky.run.Instruction.PrintLine
+import blinky.run.RunResult._
 import blinky.run.config.OptionsConfig
 import zio.test.Assertion._
 import zio.test._
@@ -17,7 +18,7 @@ object ConsoleReporterTest extends TestSpec {
       test("print the mutation score") {
         val (result, out) =
           testReportMutationResult(
-            Seq((1, true), (2, true), (3, false)),
+            Seq((1, MutantKilled), (2, MutantKilled), (3, MutantSurvived)),
             1200L,
             numberOfMutants = 10,
             OptionsConfig.default.copy(failOnMinimum = false)
@@ -43,7 +44,12 @@ object ConsoleReporterTest extends TestSpec {
       test("print the mutation score when failOnMinimum flag is on (score == minimum)") {
         val (result, out) =
           testReportMutationResult(
-            Seq((123, true), (234, true), (345, false), (456, false)),
+            Seq(
+              (123, MutantKilled),
+              (234, MutantKilled),
+              (345, MutantSurvived),
+              (456, MutantSurvived)
+            ),
             12400L,
             numberOfMutants = 16,
             OptionsConfig.default.copy(failOnMinimum = true, mutationMinimum = 50.0)
@@ -70,7 +76,7 @@ object ConsoleReporterTest extends TestSpec {
       test("print the mutation score when failOnMinimum flag is on (score < minimum)") {
         val (result, out) =
           testReportMutationResult(
-            Seq((123, true), (345, false), (456, false)),
+            Seq((123, MutantKilled), (345, MutantSurvived), (456, MutantSurvived)),
             12301L,
             numberOfMutants = 34,
             OptionsConfig.default.copy(failOnMinimum = true, mutationMinimum = 33.4)
@@ -119,7 +125,7 @@ object ConsoleReporterTest extends TestSpec {
     )
 
   private def testReportMutationResult(
-      results: Seq[(Int, Boolean)],
+      results: Seq[(Int, RunResult)],
       totalTime: Long,
       numberOfMutants: Int,
       options: OptionsConfig

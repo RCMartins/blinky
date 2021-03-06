@@ -1,21 +1,41 @@
 package blinky.run
 
-import java.nio.file.{Files, Paths}
-
+import blinky.cli.Cli.InterpreterEnvironment
 import blinky.run.Instruction._
 import blinky.run.external.ExternalCalls
+import blinky.run.modules.ExternalModule
+import zio.URIO
+import zio.duration.durationLong
 
+import java.nio.file.{Files, Paths}
 import scala.annotation.tailrec
 
 object Interpreter {
 
-  def interpreter[A](externalCalls: ExternalCalls, initialProgram: Instruction[A]): A = {
+  def interpreter[A](
+      initialProgram: Instruction[A]
+  ): URIO[InterpreterEnvironment, A] =
+    for {
+      externalCalls <- ExternalModule.external
+      result <- interpreterFully(externalCalls, initialProgram) match {
+        case Left(Timeout(runFunction, millis, next)) =>
+          interpreter(runFunction).disconnect.timeout(millis.millis).flatMap { instruction =>
+            interpreter(next(instruction))
+          }
+        case Right(value) =>
+          URIO.succeed(value)
+      }
+    } yield result
 
+  private def interpreterFully[A](
+      externalCalls: ExternalCalls,
+      initialProgram: Instruction[A]
+  ): Either[Timeout[A], A] = {
     @tailrec
-    def interpreterNext(program: Instruction[A]): A =
+    def interpreterNext(program: Instruction[A]): Either[Timeout[A], A] =
       program match {
         case Return(value) =>
-          value()
+          Right(value())
         case Empty(next) =>
           interpreterNext(next)
         case PrintLine(line, next) =>
@@ -64,6 +84,11 @@ object Interpreter {
         case IsFile(path, next) =>
           val isFile = externalCalls.isFile(path)
           interpreterNext(next(isFile))
+        case CopyRelativeFiles(filesToCopy, fromPath, toPath, next) =>
+          externalCalls.copyRelativeFiles(filesToCopy, fromPath, toPath)
+          interpreterNext(next)
+        case timeout @ Timeout(_, _, _) =>
+          Left(timeout)
       }
 
     interpreterNext(initialProgram)

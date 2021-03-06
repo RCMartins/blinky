@@ -22,7 +22,7 @@ object Setup {
       "sbt",
       Seq(
         "set ThisBuild / semanticdbEnabled := true",
-        "set ThisBuild / semanticdbVersion := \"4.3.17\"",
+        "set ThisBuild / semanticdbVersion := \"4.4.10\"",
         "compile"
       ),
       envArgs = Map("BLINKY" -> "true"),
