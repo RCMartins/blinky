@@ -67,7 +67,7 @@ object Instruction {
       filesToCopy: Seq[RelPath],
       fromPath: Path,
       toPath: Path,
-      next: Instruction[A]
+      next: Either[Throwable, Unit] => Instruction[A]
   ) extends Instruction[A]
 
   final case class Timeout[+A](
@@ -152,8 +152,8 @@ object Instruction {
       filesToCopy: Seq[RelPath],
       fromPath: Path,
       toPath: Path
-  ): CopyRelativeFiles[Unit] =
-    CopyRelativeFiles(filesToCopy, fromPath, toPath, succeed(()))
+  ): CopyRelativeFiles[Either[Throwable, Unit]] =
+    CopyRelativeFiles(filesToCopy, fromPath, toPath, succeed(_: Either[Throwable, Unit]))
 
   def runWithTimeout(
       runFunction: Instruction[Boolean],

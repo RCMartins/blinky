@@ -55,7 +55,15 @@ object Run {
                         path = originalProjectPath
                       ).map(_.right.get)
                       filesToCopy = gitResult.split(System.lineSeparator()).map(RelPath(_))
-                      _ <- copyRelativeFiles(filesToCopy, originalProjectRoot, projectRealPath)
+                      copyResult <- copyRelativeFiles(
+                        filesToCopy,
+                        originalProjectRoot,
+                        projectRealPath
+                      )
+                      _ <- copyResult match {
+                        case Left(error) => printLine(s"Error copying project files: $error")
+                        case Right(())   => succeed(())
+                      }
                     } yield ()
 
                     // Setup files to mutate ('scalafix --diff' does not work like I want...)
