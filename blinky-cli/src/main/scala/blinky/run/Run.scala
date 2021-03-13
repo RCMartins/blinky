@@ -200,11 +200,7 @@ object Run {
       originalProjectRoot: Path,
       originalProjectPath: Path,
       projectRealPath: Path
-  ): Instruction[Either[ExitCode, Unit]] = {
-    println(originalProjectRoot)
-    println(originalProjectPath)
-    println(projectRealPath)
-
+  ): Instruction[Either[ExitCode, Unit]] =
     for {
       // Copy only the files tracked by git into our temporary folder
       gitResultEither <- runAsync(
@@ -232,6 +228,5 @@ object Run {
           } yield Right(())
       }
     } yield result
-  }
 
 }
