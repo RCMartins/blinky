@@ -59,4 +59,4 @@ jobs:
       - uses: olafurpg/setup-scala@v10
       - run: sbt "++ $VERSION_TO_TEST!" core/test tests/test
         env:
-          - VERSION_TO_TEST: ${{ matrix.scalaVersion }}
+          VERSION_TO_TEST: ${{ matrix.scalaVersion }}
