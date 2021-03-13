@@ -1,5 +1,6 @@
-import java.nio.file.Path
+import SBTDefaults.scalafixTestkitV
 
+import java.nio.file.Path
 import sbt.Keys._
 import sbt.nio.file.FileAttributes
 import sbt.util.FileInfo
@@ -21,8 +22,16 @@ inThisBuild(
       )
     ),
     scalaVersion := V.scala212,
-    addCompilerPlugin(scalafixSemanticdb),
-    scalacOptions ++= SBTDefaults.defaultScalacFlags,
+    // addCompilerPlugin(scalafixSemanticdb),
+    addCompilerPlugin(
+      "org.scalameta" % "semanticdb-scalac" % "4.4.10" cross CrossVersion.full
+    ),
+    scalacOptions ++= {
+      if (scalaVersion.value.startsWith("2.13."))
+        SBTDefaults.defaultScalacFlags213
+      else
+        SBTDefaults.defaultScalacFlags212
+    },
     scalacOptions -= (if (sys.env.contains("CI") && !sys.env.contains("BLINKY")) ""
                       else "-Xfatal-warnings"),
     coverageEnabled := false,
@@ -111,8 +120,9 @@ lazy val tests =
   project
     .enablePlugins(ScalafixTestkitPlugin)
     .settings(
-      libraryDependencies += "ch.epfl.scala"  % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
-      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.5"           % Test,
+      libraryDependencies += "ch.epfl.scala"  % "scalafix-testkit" %
+        scalafixTestkitV(scalaVersion.value)  % Test cross CrossVersion.full,
+      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.5" % Test,
       scalafixTestkitOutputSourceDirectories :=
         sourceDirectories.in(output, Compile).value,
       scalafixTestkitInputSourceDirectories :=
@@ -120,7 +130,7 @@ lazy val tests =
       scalafixTestkitInputClasspath :=
         fullClasspath.in(input, Compile).value
     )
-    .dependsOn(core, cli, output)
+    .dependsOn(core, output)
 
 lazy val docs =
   project
