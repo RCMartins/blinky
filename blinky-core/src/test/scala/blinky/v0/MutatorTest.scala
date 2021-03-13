@@ -1,7 +1,6 @@
 package blinky.v0
 
 import blinky.TestSpec
-import metaconfig.{Conf, Configured}
 
 class MutatorTest extends TestSpec {
 
