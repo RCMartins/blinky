@@ -75,35 +75,45 @@ object Run {
 
                               result <-
                                 if (base.isEmpty)
-                                  succeed(base)
+                                  succeed(Right(base))
                                 else
-                                  copyFilesToTempFolder(
-                                    originalProjectRoot,
-                                    originalProjectPath,
-                                    projectRealPath
-                                  ).flatMap { (_: Unit) =>
-                                    // This part is just an optimization of 'base'
-                                    val configFileOrFolderToMutate: Path =
-                                      Try(Path(config.filesToMutate))
-                                        .getOrElse(projectRealPath / RelPath(config.filesToMutate))
-
-                                    val configFileOrFolderToMutateStr =
-                                      configFileOrFolderToMutate.toString
-
-                                    IsFile(
-                                      configFileOrFolderToMutate,
-                                      if (_)
-                                        if (base.contains(configFileOrFolderToMutateStr))
-                                          succeed(Seq(configFileOrFolderToMutateStr))
-                                        else
-                                          succeed(Seq.empty[String])
-                                      else
-                                        succeed(
-                                          base.filter(_.startsWith(configFileOrFolderToMutateStr))
-                                        )
+                                  for {
+                                    copyResult <- copyFilesToTempFolder(
+                                      originalProjectRoot,
+                                      originalProjectPath,
+                                      projectRealPath
                                     )
-                                  }
-                            } yield Right(result)
+                                    result <- copyResult match {
+                                      case Left(result) =>
+                                        succeed(Left(result))
+                                      case Right(_) =>
+                                        // This part is just an optimization of 'base'
+                                        val configFileOrFolderToMutate: Path =
+                                          Try(Path(config.filesToMutate))
+                                            .getOrElse(
+                                              projectRealPath / RelPath(config.filesToMutate)
+                                            )
+
+                                        val configFileOrFolderToMutateStr =
+                                          configFileOrFolderToMutate.toString
+
+                                        IsFile(
+                                          configFileOrFolderToMutate,
+                                          if (_)
+                                            if (base.contains(configFileOrFolderToMutateStr))
+                                              succeed(Seq(configFileOrFolderToMutateStr))
+                                            else
+                                              succeed(Seq.empty[String])
+                                          else
+                                            succeed(
+                                              base.filter(
+                                                _.startsWith(configFileOrFolderToMutateStr)
+                                              )
+                                            )
+                                        ).map(Right(_))
+                                    }
+                                  } yield result
+                            } yield result
                         }
                       else
                         copyFilesToTempFolder(
@@ -190,29 +200,38 @@ object Run {
       originalProjectRoot: Path,
       originalProjectPath: Path,
       projectRealPath: Path
-  ): Instruction[Unit] = {
+  ): Instruction[Either[ExitCode, Unit]] = {
     println(originalProjectRoot)
     println(originalProjectPath)
     println(projectRealPath)
 
     for {
       // Copy only the files tracked by git into our temporary folder
-      gitResult <- runAsync(
+      gitResultEither <- runAsync(
         "git",
         Seq("ls-files", "--others", "--exclude-standard", "--cached"),
         path = originalProjectPath
-      ).map(_.right.get)
-      filesToCopy = gitResult.split(System.lineSeparator()).map(RelPath(_))
-      copyResult <- copyRelativeFiles(
-        filesToCopy,
-        originalProjectRoot,
-        projectRealPath
       )
-      _ <- copyResult match {
-        case Left(error) => printLine(s"Error copying project files: $error")
-        case Right(())   => succeed(())
+      result <- gitResultEither match {
+        case Left(commandError) =>
+          ConsoleReporter
+            .gitIssues(commandError)
+            .map(_ => Left(ExitCode.failure))
+        case Right(gitResult) =>
+          val filesToCopy = gitResult.split(System.lineSeparator()).map(RelPath(_))
+          for {
+            copyResult <- copyRelativeFiles(
+              filesToCopy,
+              originalProjectRoot,
+              projectRealPath
+            )
+            _ <- copyResult match {
+              case Left(error) => printLine(s"Error copying project files: $error")
+              case Right(())   => succeed(())
+            }
+          } yield Right(())
       }
-    } yield ()
+    } yield result
   }
 
 }
