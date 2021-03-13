@@ -311,14 +311,6 @@ object Mutator {
   object Collections extends MutatorGroup {
     override val groupName: String = "Collections"
 
-    override val getSubMutators: List[Mutator] =
-      List(
-        ListApply,
-        SeqApply,
-        SetApply,
-        Reverse
-      )
-
     private val MaxSize = 25
 
     @tailrec
@@ -406,6 +398,14 @@ object Mutator {
           default(term)
       }
     }
+
+    override val getSubMutators: List[Mutator] =
+      List(
+        ListApply,
+        SeqApply,
+        SetApply,
+        Reverse
+      )
 
   }
 
