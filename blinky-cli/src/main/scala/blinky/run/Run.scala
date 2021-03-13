@@ -47,25 +47,6 @@ object Run {
                     projectRealRelPath: RelPath = originalProjectPath.relativeTo(gitFolder)
                     projectRealPath: Path = cloneProjectBaseFolder / projectRealRelPath
 
-                    copyFilesToTempFolder: Instruction[Unit] = for {
-                      // Copy only the files tracked by git into our temporary folder
-                      gitResult <- runAsync(
-                        "git",
-                        Seq("ls-files", "--others", "--exclude-standard", "--cached"),
-                        path = originalProjectPath
-                      ).map(_.right.get)
-                      filesToCopy = gitResult.split(System.lineSeparator()).map(RelPath(_))
-                      copyResult <- copyRelativeFiles(
-                        filesToCopy,
-                        originalProjectRoot,
-                        projectRealPath
-                      )
-                      _ <- copyResult match {
-                        case Left(error) => printLine(s"Error copying project files: $error")
-                        case Right(())   => succeed(())
-                      }
-                    } yield ()
-
                     // Setup files to mutate ('scalafix --diff' does not work like I want...)
                     filesToMutateEither <- {
                       if (config.options.onlyMutateDiff)
@@ -96,7 +77,11 @@ object Run {
                                 if (base.isEmpty)
                                   succeed(base)
                                 else
-                                  copyFilesToTempFolder.flatMap { (_: Unit) =>
+                                  copyFilesToTempFolder(
+                                    originalProjectRoot,
+                                    originalProjectPath,
+                                    projectRealPath
+                                  ).flatMap { (_: Unit) =>
                                     // This part is just an optimization of 'base'
                                     val configFileOrFolderToMutate: Path =
                                       Try(Path(config.filesToMutate))
@@ -121,7 +106,11 @@ object Run {
                             } yield Right(result)
                         }
                       else
-                        copyFilesToTempFolder.map(_ => Right(Seq("all")))
+                        copyFilesToTempFolder(
+                          originalProjectRoot,
+                          originalProjectPath,
+                          projectRealPath
+                        ).map(_ => Right(Seq("all")))
                     }
 
                     runResult <- filesToMutateEither match {
@@ -196,5 +185,34 @@ object Run {
         } yield runResult
       }
     } yield inst
+
+  def copyFilesToTempFolder(
+      originalProjectRoot: Path,
+      originalProjectPath: Path,
+      projectRealPath: Path
+  ): Instruction[Unit] = {
+    println(originalProjectRoot)
+    println(originalProjectPath)
+    println(projectRealPath)
+
+    for {
+      // Copy only the files tracked by git into our temporary folder
+      gitResult <- runAsync(
+        "git",
+        Seq("ls-files", "--others", "--exclude-standard", "--cached"),
+        path = originalProjectPath
+      ).map(_.right.get)
+      filesToCopy = gitResult.split(System.lineSeparator()).map(RelPath(_))
+      copyResult <- copyRelativeFiles(
+        filesToCopy,
+        originalProjectRoot,
+        projectRealPath
+      )
+      _ <- copyResult match {
+        case Left(error) => printLine(s"Error copying project files: $error")
+        case Right(())   => succeed(())
+      }
+    } yield ()
+  }
 
 }
