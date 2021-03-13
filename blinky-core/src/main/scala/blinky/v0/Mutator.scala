@@ -337,8 +337,7 @@ object Mutator {
     class RemoveApplyArgMutator(
         mutatorName: String,
         collectionName: String,
-        symbolsToMatch: Seq[String],
-        minimum: Int = 1
+        val symbolsToMatch: Seq[String],
         minimum: Int
     ) extends SimpleMutator(mutatorName) {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
@@ -357,8 +356,6 @@ object Mutator {
           "ListApply",
           "List",
           Seq(
-            "scala/collection/immutable/List."
-          )
             "scala/collection/immutable/List.",
             "scala/package.List."
           ),
