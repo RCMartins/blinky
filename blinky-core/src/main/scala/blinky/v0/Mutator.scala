@@ -339,6 +339,7 @@ object Mutator {
         collectionName: String,
         symbolsToMatch: Seq[String],
         minimum: Int = 1
+        minimum: Int
     ) extends SimpleMutator(mutatorName) {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
         case collection @ Term.Apply(
@@ -358,6 +359,10 @@ object Mutator {
           Seq(
             "scala/collection/immutable/List."
           )
+            "scala/collection/immutable/List.",
+            "scala/package.List."
+          ),
+          minimum = 1
         )
 
     object SeqApply
@@ -367,8 +372,10 @@ object Mutator {
           Seq(
             "scala/collection/Seq.",
             "scala/collection/mutable/Seq.",
-            "scala/collection/immutable/Seq."
-          )
+            "scala/collection/immutable/Seq.",
+            "scala/package.Seq."
+          ),
+          minimum = 1
         )
 
     object SetApply
@@ -378,21 +385,27 @@ object Mutator {
           Seq(
             "scala/Predef.Set.",
             "scala/collection/mutable/Set.",
-            "scala/collection/immutable/Set."
+            "scala/collection/immutable/Set.",
+            "scala/package.Set."
           ),
           minimum = 2
         )
 
+    val ReverseSymbols: Seq[String] =
+      Seq(
+        "scala/collection/SeqLike#reverse().",
+        "scala/collection/immutable/List#reverse().",
+        "scala/collection/IndexedSeqOptimized#reverse().",
+        "scala/collection/SeqOps#reverse().",
+        "scala/collection/IndexedSeqOps#reverse().",
+        "scala/collection/ArrayOps#reverse().",
+        "scala/collection/StringOps#reverse()."
+      )
+
     object Reverse extends SimpleMutator("Reverse") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
         case reverse @ Term.Select(term, Term.Name("reverse"))
-            if SymbolMatcher
-              .exact(
-                "scala/collection/SeqLike#reverse().",
-                "scala/collection/immutable/List#reverse().",
-                "scala/collection/IndexedSeqOptimized#reverse()."
-              )
-              .matches(reverse.symbol) =>
+            if SymbolMatcher.exact(ReverseSymbols: _*).matches(reverse.symbol) =>
           default(term)
       }
     }
