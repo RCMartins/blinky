@@ -311,14 +311,6 @@ object Mutator {
   object Collections extends MutatorGroup {
     override val groupName: String = "Collections"
 
-    override val getSubMutators: List[Mutator] =
-      List(
-        ListApply,
-        SeqApply,
-        SetApply,
-        Reverse
-      )
-
     private val MaxSize = 25
 
     @tailrec
@@ -337,8 +329,8 @@ object Mutator {
     class RemoveApplyArgMutator(
         mutatorName: String,
         collectionName: String,
-        symbolsToMatch: Seq[String],
-        minimum: Int = 1
+        val symbolsToMatch: Seq[String],
+        minimum: Int
     ) extends SimpleMutator(mutatorName) {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
         case collection @ Term.Apply(
@@ -351,51 +343,70 @@ object Mutator {
       }
     }
 
-    object ListApply
-        extends RemoveApplyArgMutator(
-          "ListApply",
-          "List",
-          Seq(
-            "scala/collection/immutable/List."
-          )
-        )
+    val ListApply: RemoveApplyArgMutator =
+      new RemoveApplyArgMutator(
+        "ListApply",
+        "List",
+        Seq(
+          "scala/collection/immutable/List.",
+          "scala/package.List."
+        ),
+        minimum = 1
+      )
 
-    object SeqApply
-        extends RemoveApplyArgMutator(
-          "SeqApply",
-          "Seq",
-          Seq(
-            "scala/collection/Seq.",
-            "scala/collection/mutable/Seq.",
-            "scala/collection/immutable/Seq."
-          )
-        )
+    val SeqApply: RemoveApplyArgMutator =
+      new RemoveApplyArgMutator(
+        "SeqApply",
+        "Seq",
+        Seq(
+          "scala/collection/Seq.",
+          "scala/collection/mutable/Seq.",
+          "scala/collection/immutable/Seq.",
+          "scala/package.Seq."
+        ),
+        minimum = 1
+      )
 
-    object SetApply
-        extends RemoveApplyArgMutator(
-          "SetApply",
-          "Set",
-          Seq(
-            "scala/Predef.Set.",
-            "scala/collection/mutable/Set.",
-            "scala/collection/immutable/Set."
-          ),
-          minimum = 2
-        )
+    val SetApply: RemoveApplyArgMutator =
+      new RemoveApplyArgMutator(
+        "SetApply",
+        "Set",
+        Seq(
+          "scala/Predef.Set.",
+          "scala/collection/mutable/Set.",
+          "scala/collection/immutable/Set.",
+          "scala/package.Set."
+        ),
+        minimum = 2
+      )
 
-    object Reverse extends SimpleMutator("Reverse") {
-      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-        case reverse @ Term.Select(term, Term.Name("reverse"))
-            if SymbolMatcher
-              .exact(
-                "scala/collection/SeqLike#reverse().",
-                "scala/collection/immutable/List#reverse().",
-                "scala/collection/IndexedSeqOptimized#reverse()."
-              )
-              .matches(reverse.symbol) =>
-          default(term)
+    val ReverseSymbols: Seq[String] =
+      Seq(
+        "scala/collection/SeqLike#reverse().",
+        "scala/collection/immutable/List#reverse().",
+        "scala/collection/IndexedSeqOptimized#reverse().",
+        "scala/collection/SeqOps#reverse().",
+        "scala/collection/IndexedSeqOps#reverse().",
+        "scala/collection/ArrayOps#reverse().",
+        "scala/collection/StringOps#reverse()."
+      )
+
+    val Reverse: SimpleMutator =
+      new SimpleMutator("Reverse") {
+        override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+          case reverse @ Term.Select(term, Term.Name("reverse"))
+              if SymbolMatcher.exact(ReverseSymbols: _*).matches(reverse.symbol) =>
+            default(term)
+        }
       }
-    }
+
+    override val getSubMutators: List[Mutator] =
+      List(
+        ListApply,
+        SeqApply,
+        SetApply,
+        Reverse
+      )
 
   }
 
