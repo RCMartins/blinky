@@ -47,3 +47,16 @@ jobs:
           apps: bloop
       - run: ./.github/scripts/setup.sh
       - run: sbt runExamples
+  scalaTests:
+    name: Run Tests Matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scalaVersion: [2.13.3] #[2.12.10, 2.12.11, 2.12.13, 2.13.2, 2.13.3, 2.13.4, 2.13.5]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v10
+      - run: sbt "++ $VERSION_TO_TEST!" core/test tests/test
+        env:
+          VERSION_TO_TEST: ${{ matrix.scalaVersion }}

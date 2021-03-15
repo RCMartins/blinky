@@ -10,7 +10,7 @@ Every pull request is tested on a Linux machine. Official support for macOS in t
 
 * **Java 8**
 
-* **Scala @SCALA_VERSION@ or 2.13.3**
+* **Tested Scala versions: @SCALA_VERSION@, 2.13.3, 2.13.5**
 
 * **Sbt >= 1.3.4**
 

@@ -5,12 +5,15 @@ import zio.test.{Assertion, DefaultRunnableSpec}
 
 trait TestSpec extends DefaultRunnableSpec {
 
+  @inline
   final val inWindows: Boolean =
     System.getProperty("os.name").toLowerCase.contains("win")
 
+  @inline
   final val removeCarriageReturns: String => String =
     if (inWindows) _.replace("\r", "") else identity
 
+  @inline
   final def getFilePath: String => String =
     if (inWindows)
       fileName => getClass.getResource(s"/$fileName").getPath.stripPrefix("/")

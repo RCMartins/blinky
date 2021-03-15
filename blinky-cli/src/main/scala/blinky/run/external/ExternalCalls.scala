@@ -1,6 +1,6 @@
 package blinky.run.external
 
-import ammonite.ops.Path
+import ammonite.ops.{Path, RelPath}
 
 trait ExternalCalls {
 
@@ -29,5 +29,11 @@ trait ExternalCalls {
   def readFile(path: Path): Either[Throwable, String]
 
   def isFile(path: Path): Boolean
+
+  def copyRelativeFiles(
+      filesToCopy: Seq[RelPath],
+      fromPath: Path,
+      toPath: Path
+  ): Either[Throwable, Unit]
 
 }

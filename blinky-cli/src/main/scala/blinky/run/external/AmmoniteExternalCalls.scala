@@ -52,4 +52,19 @@ object AmmoniteExternalCalls extends ExternalCalls {
   def isFile(path: Path): Boolean =
     path.isFile
 
+  def copyRelativeFiles(
+      filesToCopy: Seq[RelPath],
+      fromPath: Path,
+      toPath: Path
+  ): Either[Throwable, Unit] =
+    Try(
+      filesToCopy.foreach { fileToCopy =>
+        val fromFile = fromPath / fileToCopy
+        if (exists(fromFile)) {
+          mkdir(toPath / fileToCopy / up)
+          cp.into(fromFile, toPath / fileToCopy / up)
+        }
+      }
+    ).toEither
+
 }

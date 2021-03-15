@@ -190,8 +190,8 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
             val gitDiff =
               Try(
                 %%(
-                  'git,
-                  'diff,
+                  "git",
+                  "diff",
                   "--no-index",
                   originalFile.toString,
                   mutatedFile.toString

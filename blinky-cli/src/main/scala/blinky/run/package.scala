@@ -43,6 +43,13 @@ package object run {
           ReadFile(path, next(_: Either[Throwable, String]).flatMap(f))
         case IsFile(path, next) =>
           IsFile(path, next(_: Boolean).flatMap(f))
+        case CopyRelativeFiles(filesToCopy, fromPath, toPath, next) =>
+          CopyRelativeFiles(
+            filesToCopy,
+            fromPath,
+            toPath,
+            next(_: Either[Throwable, Unit]).flatMap(f)
+          )
         case Timeout(runFunction, millis, next) =>
           Timeout(runFunction, millis, next(_: Option[Boolean]).flatMap(f))
       }
