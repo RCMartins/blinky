@@ -12,7 +12,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: olafurpg/setup-scala@v10
-      - uses: olafurpg/setup-gpg@v3
+      - run: git fetch --unshallow
       - run: |
           sbt ci-release
           sbt docs/docusaurusPublishGhpages
