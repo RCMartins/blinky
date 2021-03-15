@@ -85,8 +85,8 @@ object Interpreter {
           val isFile = externalCalls.isFile(path)
           interpreterNext(next(isFile))
         case CopyRelativeFiles(filesToCopy, fromPath, toPath, next) =>
-          externalCalls.copyRelativeFiles(filesToCopy, fromPath, toPath)
-          interpreterNext(next)
+          val result = externalCalls.copyRelativeFiles(filesToCopy, fromPath, toPath)
+          interpreterNext(next(result))
         case timeout @ Timeout(_, _, _) =>
           Left(timeout)
       }
