@@ -5,7 +5,7 @@ import blinky.internal.MutatedTerms.{PlaceholderMutatedTerms, StandardMutatedTer
 import java.util.UUID
 import scala.annotation.tailrec
 import scala.meta.{Term, XtensionQuasiquoteTerm}
-import scala.meta.Term.{Apply, ApplyInfix, Name, Placeholder, Select}
+import scala.meta.Term.{Apply, ApplyInfix, ApplyUnary, Name, Placeholder, Select}
 
 object Placeholders {
 
@@ -27,19 +27,19 @@ object Placeholders {
 //             |""".stripMargin
 //        )
         val isBasicPlaceholderCase =
-          original match {
-            case ApplyInfix(Placeholder(), _, _, _) =>
-              true
-            case ApplyInfix(_, _, _, placeholdersList) if containsPlaceholders(placeholdersList) =>
-              true
-            case ApplyInfix(Select(Apply(_, placeholdersList), _), _, _, _)
-                if containsPlaceholders(placeholdersList) =>
-              true
-            case Apply(Select(Apply(Select(Placeholder(), _), _), _), _) =>
-              true
-            case _ =>
-              true //    false
-          }
+//          original match {
+//            case ApplyInfix(Placeholder(), _, _, _) =>
+//              true
+//            case ApplyInfix(_, _, _, placeholdersList) if containsPlaceholders(placeholdersList) =>
+//              true
+//            case ApplyInfix(Select(Apply(_, placeholdersList), _), _, _, _)
+//                if containsPlaceholders(placeholdersList) =>
+//              true
+//            case Apply(Select(Apply(Select(Placeholder(), _), _), _), _) =>
+//              true
+//            case _ =>
+          true //    false
+//          }
 
         if (isBasicPlaceholderCase) {
 //          println(mutatedTerms.mutated.map(_.structure))
@@ -106,6 +106,8 @@ object Placeholders {
       originalTerm: Term,
       initialMutants: Seq[Term]
   ): (Boolean, Term, Seq[(Term, Term)], List[Name]) = {
+//    println(originalTerm.structure)
+
     @tailrec
     def loop(
         placeholderMode: Boolean,
@@ -171,11 +173,11 @@ object Placeholders {
     )
   }
 
-  private def containsPlaceholders(list: List[Term]): Boolean =
-    list.exists {
-      case Placeholder() => true
-      case _             => false
-    }
+//  private def containsPlaceholders(list: List[Term]): Boolean =
+//    list.exists {
+//      case Placeholder() => true
+//      case _             => false
+//    }
 
   private def defaultPlaceholderFunction: Term => Term =
     (body: Term) => q"_ => $body"
@@ -256,6 +258,9 @@ object Placeholders {
               }
             (Apply(applyTerm, termsUpdated.reverse), varReplaced)
           }
+        case ApplyUnary(op, applyTerm) =>
+          val (replacedTerm, varReplaced) = replace(applyTerm)
+          (ApplyUnary(op, replacedTerm), varReplaced)
         case other =>
 //          println("+" * 20)
 //          println(other.structure)
