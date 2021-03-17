@@ -144,6 +144,13 @@ object Parser {
         .text(
           s"Duration of additional flat timeout for each mutant test"
         )
+        .maxOccurs(1),
+      opt[String]("mutant")
+        .valueName("<range>")
+        .action { (mutant, config) =>
+          config.add(_.modify(_.options.mutant).setTo(mutant))
+        }
+        .text(s"Mutant indices to test. Defaults to 0-${Int.MaxValue}")
         .maxOccurs(1)
     )
   }

@@ -6,6 +6,7 @@ import metaconfig.{ConfDecoder, generic}
 case class BlinkyConfig(
     mutantsOutputFile: String,
     filesToMutate: Seq[String],
+    specificMutants: Seq[MutantRange],
     enabledMutators: Mutators,
     disabledMutators: Mutators
 ) {
@@ -17,6 +18,7 @@ object BlinkyConfig {
   val default: BlinkyConfig = BlinkyConfig(
     mutantsOutputFile = "",
     filesToMutate = Seq.empty,
+    specificMutants = Seq(MutantRange(0, Int.MaxValue)),
     enabledMutators = Mutators.all,
     disabledMutators = Mutators(Nil)
   )
