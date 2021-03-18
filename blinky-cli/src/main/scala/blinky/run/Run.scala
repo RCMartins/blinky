@@ -193,6 +193,7 @@ object Run {
                                   "--auto-classpath=target"
                                 ).filter(_.nonEmpty)
                               for {
+                                _ <- printLine(toolPath)
                                 _ <- runSync("./scalafix", params, path = projectRealPath)
                                 runResult <- TestMutationsBloop.run(
                                   projectRealPath,
