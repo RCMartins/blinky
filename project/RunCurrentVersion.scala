@@ -17,7 +17,8 @@ object RunCurrentVersion {
 
     val shouldDoFullTest =
       commitMsg.contains("[blinky-full]") || commitMsg.contains("[full-blinky]")
-    val shouldSkipTest = commitMsg.contains("[blinky-skip]") || commitMsg.contains("[skip-blinky]")
+    val shouldSkipTest =
+      commitMsg.contains("[blinky-skip]") || commitMsg.contains("[skip-blinky]")
 
     if (shouldSkipTest)
       println("Skipping test because commit message command")
