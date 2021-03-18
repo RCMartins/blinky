@@ -21,7 +21,7 @@ inThisBuild(
         url("https://github.com/rcmartins")
       )
     ),
-    scalaVersion := V.scala212,
+    scalaVersion := V.scala213,
     // addCompilerPlugin(scalafixSemanticdb),
     addCompilerPlugin(
       "org.scalameta" % "semanticdb-scalac" % "4.4.10" cross CrossVersion.full
@@ -33,6 +33,7 @@ inThisBuild(
         SBTDefaults.defaultScalacFlags212
     },
     scalacOptions -= (if (sys.env.contains("CI") && !sys.env.contains("BLINKY")) ""
+                      else if (scalaVersion.value.startsWith("2.13.")) "-Werror"
                       else "-Xfatal-warnings"),
     coverageEnabled := false,
     fork in Test := false,

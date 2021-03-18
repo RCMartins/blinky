@@ -24,7 +24,7 @@ object Run {
           .getOrElse(RelPath(config.projectPath.pathAsString))
       originalProjectPath = originalProjectRoot / originalProjectRelPath
 
-      inst = {
+      instruction = {
         for {
           cloneProjectTempFolder <- makeTemporaryFolder
           _ <-
@@ -53,69 +53,75 @@ object Run {
                       if (config.options.onlyMutateDiff)
                         // maybe copy the .git folder so it can be used by TestMutations, etc?
                         //cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
-                        runAsync("git", Seq("rev-parse", "master"), path = gitFolder).flatMap {
-                          case Left(commandError) =>
-                            ConsoleReporter
-                              .gitIssues(commandError)
-                              .map(_ => Left(ExitCode.failure))
-                          case Right(masterHash) =>
-                            for {
-                              diffLines <- runAsync(
+                        runAsync("git", Seq("rev-parse", "master"), path = gitFolder)
+                          .flatMap {
+                            case Left(commandError) =>
+                              ConsoleReporter
+                                .gitIssues(commandError)
+                                .map(_ => Left(ExitCode.failure))
+                            case Right(masterHash) =>
+                              runAsync(
                                 "git",
                                 Seq("--no-pager", "diff", "--name-only", masterHash),
                                 path = gitFolder
-                              ).map(_.right.get)
+                              ).flatMap {
+                                case Left(commandError) =>
+                                  ConsoleReporter
+                                    .gitIssues(commandError)
+                                    .map(_ => Left(ExitCode.failure))
+                                case Right(diffLines) =>
+                                  val base: Seq[String] =
+                                    diffLines
+                                      .split(System.lineSeparator())
+                                      .toSeq
+                                      .map(file => cloneProjectBaseFolder / RelPath(file))
+                                      .filter(file => file.ext == "scala" || file.ext == "sbt")
+                                      .map(_.toString)
 
-                              base: Seq[String] =
-                                diffLines
-                                  .split(System.lineSeparator())
-                                  .toSeq
-                                  .map(file => cloneProjectBaseFolder / RelPath(file))
-                                  .filter(file => file.ext == "scala" || file.ext == "sbt")
-                                  .map(_.toString)
-
-                              result <-
-                                if (base.isEmpty)
-                                  succeed(Right(base))
-                                else
                                   for {
-                                    copyResult <- copyFilesToTempFolder(
-                                      originalProjectRoot,
-                                      originalProjectPath,
-                                      projectRealPath
-                                    )
-                                    result <- copyResult match {
-                                      case Left(result) =>
-                                        succeed(Left(result))
-                                      case Right(_) =>
-                                        // This part is just an optimization of 'base'
-                                        val configFileOrFolderToMutate: Path =
-                                          Try(Path(config.filesToMutate))
-                                            .getOrElse(
-                                              projectRealPath / RelPath(config.filesToMutate)
-                                            )
+                                    result <-
+                                      if (base.isEmpty)
+                                        succeed(Right(base))
+                                      else
+                                        for {
+                                          copyResult <- copyFilesToTempFolder(
+                                            originalProjectRoot,
+                                            originalProjectPath,
+                                            projectRealPath
+                                          )
+                                          result <- copyResult match {
+                                            case Left(result) =>
+                                              succeed(Left(result))
+                                            case Right(_) =>
+                                              // This part is just an optimization of 'base'
+                                              val configFileOrFolderToMutate: Path =
+                                                Try(Path(config.filesToMutate))
+                                                  .getOrElse(
+                                                    projectRealPath / RelPath(config.filesToMutate)
+                                                  )
 
-                                        val configFileOrFolderToMutateStr =
-                                          configFileOrFolderToMutate.toString
+                                              val configFileOrFolderToMutateStr =
+                                                configFileOrFolderToMutate.toString
 
-                                        IsFile(
-                                          configFileOrFolderToMutate,
-                                          if (_)
-                                            if (base.contains(configFileOrFolderToMutateStr))
-                                              succeed(Seq(configFileOrFolderToMutateStr))
-                                            else
-                                              succeed(Seq.empty[String])
-                                          else
-                                            succeed(
-                                              base.filter(
-                                                _.startsWith(configFileOrFolderToMutateStr)
-                                              )
-                                            )
-                                        ).map(Right(_))
-                                    }
+                                              IsFile(
+                                                configFileOrFolderToMutate,
+                                                if (_)
+                                                  if (base.contains(configFileOrFolderToMutateStr))
+                                                    succeed(Seq(configFileOrFolderToMutateStr))
+                                                  else
+                                                    succeed(Seq.empty[String])
+                                                else
+                                                  succeed(
+                                                    base.filter(
+                                                      _.startsWith(configFileOrFolderToMutateStr)
+                                                    )
+                                                  )
+                                              ).map(Right(_))
+                                          }
+                                        } yield result
                                   } yield result
-                            } yield result
-                        }
+                              }
+                          }
                       else
                         copyFilesToTempFolder(
                           originalProjectRoot,
@@ -158,7 +164,7 @@ object Run {
                             )
                           }
 
-                          toolPath <- runAsync(
+                          runResult <- runAsync(
                             coursier,
                             Seq(
                               "fetch",
@@ -169,33 +175,39 @@ object Run {
                               "COURSIER_REPOSITORIES" -> "ivy2Local|sonatype:snapshots|sonatype:releases"
                             ),
                             path = projectRealPath
-                          ).map(_.right.get)
-
-                          _ <- {
-                            val params: Seq[String] =
-                              Seq(
-                                if (config.options.verbose) "--verbose" else "",
-                                if (config.filesToExclude.nonEmpty)
-                                  s"--exclude=${config.filesToExclude}"
-                                else "",
-                                s"--tool-classpath=$toolPath",
-                                s"--files=${config.filesToMutate}",
-                                s"--config=$scalafixConfFile",
-                                "--auto-classpath=target"
-                              ).filter(_.nonEmpty)
-
-                            runSync("./scalafix", params, path = projectRealPath)
+                          ).flatMap {
+                            case Left(commandError) =>
+                              ConsoleReporter
+                                .gitIssues(commandError)
+                                .map(_ => ExitCode.failure)
+                            case Right(toolPath) =>
+                              val params: Seq[String] =
+                                Seq(
+                                  if (config.options.verbose) "--verbose" else "",
+                                  if (config.filesToExclude.nonEmpty)
+                                    s"--exclude=${config.filesToExclude}"
+                                  else "",
+                                  s"--tool-classpath=$toolPath",
+                                  s"--files=${config.filesToMutate}",
+                                  s"--config=$scalafixConfFile",
+                                  "--auto-classpath=target"
+                                ).filter(_.nonEmpty)
+                              for {
+                                _ <- runSync("./scalafix", params, path = projectRealPath)
+                                runResult <- TestMutationsBloop.run(
+                                  projectRealPath,
+                                  blinkyConf,
+                                  config.options
+                                )
+                              } yield runResult
                           }
-
-                          runResult <-
-                            TestMutationsBloop.run(projectRealPath, blinkyConf, config.options)
                         } yield runResult
                     }
                   } yield runResult
               }
         } yield runResult
       }
-    } yield inst
+    } yield instruction
 
   def copyFilesToTempFolder(
       originalProjectRoot: Path,

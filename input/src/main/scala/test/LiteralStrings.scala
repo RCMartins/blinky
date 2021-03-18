@@ -19,6 +19,8 @@ object LiteralStrings {
   val string11 = raw""
   val string12 = raw"$string2\test"
 
-  val "string13" = "string13"
-  var "string14" = "string14"
+  locally {
+    val "string13" = "string13"
+    var "string14" = "string14"
+  }
 }

@@ -14,6 +14,8 @@ object LiteralStrings {
   val string11 = if (???) "mutated!" else raw""
   val string12 = if (???) "" else if (???) "mutated!" else raw"$string2\test"
 
-  val "string13" = if (???) "" else if (???) "mutated!" else "string13"
-  var "string14" = if (???) "" else if (???) "mutated!" else "string14"
+  locally {
+    val "string13" = if (???) "" else if (???) "mutated!" else "string13"
+    var "string14" = if (???) "" else if (???) "mutated!" else "string14"
+  }
 }

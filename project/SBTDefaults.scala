@@ -48,7 +48,7 @@ object SBTDefaults {
       "-explaintypes",
       "-unchecked",
       "-feature",
-      "-Xlint:deprecation",
+      "-deprecation",
       "-Werror",
       "-Xcheckinit",
       "-Xlint:constant",
@@ -67,11 +67,13 @@ object SBTDefaults {
       "-Ywarn-numeric-widen",
       "-Ywarn-extra-implicit",
       "-Xlint:infer-any",
-      "-Xlint:unused",
+      "-Ywarn-unused:imports",
+      "-Ywarn-unused:locals",
+      "-Ywarn-unused:privates",
       "-Ywarn-unused:patvars",
-      "-Xlint:adapted-args",
       "-Ywarn-unused:params",
-      "-Ywarn-macros:after"
+      "-Ywarn-macros:after",
+      "-Xlint:adapted-args"
     )
 
   lazy val scalafixTestkitV: Map[String, String] =
