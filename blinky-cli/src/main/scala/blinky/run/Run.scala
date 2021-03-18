@@ -168,7 +168,7 @@ object Run {
                             coursier,
                             Seq(
                               "fetch",
-                              s"com.github.rcmartins:${ruleName.toLowerCase}_2.12:${BuildInfo.version}",
+                              s"com.github.rcmartins:${ruleName.toLowerCase}_${BuildInfo.scalaMinorVersion}:${BuildInfo.version}",
                               "-p"
                             ),
                             Map(

@@ -49,10 +49,21 @@ lazy val stableVersion = Def.setting {
   version.in(ThisBuild).value.replaceAll("\\+.*", "")
 }
 
+lazy val buildInfoSettings: Seq[Def.Setting[_]] =
+  Seq(
+    buildInfoPackage := "blinky",
+    buildInfoKeys := Seq[BuildInfoKey](
+      version,
+      "stable" -> stableVersion.value,
+      scalaVersion,
+      "scalaMinorVersion" -> scalaVersion.value.take(4),
+      sbtVersion
+    )
+  )
+
 lazy val core =
   project
     .in(file("blinky-core"))
-    .enablePlugins(BuildInfoPlugin)
     .settings(
       skip in publish := false,
       moduleName := "blinky",
@@ -62,14 +73,7 @@ lazy val core =
       libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.3.8",
       libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.6" % "test",
       coverageMinimum := 94,
-      coverageFailOnMinimum := true,
-      buildInfoPackage := "blinky",
-      buildInfoKeys := Seq[BuildInfoKey](
-        version,
-        "stable" -> stableVersion.value,
-        scalaVersion,
-        sbtVersion
-      )
+      coverageFailOnMinimum := true
     )
 
 lazy val input =
@@ -100,6 +104,7 @@ lazy val output =
 lazy val cli =
   project
     .in(file("blinky-cli"))
+    .enablePlugins(BuildInfoPlugin)
     .settings(
       skip in publish := false,
       moduleName := "blinky-cli",
@@ -115,6 +120,7 @@ lazy val cli =
       coverageMinimum := 30,
       coverageFailOnMinimum := true
     )
+    .settings(buildInfoSettings)
     .dependsOn(core)
 
 lazy val tests =
@@ -136,10 +142,11 @@ lazy val tests =
 lazy val docs =
   project
     .in(file("blinky-docs"))
-    .enablePlugins(MdocPlugin, DocusaurusPlugin)
+    .enablePlugins(BuildInfoPlugin, MdocPlugin, DocusaurusPlugin)
     .settings(
       mdoc := run.in(Compile).evaluated
     )
+    .settings(buildInfoSettings)
     .dependsOn(core)
 
 lazy val runCurrent = inputKey[Unit]("Run current blinky version on itself")
