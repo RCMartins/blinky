@@ -1,7 +1,5 @@
 package blinky.internal
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import ammonite.ops._
 import better.files.File
 import blinky.internal.MutatedTerms._
@@ -10,6 +8,8 @@ import metaconfig.Configured
 import play.api.libs.json.Json
 import scalafix.v1._
 
+import java.util.concurrent.atomic.AtomicInteger
+import scala.meta.Term.{Apply, If, Name, Select}
 import scala.meta._
 import scala.meta.inputs.Input.VirtualFile
 import scala.util.Try
@@ -63,9 +63,19 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
           val (_, mutatedStrBefore) =
             mutantSeq.map(mutant => (mutant.id, mutant.mutated)).foldRight((0, originalReplaced)) {
               case ((id, mutatedTerm), (_, originalTerm)) =>
-                val mutantId = Lit.String(s"BLINKY_MUTATION_$id")
+                val envContains =
+                  Apply(
+                    Select(
+                      Select(
+                        Select(Select(Name("_root_"), Name("scala")), Name("sys")),
+                        Name("env")
+                      ),
+                      Name("contains")
+                    ),
+                    List(Lit.String(s"BLINKY_MUTATION_$id"))
+                  )
                 val result =
-                  q"""if (_root_.scala.sys.env.contains($mutantId)) ($mutatedTerm) else ($originalTerm)"""
+                  If(envContains, mutatedTerm, originalTerm)
                 (0, result)
             }
 
