@@ -25,7 +25,7 @@ object RunCurrentVersion {
       val allParams: Seq[String] =
         Seq(
           "launch",
-          s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
+          s"com.github.rcmartins:blinky-cli_2.13:$versionNumber",
           "--",
           confPath.toString,
           if (shouldDoFullTest) "--onlyMutateDiff=false" else ""
