@@ -75,8 +75,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
       case applyInfix @ Term.ApplyInfix(left, op, targs, rightList) =>
         selectSmallerMutation(
           applyInfix,
-          topMainTermMutations(left)
-            .map(mutated => Term.ApplyInfix(mutated, op, targs, rightList)) ++
+          topMainTermMutations(left).map(Term.ApplyInfix(_, op, targs, rightList)) ++
             listTermsMutateMain(rightList).map(Term.ApplyInfix(left, op, targs, _)),
           topTermMutations(left, parensRequired = true) ++
             rightList.flatMap(topTermMutations(_, parensRequired = true))
