@@ -50,6 +50,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
           mutantSeq: Seq[Mutant],
           placeholderFunction: Term => Term,
           replaceTempVars: Seq[(String, Term)],
+          placeholderLocation: Option[Term],
           needsParens: Boolean
       ): Option[(Patch, Seq[Mutant])] =
         mutantSeq.headOption.map(_.original).map { originalReplaced =>
@@ -79,14 +80,27 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                 (0, result)
             }
 
-          val mutatedStr = replacer(placeholderFunction(mutatedStrBefore))
-//          println("/" * 40)
-//          println(original)
-//          println(originalReplaced)
-//          println(syntaxParens(mutatedStr, needsParens))
-//          println("\\" * 40)
+          placeholderLocation match {
+            case None =>
+              val mutatedStr = replacer(placeholderFunction(mutatedStrBefore))
+//              println("/" * 40)
+//              println(original)
+//              println(originalReplaced)
+//              println(syntaxParens(mutatedStr, needsParens))
+//              println("\\" * 40)
 
-          (Patch.replaceTree(original, syntaxParens(mutatedStr, needsParens)), mutantSeq)
+              (Patch.replaceTree(original, syntaxParens(mutatedStr, needsParens)), mutantSeq)
+            case Some(placeholderLocation) =>
+              val mutatedStr = replacer(mutatedStrBefore)
+              val placeholderFunctionStr =
+                replacer(placeholderFunction(Term.Name("@"))).syntax.takeWhile(_ != '`')
+//              println(placeholderFunctionStr)
+              (
+                Patch.replaceTree(original, syntaxParens(mutatedStr, needsParens)) +
+                  Patch.addLeft(placeholderLocation, placeholderFunctionStr),
+                mutantSeq
+              )
+          }
         }
 
       val (finalPatch, mutantsFound): (Seq[Patch], Seq[Seq[Mutant]]) =
@@ -100,7 +114,14 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                   .map(mutated =>
                     createMutant(original, original, mutated, mutated, needsParens, fileName)
                   )
-              createPatch(original, mutantsSeq, identity, Seq.empty, needsParens = needsParens)
+              createPatch(
+                original,
+                mutantsSeq,
+                identity,
+                Seq.empty,
+                None,
+                needsParens = needsParens
+              )
             case (
                   originalWithP,
                   PlaceholderMutatedTerms(
@@ -108,6 +129,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                     placeholderFunction,
                     mutationsFound,
                     newVars,
+                    placeholderLocation,
                     needsParens
                   )
                 ) =>
@@ -148,6 +170,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                 mutantSeq,
                 placeholderFunction,
                 tempVarsReplaces,
+                placeholderLocation,
                 needsParens = needsParens
               )
           }

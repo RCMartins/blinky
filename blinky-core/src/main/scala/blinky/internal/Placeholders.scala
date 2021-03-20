@@ -11,6 +11,7 @@ object Placeholders {
 
   def replacePlaceholders(
       original: Term,
+      placeholderLocation: Option[Term],
       mutatedTerms: MutatedTerms
   ): Option[(Term, MutatedTerms)] =
     (original, mutatedTerms) match {
@@ -68,6 +69,11 @@ object Placeholders {
 //              case (a, (b, false)) => (defaultPlaceholderFunction(a), b)
 //            }
 
+//          println("{" * 50)
+//          println(original)
+//          println(placeholderLocation)
+//          println("}" * 50)
+
           val (placeholderMode, originalReplaced, mutantsReplaced, vars) =
             replaceAllPlaceholders(original, mutatedTerms.mutated)
 
@@ -89,6 +95,7 @@ object Placeholders {
                   placeholderFunction,
                   mutantsReplaced,
                   vars.map(_.value),
+                  placeholderLocation,
                   mutatedTerms.needsParens
                 )
               else

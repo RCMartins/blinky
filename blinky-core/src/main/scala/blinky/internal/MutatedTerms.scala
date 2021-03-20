@@ -13,6 +13,7 @@ object MutatedTerms {
       placeholderFunction: Term => Term,
       mutated: Seq[(Term, Term)],
       newVars: Seq[String],
+      placeholderLocation: Option[Term],
       needsParens: Boolean
   ) extends MutatedTerms
 
