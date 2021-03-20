@@ -107,33 +107,33 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
       }
     }
 
-    def selectSmallerMutationAdvanced(
-        term: Term,
-        placeholderLocation: => Option[Term],
-        subMutationsWithMain1: => Seq[Term],
-        subMutationsWithoutMain1: => Seq[(Term, Option[Term], MutatedTerms)],
-        subMutationsWithMain2: => Seq[Term],
-        subMutationsWithoutMain2: => Seq[(Term, Option[Term], MutatedTerms)]
-    ): Seq[(Term, Option[Term], MutatedTerms)] = {
-      val (mainMutations, fullReplace, needsParens) = findAllMutations(term)
-      if (fullReplace) {
-//        println("pos1b")
-        Seq((term, placeholderLocation, mainMutations.toMutated(needsParens = needsParens)))
-      } else if (mainMutations.nonEmpty || mainTermsOnly) {
-//        println(s"pos2b (${mainMutations.nonEmpty}, $mainTermsOnly)")
-        Seq(
-          (
-            term,
-            placeholderLocation,
-            (mainMutations ++ subMutationsWithMain1 ++ subMutationsWithMain2)
-              .toMutated(needsParens = needsParens)
-          )
-        )
-      } else {
-//        println("pos3b")
-        subMutationsWithoutMain1 ++ subMutationsWithoutMain2
-      }
-    }
+//    def selectSmallerMutationAdvanced(
+//        term: Term,
+//        placeholderLocation: => Option[Term],
+//        subMutationsWithMain1: => Seq[Term],
+//        subMutationsWithoutMain1: => Seq[(Term, Option[Term], MutatedTerms)],
+//        subMutationsWithMain2: => Seq[Term],
+//        subMutationsWithoutMain2: => Seq[(Term, Option[Term], MutatedTerms)]
+//    ): Seq[(Term, Option[Term], MutatedTerms)] = {
+//      val (mainMutations, fullReplace, needsParens) = findAllMutations(term)
+//      if (fullReplace) {
+////        println("pos1b")
+//        Seq((term, placeholderLocation, mainMutations.toMutated(needsParens = needsParens)))
+//      } else if (mainMutations.nonEmpty || mainTermsOnly) {
+////        println(s"pos2b (${mainMutations.nonEmpty}, $mainTermsOnly)")
+//        Seq(
+//          (
+//            term,
+//            placeholderLocation,
+//            (mainMutations ++ subMutationsWithMain1 ++ subMutationsWithMain2)
+//              .toMutated(needsParens = needsParens)
+//          )
+//        )
+//      } else {
+////        println("pos3b")
+//        subMutationsWithoutMain1 ++ subMutationsWithoutMain2
+//      }
+//    }
 
 //    println("#" * 50)
 //    println(mainTerm)
@@ -159,18 +159,18 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
         )
       case apply @ Term.Apply(fun, args) =>
         val newPlaceholderLocation = placeholderLocation.orElse(Some(apply))
-        selectSmallerMutationAdvanced(
+        selectSmallerMutation(
           apply,
           newPlaceholderLocation,
           topMainTermMutations(fun, placeholderLocation = newPlaceholderLocation)
-            .map(mutated => Term.Apply(mutated, args)),
+            .map(mutated => Term.Apply(mutated, args)) ++
+            listTermsMutateMain(args).map(Term.Apply(fun, _)),
           topTermMutations(
             fun,
             parensRequired = true,
             placeholderLocation = newPlaceholderLocation
-          ),
-          listTermsMutateMain(args).map(Term.Apply(fun, _)),
-          args.flatMap(topTermMutations(_, parensRequired = false))
+          ) ++
+            args.flatMap(topTermMutations(_, parensRequired = false))
         )
       case applyType @ Term.ApplyType(term, targs) =>
         selectSmallerMutation(
