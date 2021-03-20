@@ -225,7 +225,7 @@ object Placeholders {
             val (argsUpdated, varReplaced) =
               args.foldLeft((List.empty[Term], false)) {
                 case ((argsUpdated, false), arg) =>
-                  replaceOnlyP(arg) match {
+                  replace(arg) match {
                     case (argUpdated, varReplaced) =>
                       (argUpdated :: argsUpdated, varReplaced)
                   }
@@ -276,9 +276,6 @@ object Placeholders {
           (other, false)
       }
 
-//    Term.Function(
-//      List(Term.Param(List.empty, newVar, None, None)),
-//    )
     replace(initialTerm)
   }
 
