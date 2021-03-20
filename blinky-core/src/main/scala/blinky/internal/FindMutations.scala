@@ -85,7 +85,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
 //    println(("topMainTermMutations", term, placeholderLocation))
     termMutations(term, placeholderLocation, mainTermsOnly = true).flatMap {
       case (original, placeholderLocation, mutatedTerms) =>
-        println((original, placeholderLocation, mutatedTerms))
+//        println((original, placeholderLocation, mutatedTerms))
 
         Placeholders.replacePlaceholders(original, placeholderLocation, mutatedTerms).flatMap {
           case (_, mutatedTerms: StandardMutatedTerms) if mutatedTerms.mutated.isEmpty =>
