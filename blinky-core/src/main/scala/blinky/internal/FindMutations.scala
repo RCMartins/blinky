@@ -53,6 +53,10 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
     addLocation {
       termMutations(term, placeholderLocation, mainTermsOnly = false).flatMap {
         case (original, placeholderLocation, mutatedTerms) =>
+//          println("$" * 40)
+//          println(mutatedTerms)
+//          println("$" * 40)
+
           Placeholders.replacePlaceholders(original, placeholderLocation, mutatedTerms).flatMap {
             case (original, mutatedTerms: StandardMutatedTerms)
                 if parensRequired && original == term =>
@@ -71,11 +75,37 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
   private def topMainTermMutations(
       term: Term,
       placeholderLocation: Option[Term] = None
-  ): Seq[Term] =
-//    println(("topMainTermMutations", placeholderLocation))
-    termMutations(term, placeholderLocation, mainTermsOnly = true).collect {
-      case (_, _, StandardMutatedTerms(mutations, _)) => mutations
+  ): Seq[Term] = {
+    def replacePlaceholderToIdentity(term: Term): Term =
+      term match {
+        case Term.Placeholder() => Term.Name("identity")
+        case other              => other
+      }
+
+//    println(("topMainTermMutations", term, placeholderLocation))
+    termMutations(term, placeholderLocation, mainTermsOnly = true).flatMap {
+      case (original, placeholderLocation, mutatedTerms) =>
+        println((original, placeholderLocation, mutatedTerms))
+
+        Placeholders.replacePlaceholders(original, placeholderLocation, mutatedTerms).flatMap {
+          case (_, mutatedTerms: StandardMutatedTerms) if mutatedTerms.mutated.isEmpty =>
+            None
+          case (_, mutatedTerms: PlaceholderMutatedTerms) =>
+//            println(mutatedTerms)
+//            println(("  -1->  ", mutatedTerms.mutated.map(_._1).map(replacePlaceholderToIdentity)))
+            Some(mutatedTerms.mutated.map(_._1).map(replacePlaceholderToIdentity))
+          case (_, mutatedTerms: StandardMutatedTerms) =>
+//            println(("  -2->  ", mutatedTerms))
+            Some(mutatedTerms.mutated)
+//          case (original, mutatedTerms) =>
+//            println((original, mutatedTerms))
+//            ???
+        }
     }.flatten
+//    termMutations(term, placeholderLocation, mainTermsOnly = true).collect {
+//      case (_, _, StandardMutatedTerms(mutations, _)) => mutations
+//    }.flatten
+  }
 
   private def termMutations(
       mainTerm: Term,
@@ -90,7 +120,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
     ): Seq[(Term, Option[Term], MutatedTerms)] = {
       val (mainMutations, fullReplace, needsParens) = findAllMutations(term)
       if (fullReplace) {
-//        println("pos1")
+//        println(s"pos1 ($term, $mainMutations)")
         Seq((term, placeholderLocation, mainMutations.toMutated(needsParens = needsParens)))
       } else if (mainMutations.nonEmpty || mainTermsOnly) {
 //        println(s"pos2 (${mainMutations.nonEmpty}, $mainTermsOnly)")
