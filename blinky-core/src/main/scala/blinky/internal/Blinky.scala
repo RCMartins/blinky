@@ -83,18 +83,11 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
           placeholderLocation match {
             case None =>
               val mutatedStr = replacer(placeholderFunction(mutatedStrBefore))
-//              println("/" * 40)
-//              println(original)
-//              println(originalReplaced)
-//              println(syntaxParens(mutatedStr, needsParens))
-//              println("\\" * 40)
-
               (Patch.replaceTree(original, syntaxParens(mutatedStr, needsParens)), mutantSeq)
             case Some(placeholderLocation) =>
               val mutatedStr = replacer(mutatedStrBefore)
               val placeholderFunctionStr =
                 replacer(placeholderFunction(Term.Name("@"))).syntax.takeWhile(_ != '`')
-//              println(placeholderFunctionStr)
               (
                 Patch.replaceTree(original, syntaxParens(mutatedStr, needsParens)) +
                   Patch.addLeft(placeholderLocation, placeholderFunctionStr),
@@ -133,17 +126,6 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                     needsParens
                   )
                 ) =>
-//              println(
-//                s"""***************
-//                   |$originalWithP
-//                   |$originalWithoutP
-//                   |$placeholderFunction
-//                   |$mutationsFound
-//                   |$needsParens
-//                   |***************
-//                   |""".stripMargin
-//              )
-
               val mutantSeq: Seq[Mutant] =
                 mutationsFound
                   .filterNot { case (termWithP, _) =>
@@ -233,11 +215,6 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                 .split("\n")
                 .drop(5)
                 .mkString("\n")
-
-//            println("=" * 40)
-//            println("DIFF")
-//            println(gitDiff)
-//            println("=" * 40)
 
             gitDiff
           }
