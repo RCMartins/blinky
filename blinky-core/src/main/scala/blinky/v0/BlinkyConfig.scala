@@ -18,7 +18,7 @@ object BlinkyConfig {
   val default: BlinkyConfig = BlinkyConfig(
     mutantsOutputFile = "",
     filesToMutate = Seq.empty,
-    specificMutants = Seq(MutantRange(0, Int.MaxValue)),
+    specificMutants = Seq(MutantRange(1, Int.MaxValue)),
     enabledMutators = Mutators.all,
     disabledMutators = Mutators(Nil)
   )

@@ -32,7 +32,7 @@ object OptionsConfig {
     failOnMinimum = false,
     mutationMinimum = 25.0,
     onlyMutateDiff = false,
-    mutant = Seq(MutantRange(0, Int.MaxValue)),
+    mutant = Seq(MutantRange(1, Int.MaxValue)),
     multiRun = (1, 1),
     timeoutFactor = 1.5,
     timeout = 5.second
