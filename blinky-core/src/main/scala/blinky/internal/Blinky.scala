@@ -3,7 +3,7 @@ package blinky.internal
 import ammonite.ops._
 import better.files.File
 import blinky.internal.MutatedTerms._
-import blinky.v0.BlinkyConfig
+import blinky.v0.{BlinkyConfig, MutantRange}
 import metaconfig.Configured
 import play.api.libs.json.Json
 import scalafix.v1._
@@ -20,6 +20,8 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
   private val mutantsOutputFileOpt: Option[File] =
     Some(config.mutantsOutputFile).filter(_.nonEmpty).map(File(_))
   mutantsOutputFileOpt.foreach(_.createFileIfNotExists())
+  private val specificMutants: Seq[MutantRange] =
+    config.specificMutants
 
   private def nextMutantIndex: Int = mutantId.getAndIncrement()
   private def nextTempVarIndex: Int = tempVarId.getAndIncrement()
@@ -104,9 +106,23 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
               val mutantsSeq =
                 mutantsFound
                   .filterNot(_.structure == original.structure)
-                  .map(mutated =>
-                    createMutant(original, original, mutated, mutated, needsParens, fileName)
-                  )
+                  .flatMap { mutated =>
+                    val mutantIndex = nextMutantIndex
+                    if (specificMutants.exists(_.contains(mutantIndex)))
+                      Some(
+                        createMutant(
+                          original,
+                          original,
+                          mutated,
+                          mutated,
+                          needsParens,
+                          fileName,
+                          mutantIndex
+                        )
+                      )
+                    else
+                      None
+                  }
               createPatch(
                 original,
                 mutantsSeq,
@@ -131,15 +147,22 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                   .filterNot { case (termWithP, _) =>
                     termWithP.structure == originalWithP.structure
                   }
-                  .map { case (termWithP, termWithoutP) =>
-                    createMutant(
-                      originalWithoutP,
-                      originalWithP,
-                      termWithoutP,
-                      termWithP,
-                      needsParens,
-                      fileName
-                    )
+                  .flatMap { case (termWithP, termWithoutP) =>
+                    val mutantIndex = nextMutantIndex
+                    if (specificMutants.exists(_.contains(mutantIndex)))
+                      Some(
+                        createMutant(
+                          originalWithoutP,
+                          originalWithP,
+                          termWithoutP,
+                          termWithP,
+                          needsParens,
+                          fileName,
+                          mutantIndex
+                        )
+                      )
+                    else
+                      None
                   }
 
               val tempVarsReplaces =
@@ -169,7 +192,8 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       mutated: Term,
       mutatedForDiff: Term,
       needsParens: Boolean,
-      fileName: String
+      fileName: String,
+      mutantIndex: Int
   ): Mutant = {
     val pos = originalForDiff.pos
     val input = pos.input.text
@@ -180,7 +204,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
     val gitDiff: String = calculateGitDiff(originalForDiff, mutatedStr)
 
     Mutant(
-      nextMutantIndex,
+      mutantIndex,
       gitDiff,
       fileName,
       original,

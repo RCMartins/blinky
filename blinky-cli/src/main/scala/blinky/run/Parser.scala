@@ -2,7 +2,9 @@ package blinky.run
 
 import blinky.BuildInfo
 import blinky.run.config.{Args, OptionsConfig}
+import blinky.v0.MutantRange
 import com.softwaremill.quicklens._
+import metaconfig.{Conf, Configured}
 import scopt.{OParser, OParserBuilder, Read}
 
 import scala.concurrent.duration.Duration
@@ -144,6 +146,23 @@ object Parser {
         .text(
           s"Duration of additional flat timeout for each mutant test"
         )
+        .maxOccurs(1),
+      opt[String]("mutant")
+        .valueName("<range>")
+        .action { (mutantStr, config) =>
+          config.add(
+            _.modify(_.options.mutant).setTo(
+              MutantRange.seqRangeDecoder.read(Conf.Str(mutantStr)).get
+            )
+          )
+        }
+        .validate(mutantStr =>
+          MutantRange.seqRangeDecoder.read(Conf.Str(mutantStr)) match {
+            case Configured.Ok(_)        => success
+            case Configured.NotOk(error) => failure(error.msg)
+          }
+        )
+        .text(s"Mutant indices to test. Defaults to 1-${Int.MaxValue}")
         .maxOccurs(1)
     )
   }
