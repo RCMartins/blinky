@@ -1,5 +1,6 @@
 package blinky.run.config
 
+import blinky.v0.MutantRange
 import metaconfig.generic.Surface
 import metaconfig.{Conf, ConfDecoder, Configured, generic}
 
@@ -15,6 +16,7 @@ case class OptionsConfig(
     failOnMinimum: Boolean,
     mutationMinimum: Double,
     onlyMutateDiff: Boolean,
+    mutant: Seq[MutantRange],
     multiRun: (Int, Int),
     timeoutFactor: Double,
     timeout: Duration
@@ -30,6 +32,7 @@ object OptionsConfig {
     failOnMinimum = false,
     mutationMinimum = 25.0,
     onlyMutateDiff = false,
+    mutant = Seq(MutantRange(1, Int.MaxValue)),
     multiRun = (1, 1),
     timeoutFactor = 1.5,
     timeout = 5.second

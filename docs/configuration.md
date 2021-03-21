@@ -119,9 +119,22 @@ blinky .blinky.conf --multiRun 1/2
 blinky .blinky.conf --multiRun 2/2
 ```
 This makes each CI job run half the mutations without overlapping (i.e. testing the same mutant).
+The first CI will test mutants 1,3,5,7,9,...
+The second CI will test mutants 2,4,6,8,10,...
 
 Format: <job-index>/<number-of-jobs>  
 Default: 1/1
+
+#### mutant
+Only test the mutants within the given indices.
+
+Format: number/number-number
+E.g:
+3
+4-8
+10,20,30,45-58
+
+Default: 1-2147483647
 
 ### mutators (optional)
 Configuration for applying the mutations.
@@ -154,7 +167,7 @@ mutators {
   ]
 }
 ```
-This configuration will allow all mutators except `LiteralBooleans`, `IntMulToDiv` and `OrElse`.
+This configuration will allow all mutators except `LiteralBooleans`, `ArithmeticOperators.IntMulToDiv` and `ScalaOptions.OrElse`.
  
 Default value: `[]`
 
@@ -174,6 +187,9 @@ options = {
   failOnMinimum = true
   mutationMinimum = 50
   onlyMutateDiff = true
+  timeout = 5 seconds
+  timeoutFactor = 2.0
+  mutant = "1-20,50,73"
 }
 mutators = {
   enabled = [

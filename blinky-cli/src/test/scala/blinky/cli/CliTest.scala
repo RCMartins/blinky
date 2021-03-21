@@ -5,7 +5,7 @@ import blinky.BuildInfo.version
 import blinky.TestSpec
 import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
 import blinky.run.modules.{CliModule, ParserModule, TestModules}
-import blinky.v0.Mutators
+import blinky.v0.{MutantRange, Mutators}
 import scopt.DefaultOEffectSetup
 import zio.test.Assertion._
 import zio.test._
@@ -62,6 +62,7 @@ object CliTest extends TestSpec {
                |  --timeoutFactor <decimal>
                |                           Time factor for each mutant test
                |  --timeout <duration>     Duration of additional flat timeout for each mutant test
+               |  --mutant <range>         Mutant indices to test. Defaults to 1-2147483647
                |""".stripMargin
           }
         } &&
@@ -94,6 +95,7 @@ object CliTest extends TestSpec {
                   failOnMinimum = false,
                   mutationMinimum = 25.0,
                   onlyMutateDiff = false,
+                  mutant = Seq(MutantRange(1, Int.MaxValue)),
                   multiRun = (1, 1),
                   timeoutFactor = 1.5,
                   timeout = 5.second
@@ -121,6 +123,7 @@ object CliTest extends TestSpec {
                 failOnMinimum = true,
                 mutationMinimum = 66.7,
                 onlyMutateDiff = false,
+                mutant = Seq(MutantRange(5, 20)),
                 multiRun = (1, 3),
                 timeoutFactor = 2.0,
                 timeout = 10.second
@@ -255,7 +258,9 @@ object CliTest extends TestSpec {
             "--timeoutFactor",
             "1.75",
             "--timeout",
-            "3 seconds"
+            "3 seconds",
+            "--mutant",
+            "10-50"
           )
 
           val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)()
@@ -280,6 +285,7 @@ object CliTest extends TestSpec {
                 failOnMinimum = true,
                 mutationMinimum = 73.9,
                 onlyMutateDiff = true,
+                mutant = Seq(MutantRange(10, 50)),
                 multiRun = (2, 3),
                 timeoutFactor = 1.75,
                 timeout = 3.second

@@ -140,6 +140,7 @@ object Run {
                           blinkyConf: BlinkyConfig = BlinkyConfig(
                             mutantsOutputFile = (projectRealPath / "blinky.mutants").toString,
                             filesToMutate = filesToMutate,
+                            specificMutants = config.options.mutant,
                             enabledMutators = config.mutators.enabled,
                             disabledMutators = config.mutators.disabled
                           )
