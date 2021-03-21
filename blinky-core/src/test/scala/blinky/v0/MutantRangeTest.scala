@@ -1,7 +1,7 @@
 package blinky.v0
 
 import blinky.TestSpec
-import metaconfig.{Conf, ConfDecoder, Configured}
+import metaconfig.{Conf, Configured}
 
 class MutantRangeTest extends TestSpec {
 
@@ -20,7 +20,7 @@ class MutantRangeTest extends TestSpec {
 
   }
 
-  "MutantRange.seqRangeDecoder" should {
+  "MutantRange.rangeDecoder" should {
 
     "return an error for input 'true'" in {
       MutantRange.rangeDecoder.read(Conf.Bool(true)) mustEqual
@@ -31,12 +31,32 @@ class MutantRangeTest extends TestSpec {
 
   "MutantRange.seqRangeDecoder" should {
 
+    "return an error for input 'true'" in {
+      readTest(Conf.Bool(true)) mustEqual
+        Configured.typeMismatch("Number with a mutant index range", Conf.Bool(true))
+    }
+
     "return an error for input '0'" in {
       readTest(Conf.Num(0)) mustEqual
         Configured.typeMismatch("Number with a mutant index range", Conf.Num(0))
 
       readTest(Conf.Str("0")) mustEqual
         Configured.typeMismatch("Number with a mutant index range", Conf.Str("0"))
+    }
+
+    "return an error for input '1.5'" in {
+      readTest(Conf.Num(1.5)) mustEqual
+        Configured.typeMismatch("Number with a mutant index range", Conf.Num(1.5))
+    }
+
+    "return an error for input '1-a'" in {
+      readTest(Conf.Str("1-a")) mustEqual
+        Configured.typeMismatch("Number with a mutant index range", Conf.Str("1-a"))
+    }
+
+    "return an error for input 'b-3'" in {
+      readTest(Conf.Str("b-3")) mustEqual
+        Configured.typeMismatch("Number with a mutant index range", Conf.Str("b-3"))
     }
 
     "return an error for input '1,3,-2,73,-10'" in {
