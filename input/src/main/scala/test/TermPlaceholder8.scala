@@ -1,6 +1,5 @@
 /*
 rule = Blinky
-Blinky.mutantsOutputFile = ???
 Blinky.filesToMutate = [all]
 Blinky.enabledMutators = [ScalaOptions, LiteralStrings, ScalaStrings]
  */
