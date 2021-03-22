@@ -141,7 +141,9 @@ object TestMutationsBloop {
       mutationReport: List[Mutant]
   ): Instruction[ExitCode] = {
     val mutationsToTest =
-      if (originalTestTime * numberOfMutants >= options.maxRunningTime.toMillis)
+      if (
+        originalTestTime * numberOfMutants >= options.maxRunningTime.toMillis && !options.testInOrder
+      )
         Random.shuffle(mutationReport)
       else
         mutationReport
