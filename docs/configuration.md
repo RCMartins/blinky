@@ -64,6 +64,13 @@ Maximum time to run tests.
 
 Default: `60 minutes`
 
+
+#### testInOrder
+Forces _Blinky_ to test each mutant in order, even if _Blinky_ estimates that
+there is no time to test all mutants.
+
+Default: `false`
+
 #### timeoutFactor
 see [timeout](#timeout).
 

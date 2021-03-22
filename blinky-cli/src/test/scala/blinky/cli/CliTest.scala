@@ -62,6 +62,7 @@ object CliTest extends TestSpec {
                |  --timeoutFactor <decimal>
                |                           Time factor for each mutant test
                |  --timeout <duration>     Duration of additional flat timeout for each mutant test
+               |  --testInOrder <bool>     If set, forces the mutants to be tested in order: 1,2,3,... (default false)
                |  --mutant <range>         Mutant indices to test. Defaults to 1-2147483647
                |""".stripMargin
           }
@@ -98,7 +99,8 @@ object CliTest extends TestSpec {
                   mutant = Seq(MutantRange(1, Int.MaxValue)),
                   multiRun = (1, 1),
                   timeoutFactor = 1.5,
-                  timeout = 5.second
+                  timeout = 5.second,
+                  testInOrder = false
                 )
               )
             )
@@ -126,7 +128,8 @@ object CliTest extends TestSpec {
                 mutant = Seq(MutantRange(5, 20)),
                 multiRun = (1, 3),
                 timeoutFactor = 2.0,
-                timeout = 10.second
+                timeout = 10.second,
+                testInOrder = true
               )
             )
           })
@@ -259,6 +262,8 @@ object CliTest extends TestSpec {
             "1.75",
             "--timeout",
             "3 seconds",
+            "--testInOrder",
+            "true",
             "--mutant",
             "10-50"
           )
@@ -288,7 +293,8 @@ object CliTest extends TestSpec {
                 mutant = Seq(MutantRange(10, 50)),
                 multiRun = (2, 3),
                 timeoutFactor = 1.75,
-                timeout = 3.second
+                timeout = 3.second,
+                testInOrder = true
               )
             })
         },

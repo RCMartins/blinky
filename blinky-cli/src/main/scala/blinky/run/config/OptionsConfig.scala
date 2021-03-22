@@ -19,7 +19,8 @@ case class OptionsConfig(
     mutant: Seq[MutantRange],
     multiRun: (Int, Int),
     timeoutFactor: Double,
-    timeout: Duration
+    timeout: Duration,
+    testInOrder: Boolean
 )
 
 object OptionsConfig {
@@ -35,7 +36,8 @@ object OptionsConfig {
     mutant = Seq(MutantRange(1, Int.MaxValue)),
     multiRun = (1, 1),
     timeoutFactor = 1.5,
-    timeout = 5.second
+    timeout = 5.second,
+    testInOrder = false
   )
 
   implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.instance[Duration] {
