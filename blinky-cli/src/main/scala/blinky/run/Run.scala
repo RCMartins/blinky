@@ -18,11 +18,11 @@ object Run {
     for {
       pwd <- CliModule.pwd
 
-      originalProjectRoot: Path = Path(pwd.path.toAbsolutePath)
-      originalProjectRelPath: RelPath =
+      originalProjectRoot = Path(pwd.path.toAbsolutePath)
+      originalProjectRelPath =
         Try(Path(config.projectPath.pathAsString).relativeTo(originalProjectRoot))
           .getOrElse(RelPath(config.projectPath.pathAsString))
-      originalProjectPath: Path = originalProjectRoot / originalProjectRelPath
+      originalProjectPath = originalProjectRoot / originalProjectRelPath
 
       inst = {
         for {
@@ -42,10 +42,11 @@ object Run {
                 case Right(gitRevParse) =>
                   val gitFolder = Path(gitRevParse)
                   val cloneProjectBaseFolder: Path = cloneProjectTempFolder / gitFolder.baseName
+                  val projectRealRelPath: RelPath = originalProjectPath.relativeTo(gitFolder)
+                  val projectRealPath: Path = cloneProjectBaseFolder / projectRealRelPath
+
                   for {
                     _ <- makeDirectory(cloneProjectBaseFolder)
-                    projectRealRelPath: RelPath = originalProjectPath.relativeTo(gitFolder)
-                    projectRealPath: Path = cloneProjectBaseFolder / projectRealRelPath
 
                     // Setup files to mutate ('scalafix --diff' does not work like I want...)
                     filesToMutateEither <- {
@@ -139,6 +140,7 @@ object Run {
                           blinkyConf: BlinkyConfig = BlinkyConfig(
                             mutantsOutputFile = (projectRealPath / "blinky.mutants").toString,
                             filesToMutate = filesToMutate,
+                            specificMutants = config.options.mutant,
                             enabledMutators = config.mutators.enabled,
                             disabledMutators = config.mutators.disabled
                           )
@@ -214,7 +216,8 @@ object Run {
             .gitIssues(commandError)
             .map(_ => Left(ExitCode.failure))
         case Right(gitResult) =>
-          val filesToCopy = gitResult.split(System.lineSeparator()).map(RelPath(_))
+          val filesToCopy: Seq[RelPath] =
+            gitResult.split(System.lineSeparator()).map(RelPath(_)).toSeq
           for {
             copyResult <- copyRelativeFiles(
               filesToCopy,
