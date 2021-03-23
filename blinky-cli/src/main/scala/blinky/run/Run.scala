@@ -3,7 +3,7 @@ package blinky.run
 import ammonite.ops.{Path, RelPath}
 import blinky.BuildInfo
 import blinky.run.Instruction._
-import blinky.run.config.{MutationsConfigValidated, SimpleBlinkyConfig}
+import blinky.run.config.{FileFilter, MutationsConfigValidated, SimpleBlinkyConfig}
 import blinky.run.modules.CliModule
 import blinky.v0.BlinkyConfig
 import zio.{ExitCode, RIO}
@@ -76,7 +76,7 @@ object Run {
 
                               result <-
                                 if (base.isEmpty)
-                                  succeed(Right(base))
+                                  succeed(Right((filesToMutateDefault(config.filesToMutate), base)))
                                 else
                                   for {
                                     copyResult <- copyFilesToTempFolder(
@@ -84,35 +84,12 @@ object Run {
                                       originalProjectPath,
                                       projectRealPath
                                     )
-                                    result <- copyResult match {
-                                      case Left(result) =>
-                                        succeed(Left(result))
-                                      case Right(_) =>
-                                        // This part is just an optimization of 'base'
-                                        val configFileOrFolderToMutate: Path =
-                                          Try(Path(config.filesToMutate))
-                                            .getOrElse(
-                                              projectRealPath / RelPath(config.filesToMutate)
-                                            )
-
-                                        val configFileOrFolderToMutateStr =
-                                          configFileOrFolderToMutate.toString
-
-                                        IsFile(
-                                          configFileOrFolderToMutate,
-                                          if (_)
-                                            if (base.contains(configFileOrFolderToMutateStr))
-                                              succeed(Seq(configFileOrFolderToMutateStr))
-                                            else
-                                              succeed(Seq.empty[String])
-                                          else
-                                            succeed(
-                                              base.filter(
-                                                _.startsWith(configFileOrFolderToMutateStr)
-                                              )
-                                            )
-                                        ).map(Right(_))
-                                    }
+                                    result <- optimiseFilesToMutate(
+                                      base,
+                                      copyResult,
+                                      projectRealPath,
+                                      config.filesToMutate
+                                    )
                                   } yield result
                             } yield result
                         }
@@ -121,16 +98,16 @@ object Run {
                           originalProjectRoot,
                           originalProjectPath,
                           projectRealPath
-                        ).map(_ => Right(Seq("all")))
+                        ).map(_ => Right((filesToMutateDefault(config.filesToMutate), Seq("all"))))
                     }
 
                     runResult <- filesToMutateEither match {
                       case Left(exitCode) =>
                         succeed(exitCode)
-                      case Right(Seq()) =>
+                      case Right((_, Seq())) =>
                         ConsoleReporter.filesToMutateIsEmpty
                           .map(_ => ExitCode.success)
-                      case Right(filesToMutate) =>
+                      case Right((filesToMutateStr, filesToMutateSeq)) =>
                         for {
                           coursier <- Setup.setupCoursier(projectRealPath)
                           _ <- Setup.sbtCompileWithSemanticDB(projectRealPath)
@@ -139,7 +116,7 @@ object Run {
                           // Setup BlinkyConfig object
                           blinkyConf: BlinkyConfig = BlinkyConfig(
                             mutantsOutputFile = (projectRealPath / "blinky.mutants").toString,
-                            filesToMutate = filesToMutate,
+                            filesToMutate = filesToMutateSeq,
                             specificMutants = config.options.mutant,
                             enabledMutators = config.mutators.enabled,
                             disabledMutators = config.mutators.disabled
@@ -180,7 +157,7 @@ object Run {
                                   s"--exclude=${config.filesToExclude}"
                                 else "",
                                 s"--tool-classpath=$toolPath",
-                                s"--files=${config.filesToMutate}",
+                                s"--files=$filesToMutateStr",
                                 s"--config=$scalafixConfFile",
                                 "--auto-classpath=target"
                               ).filter(_.nonEmpty)
@@ -197,6 +174,70 @@ object Run {
         } yield runResult
       }
     } yield inst
+
+  def filesToMutateDefault(filesToMutate: FileFilter): String =
+    filesToMutate match {
+      case FileFilter.SingleFileOrFolder(fileOrFolder) =>
+        fileOrFolder.toString
+      case FileFilter.FileName(fileName) =>
+        fileName
+    }
+
+  def optimiseFilesToMutate(
+      base: Seq[String],
+      copyResult: Either[ExitCode, Unit],
+      projectRealPath: Path,
+      filesToMutate: FileFilter
+  ): Instruction[Either[ExitCode, (String, Seq[String])]] =
+    copyResult match {
+      case Left(result) =>
+        succeed(Left(result))
+      case Right(_) =>
+        // This part is just an optimization of 'base'
+        val configFileOrFolderToMutateEither: Either[Instruction[ExitCode], Path] =
+          filesToMutate match {
+            case FileFilter.SingleFileOrFolder(fileOrFolder) =>
+              Right(projectRealPath / fileOrFolder)
+            case FileFilter.FileName(fileName) =>
+              val fileName2 =
+                if (fileName.endsWith(".scala")) fileName else fileName + ".scala"
+
+              val filesFiltered =
+                base.collect {
+                  case file if file.endsWith(fileName) || file.endsWith(fileName2) => file
+                }
+
+              filesFiltered match {
+                case List(singleFile) =>
+                  Right(Path(singleFile))
+                case Nil =>
+                  Left(
+                    printLine(s"--filesToMutate '$filesToMutate' does not exist.")
+                      .map(_ => ExitCode.failure)
+                  )
+                case _ =>
+                  Left(printLine(s"--filesToMutate is ambiguous.").map(_ => ExitCode.failure))
+              }
+          }
+
+        configFileOrFolderToMutateEither match {
+          case Left(exitCode) =>
+            exitCode.map(Left(_))
+          case Right(configFileOrFolderToMutate) =>
+            val configFileOrFolderToMutateStr =
+              configFileOrFolderToMutate.toString
+            IsFile(
+              configFileOrFolderToMutate,
+              if (_)
+                if (base.contains(configFileOrFolderToMutateStr))
+                  succeed(Seq(configFileOrFolderToMutateStr))
+                else
+                  succeed(Seq.empty[String])
+              else
+                succeed(base.filter(_.startsWith(configFileOrFolderToMutateStr)))
+            ).map(baseFiltered => Right((configFileOrFolderToMutateStr, baseFiltered)))
+        }
+    }
 
   def copyFilesToTempFolder(
       originalProjectRoot: Path,

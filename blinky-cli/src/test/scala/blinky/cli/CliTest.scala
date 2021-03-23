@@ -3,9 +3,11 @@ package blinky.cli
 import better.files.File
 import blinky.BuildInfo.version
 import blinky.TestSpec
+import blinky.run.config.FileFilter.SingleFileOrFolder
 import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
 import blinky.run.modules.{CliModule, ParserModule, TestModules}
 import blinky.v0.{MutantRange, Mutators}
+import os.RelPath
 import scopt.DefaultOEffectSetup
 import zio.test.Assertion._
 import zio.test._
@@ -81,7 +83,7 @@ object CliTest extends TestSpec {
             Right(
               MutationsConfigValidated(
                 projectPath = File(getFilePath("some-project")),
-                filesToMutate = "src/main/scala",
+                filesToMutate = SingleFileOrFolder(RelPath("src/main/scala")),
                 filesToExclude = "",
                 mutators = SimpleBlinkyConfig(
                   enabled = Mutators.all,
@@ -145,7 +147,11 @@ object CliTest extends TestSpec {
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
           assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
-          assert(config.map(_.filesToMutate))(equalSome("src/main/scala/Example.scala")) &&
+          assert(config.map(_.filesToMutate))(
+            equalSome(
+              SingleFileOrFolder(RelPath("src/main/scala/Example.scala"))
+            )
+          ) &&
           assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
           assert(config.map(_.options.testCommand))(equalSome("example1"))
       },
@@ -160,39 +166,13 @@ object CliTest extends TestSpec {
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
           assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
-          assert(config.map(_.filesToMutate))(equalSome("src/main/scala/Example.scala")) &&
+          assert(config.map(_.filesToMutate))(
+            equalSome(
+              SingleFileOrFolder(RelPath("src/main/scala/Example.scala"))
+            )
+          ) &&
           assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
           assert(config.map(_.options.testCommand))(equalSome("example1"))
-      },
-      testM(
-        "blinky wrongPath1.conf returns an error when the 'filesToMutate' param is invalid"
-      ) {
-        val (zioResult, parser) = parse(getFilePath("wrongPath1.conf"))()
-
-        for {
-          result <- zioResult
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(result)(equalTo {
-            Left(
-              "--filesToMutate 'src/main/scala/UnknownFile.scala' does not exist."
-            )
-          })
-      },
-      testM(
-        "blinky wrongPath2.conf returns an error when the 'filesToMutate' param is invalid"
-      ) {
-        val (zioResult, parser) = parse(getFilePath("wrongPath2.conf"))()
-
-        for {
-          result <- zioResult
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(result)(equalTo {
-            Left(
-              "--filesToMutate 'src/main/scala/UnknownFile' does not exist."
-            )
-          })
       },
       testM("blinky <no conf file> returns an error if there is no default .blinky.conf file") {
         val pwdFolder = File(".")
@@ -278,7 +258,11 @@ object CliTest extends TestSpec {
             assert(config.map(_.projectPath))(
               equalSome(File(getFilePath("some-project")))
             ) &&
-            assert(config.map(_.filesToMutate))(equalSome("src/main/scala/Main.scala")) &&
+            assert(config.map(_.filesToMutate))(
+              equalSome(
+                SingleFileOrFolder(RelPath("src/main/scala/Main.scala"))
+              )
+            ) &&
             assert(config.map(_.filesToExclude))(equalSome("src/main/scala/Utils.scala")) &&
             assert(config.map(_.options))(equalSome {
               OptionsConfig(

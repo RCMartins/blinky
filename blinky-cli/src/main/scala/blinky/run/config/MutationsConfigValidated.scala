@@ -1,12 +1,12 @@
 package blinky.run.config
 
+import ammonite.ops.RelPath
 import better.files.File
-
-import scala.util.Try
+import blinky.run.config.FileFilter.{FileName, SingleFileOrFolder}
 
 case class MutationsConfigValidated(
     projectPath: File,
-    filesToMutate: String,
+    filesToMutate: FileFilter,
     filesToExclude: String,
     mutators: SimpleBlinkyConfig,
     options: OptionsConfig
@@ -21,21 +21,19 @@ object MutationsConfigValidated {
     else if (!projectPath.exists)
       Left(s"--projectPath '$projectPath' does not exist.")
     else {
-      val filesToMutateEither: Either[String, String] = {
-        val filesToMutate: File =
-          Try(File(config.filesToMutate))
-            .filter(_.exists)
-            .getOrElse(projectPath / config.filesToMutate)
+      val filesToMutate: FileFilter = {
+        val filesToMutate: File = projectPath / config.filesToMutate
 
         if (filesToMutate.exists)
-          Right(config.filesToMutate)
+          SingleFileOrFolder(RelPath(config.filesToMutate))
         else if (filesToMutate.extension.isEmpty && File(filesToMutate.toString + ".scala").exists)
-          Right(config.filesToMutate + ".scala")
-        else
-          Left(s"--filesToMutate '${config.filesToMutate}' does not exist.")
+          SingleFileOrFolder(RelPath(config.filesToMutate + ".scala"))
+        else {
+          FileName(config.filesToMutate)
+        }
       }
 
-      filesToMutateEither.map(filesToMutate =>
+      Right(
         MutationsConfigValidated(
           projectPath,
           filesToMutate,
