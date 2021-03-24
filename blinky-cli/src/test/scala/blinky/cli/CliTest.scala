@@ -148,9 +148,7 @@ object CliTest extends TestSpec {
           assert(parser.getErr)(equalTo("")) &&
           assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
           assert(config.map(_.filesToMutate))(
-            equalSome(
-              SingleFileOrFolder(RelPath("src/main/scala/Example.scala"))
-            )
+            equalSome(SingleFileOrFolder(RelPath("src/main/scala/Example.scala")))
           ) &&
           assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
           assert(config.map(_.options.testCommand))(equalSome("example1"))
@@ -173,7 +171,7 @@ object CliTest extends TestSpec {
           assert(config.map(_.options.testCommand))(equalSome("example1"))
       },
       testM(
-        "blinky wrongPath1.conf returns a FileName object"
+        "blinky wrongPath1.conf returns a fileName object"
       ) {
         val (zioResult, parser) = parse(getFilePath("wrongPath1.conf"))()
 
@@ -187,7 +185,7 @@ object CliTest extends TestSpec {
           )
       },
       testM(
-        "blinky wrongPath2.conf returns a FileName object"
+        "blinky wrongPath2.conf returns a fileName object"
       ) {
         val (zioResult, parser) = parse(getFilePath("wrongPath2.conf"))()
 
@@ -281,13 +279,9 @@ object CliTest extends TestSpec {
             config = result.toOption
           } yield assert(parser.getOut)(equalTo("")) &&
             assert(parser.getErr)(equalTo("")) &&
-            assert(config.map(_.projectPath))(
-              equalSome(File(getFilePath("some-project")))
-            ) &&
+            assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
             assert(config.map(_.filesToMutate))(
-              equalSome(
-                SingleFileOrFolder(RelPath("src/main/scala/Main.scala"))
-              )
+              equalSome(SingleFileOrFolder(RelPath("src/main/scala/Main.scala")))
             ) &&
             assert(config.map(_.filesToExclude))(equalSome("src/main/scala/Utils.scala")) &&
             assert(config.map(_.options))(equalSome {
@@ -323,7 +317,7 @@ object CliTest extends TestSpec {
             assert(parser.getErr)(equalTo("")) &&
             assert(result)(equalTo {
               Left(
-                s"""--projectPath '${pwd / "non-existent" / "project-path"}' does not exist.""".stripMargin
+                s"""--projectPath '${pwd / "non-existent" / "project-path"}' does not exist."""
               )
             })
         }
@@ -338,7 +332,7 @@ object CliTest extends TestSpec {
             assert(parser.getErr)(equalTo("")) &&
             assert(result)(equalTo {
               Left(
-                s"""mutationMinimum value is invalid. It should be a number between 0 and 100.""".stripMargin
+                "mutationMinimum value is invalid. It should be a number between 0 and 100."
               )
             })
         },
@@ -351,7 +345,7 @@ object CliTest extends TestSpec {
             assert(parser.getErr)(equalTo("")) &&
             assert(result)(equalTo {
               Left(
-                s"""mutationMinimum value is invalid. It should be a number between 0 and 100.""".stripMargin
+                "mutationMinimum value is invalid. It should be a number between 0 and 100."
               )
             })
         },
