@@ -87,6 +87,9 @@ object Interpreter {
         case CopyRelativeFiles(filesToCopy, fromPath, toPath, next) =>
           val result = externalCalls.copyRelativeFiles(filesToCopy, fromPath, toPath)
           interpreterNext(next(result))
+        case GrepFiles(basePath, fileName, next) =>
+          val result = externalCalls.grepFiles(basePath, fileName)
+          interpreterNext(next(result))
         case timeout @ Timeout(_, _, _) =>
           Left(timeout)
       }

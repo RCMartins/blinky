@@ -26,9 +26,13 @@ object MutationsConfigValidated {
 
         if (filesToMutate.exists)
           SingleFileOrFolder(RelPath(config.filesToMutate))
-        else if (filesToMutate.extension.isEmpty && File(filesToMutate.toString + ".scala").exists)
-          SingleFileOrFolder(RelPath(config.filesToMutate + ".scala"))
-        else {
+        else if (filesToMutate.extension.isEmpty) {
+          if (File(filesToMutate.toString + ".scala").exists)
+            SingleFileOrFolder(RelPath(config.filesToMutate + ".scala"))
+          else {
+            FileName(config.filesToMutate + ".scala")
+          }
+        } else {
           FileName(config.filesToMutate)
         }
       }

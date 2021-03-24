@@ -3,7 +3,7 @@ package blinky.cli
 import better.files.File
 import blinky.BuildInfo.version
 import blinky.TestSpec
-import blinky.run.config.FileFilter.SingleFileOrFolder
+import blinky.run.config.FileFilter.{FileName, SingleFileOrFolder}
 import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
 import blinky.run.modules.{CliModule, ParserModule, TestModules}
 import blinky.v0.{MutantRange, Mutators}
@@ -167,12 +167,38 @@ object CliTest extends TestSpec {
           assert(parser.getErr)(equalTo("")) &&
           assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
           assert(config.map(_.filesToMutate))(
-            equalSome(
-              SingleFileOrFolder(RelPath("src/main/scala/Example.scala"))
-            )
+            equalSome(SingleFileOrFolder(RelPath("src/main/scala/Example.scala")))
           ) &&
           assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
           assert(config.map(_.options.testCommand))(equalSome("example1"))
+      },
+      testM(
+        "blinky wrongPath1.conf returns a FileName object"
+      ) {
+        val (zioResult, parser) = parse(getFilePath("wrongPath1.conf"))()
+
+        for {
+          result <- zioResult
+          config = result.toOption
+        } yield assert(parser.getOut)(equalTo("")) &&
+          assert(parser.getErr)(equalTo("")) &&
+          assert(config.map(_.filesToMutate))(
+            equalSome(FileName("src/main/scala/UnknownFile.scala"))
+          )
+      },
+      testM(
+        "blinky wrongPath2.conf returns a FileName object"
+      ) {
+        val (zioResult, parser) = parse(getFilePath("wrongPath2.conf"))()
+
+        for {
+          result <- zioResult
+          config = result.toOption
+        } yield assert(parser.getOut)(equalTo("")) &&
+          assert(parser.getErr)(equalTo("")) &&
+          assert(config.map(_.filesToMutate))(
+            equalSome(FileName("src/main/scala/UnknownFile.scala"))
+          )
       },
       testM("blinky <no conf file> returns an error if there is no default .blinky.conf file") {
         val pwdFolder = File(".")
