@@ -36,4 +36,9 @@ trait ExternalCalls {
       toPath: Path
   ): Either[Throwable, Unit]
 
+  def grepFiles(
+      basePath: Path,
+      fileName: String
+  ): Seq[String]
+
 }
