@@ -50,13 +50,11 @@ object RunExamples {
         println(result.err.string)
 
     showIfError(%%("git", "init")(testDirectory))
+    showIfError(%%("git", "config", "--global", "user.email", "you@example.com")(testDirectory))
+    showIfError(%%("git", "config", "--global", "user.name", "Your Name")(testDirectory))
     showIfError(%%("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")(testDirectory))
     showIfError(%%("git", "add", ".")(testDirectory))
-    showIfError(
-      %%("git", "commit", "-m", "first commit!", "--author", "test <test@example.com>")(
-        testDirectory
-      )
-    )
+    showIfError(%%("git", "commit", "-m", "first commit!")(testDirectory))
 
     val startupScript = testDirectory / "startup.sh"
     if (exists(startupScript)) {
