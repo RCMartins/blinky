@@ -36,13 +36,13 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       .map(new Blinky(_))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
-    val findMutations: FindMutations = new FindMutations(config.activeMutators, doc)
-
     val VirtualFile(fileName, _) = doc.input
 
     if (!fileShouldBeMutated(fileName))
       Patch.empty
     else {
+      val findMutations: FindMutations = new FindMutations(config.activeMutators, doc)
+
       def createPatch(
           mutantSeq: Seq[Mutant],
           needsParens: Boolean
