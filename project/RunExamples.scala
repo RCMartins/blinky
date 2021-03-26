@@ -52,7 +52,11 @@ object RunExamples {
     showIfError(%%("git", "init")(testDirectory))
     showIfError(%%("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")(testDirectory))
     showIfError(%%("git", "add", ".")(testDirectory))
-    showIfError(%%("git", "commit", "-m", "first commit!", "--author", "ci-test")(testDirectory))
+    showIfError(
+      %%("git", "commit", "-m", "first commit!", "--author", "test test@example.com")(
+        testDirectory
+      )
+    )
 
     val startupScript = testDirectory / "startup.sh"
     if (exists(startupScript)) {
