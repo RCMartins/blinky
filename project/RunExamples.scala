@@ -53,7 +53,7 @@ object RunExamples {
     showIfError(%%("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")(testDirectory))
     showIfError(%%("git", "add", ".")(testDirectory))
     showIfError(
-      %%("git", "commit", "-m", "first commit!", "--author", "test test@example.com")(
+      %%("git", "commit", "-m", "first commit!", "--author", "test <test@example.com>")(
         testDirectory
       )
     )
