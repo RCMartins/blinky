@@ -63,6 +63,7 @@ jobs:
         with:
           jvm: adopt:8
           apps: bloop
+      - run: ./.github/scripts/setup.sh
       - run: sbt "runCommunityProjects spire"
   scalaTests:
     name: Run Tests Matrix
