@@ -25,6 +25,17 @@ class Placeholders(nextRandomName: () => Name) {
 
         val placeholderFunction = generatePlaceholderFunction(vars)
 
+        println(
+          PlaceholderMutatedTerms(
+            originalReplaced,
+            placeholderFunction,
+            mutantsReplaced,
+            vars.map(_.value),
+            placeholderLocation,
+            mutatedTerms.needsParens
+          )
+        )
+
         Some(
           (
             original,
@@ -45,68 +56,76 @@ class Placeholders(nextRandomName: () => Name) {
         Some(other)
     }
 
-  def replaceAllPlaceholders(
+  private def replaceAllPlaceholders(
       originalTerm: Term,
       initialMutants: Seq[Term]
   ): (Boolean, Term, Seq[(Term, Term)], List[Name]) = {
 
     val amountOfPlaceholders: Int = countPlaceholders(originalTerm)
     val newVars: List[Name] = List.fill(amountOfPlaceholders)(nextRandomName())
+
+    println()
+    println("/" * 50)
     println(newVars)
-
-    val (originalReplaced, originalWasReplaced) =
-      replaceFirstPlaceholder(originalTerm, newVar)
-
-    val mutatedReplacedOriginal: Seq[(Term, (Term, Boolean))] =
-      initialMutants.map { term =>
-        (term, replaceFirstPlaceholder(term, newVar))
-      }
-    val anyMutantsReplaced =
-      mutatedReplacedOriginal.exists { case (_, (_, mutantReplaced)) => mutantReplaced }
-
-    println("$" * 50)
     println(originalTerm)
+
+    val originalReplaced =
+      replaceAllPlaceholders(originalTerm, newVars)
+
     println(originalReplaced)
-    println(originalWasReplaced)
     println("-" * 50)
 
+    val mutatedReplacedOriginal: Seq[(Term, Term)] =
+      initialMutants.map { term =>
+        (term, replaceAllPlaceholders(term, newVars))
+      }
+//    val anyMutantsReplaced =
+//      mutatedReplacedOriginal.exists { case (_, (_, mutantReplaced)) => mutantReplaced }
+
     val mutatedReplaced =
-      mutatedReplacedOriginal.map {
-        case (withP, (withoutP, true)) =>
+      mutatedReplacedOriginal.map { case (withP, withoutP) =>
+        val amountOfPlaceholdersTerm = countPlaceholders(withP)
+        val remainingPlaceholders = amountOfPlaceholders - amountOfPlaceholdersTerm
+        if (remainingPlaceholders == 0)
           (withP, withoutP)
-        case (withP, (withoutP, false)) =>
-          val amountOfPlaceholders = countPlaceholders(originalTerm)
-          println((amountOfPlaceholders, originalTerm))
-          (defaultPlaceholderFunction(amountOfPlaceholders)(withP), withoutP)
+        else
+          (defaultPlaceholderFunction(remainingPlaceholders)(withP), withoutP)
       }
 
-    println(finalMutants)
+    println(initialMutants)
     println(mutatedReplacedOriginal)
     println(mutatedReplaced)
-    println(anyMutantsReplaced)
-    println("$" * 50)
+//    println(anyMutantsReplaced)
+    println("\\" * 50)
 
-    if (anyMutantsReplaced)
-      loop(
-        placeholderMode = true,
-        originalReplaced,
-        mutatedReplaced,
-        newVar :: vars
-      )
-    else if (originalWasReplaced)
-      (
-        true,
-        originalReplaced,
-        mutatedReplaced,
-        newVar :: vars
-      )
-    else
-      (
-        placeholderMode,
-        originalTerm,
-        finalMutants,
-        vars.reverse
-      )
+    (
+      newVars.nonEmpty,
+      originalReplaced,
+      mutatedReplaced,
+      newVars
+    )
+
+//    if (anyMutantsReplaced)
+//      loop(
+//        placeholderMode = true,
+//        originalReplaced,
+//        mutatedReplaced,
+//        newVar :: vars
+//      )
+//    else if (originalWasReplaced)
+//      (
+//        true,
+//        originalReplaced,
+//        mutatedReplaced,
+//        newVar :: vars
+//      )
+//    else
+//      (
+//        placeholderMode,
+//        originalTerm,
+//        finalMutants,
+//        vars.reverse
+//      )
 
 //    @tailrec
 //    def loop(
@@ -198,149 +217,53 @@ class Placeholders(nextRandomName: () => Name) {
         body
       )
 
-  private def replaceAllPlaceholders(initialTerm: Term, newVars: List[Name]): (Term, Boolean) = {
-    def replaceOnlyP(term: Term): (Term, Boolean) =
-      term match {
-        case Placeholder() =>
-          (newVar, true)
-        case _ =>
-          (term, false)
-      }
-
-    def replace(term: Term): (Term, Boolean) = {
-      println(term)
-      println(term.structure)
-      println("#" * 20)
-      term match {
-        case Placeholder() =>
-          (newVar, true)
-        case ApplyInfix(lhs, op, targs, args) =>
-          val (lhsReplaced, varReplaced) = replace(lhs)
-          if (varReplaced)
-            (ApplyInfix(lhsReplaced, op, targs, args), true)
-          else {
-            val (argsUpdated, varReplaced) =
-              args.foldLeft((List.empty[Term], false)) {
-                case ((argsUpdated, false), arg) =>
-                  replace(arg) match {
-                    case (argUpdated, varReplaced) =>
-                      (argUpdated :: argsUpdated, varReplaced)
-                  }
-                case ((argsUpdated, true), arg) => /* no case */
-                  (arg :: argsUpdated, true /*false*/ )
-              }
-            (
-              ApplyInfix(
-                lhs,
-                op,
-                targs,
-                argsUpdated.reverse /* no .reverse */
-              ),
-              varReplaced
-            )
-          }
-        case Select(term, name) =>
-          val (replacedTerm, varReplaced) = replace(term)
-          (Select(replacedTerm, name), varReplaced)
-        case Apply(applyTerm, terms) =>
-          val (replacedTerm, varReplaced) = replace(applyTerm)
-          if (varReplaced)
-            (Apply(replacedTerm, terms), varReplaced)
-          else {
-            val (termsUpdated, varReplaced) =
-              terms.foldLeft((List.empty[Term], false)) {
-                case ((termsUpdated, false), term) =>
-                  replaceOnlyP(term) match {
-                    case (termUpdated, varReplaced) =>
-                      (termUpdated :: termsUpdated, varReplaced)
-                  }
-                case ((termsUpdated, true), term) =>
-                  (term :: termsUpdated, true)
-              }
-            (Apply(applyTerm, termsUpdated.reverse), varReplaced)
-          }
-        case ApplyUnary(op, applyTerm) =>
-          val (replacedTerm, varReplaced) = replace(applyTerm)
-          (ApplyUnary(op, replacedTerm), varReplaced)
-        case other =>
-          (other, false)
-      }
-    }
-
-    replace(initialTerm)
-  }
-
-//  private def replaceFirstPlaceholder(initialTerm: Term, newVar: Name): (Term, Boolean) = {
-//    def replaceOnlyP(term: Term): (Term, Boolean) =
-//      term match {
-//        case Placeholder() =>
-//          (newVar, true)
-//        case _ =>
-//          (term, false)
-//      }
-//
-//    def replace(term: Term): (Term, Boolean) = {
+  private def replaceAllPlaceholders(initialTerm: Term, initialNewVars: List[Name]): Term = {
+    def replace(term: Term, newVars: List[Name]): (Term, List[Name]) =
+//      println("#" * 20)
 //      println(term)
 //      println(term.structure)
 //      println("#" * 20)
-//      term match {
-//        case Placeholder() =>
-//          (newVar, true)
-//        case ApplyInfix(lhs, op, targs, args) =>
-//          val (lhsReplaced, varReplaced) = replace(lhs)
-//          if (varReplaced)
-//            (ApplyInfix(lhsReplaced, op, targs, args), true)
-//          else {
-//            val (argsUpdated, varReplaced) =
-//              args.foldLeft((List.empty[Term], false)) {
-//                case ((argsUpdated, false), arg) =>
-//                  replace(arg) match {
-//                    case (argUpdated, varReplaced) =>
-//                      (argUpdated :: argsUpdated, varReplaced)
-//                  }
-//                case ((argsUpdated, true), arg) => /* no case */
-//                  (arg :: argsUpdated, true /*false*/ )
-//              }
-//            (
-//              ApplyInfix(
-//                lhs,
-//                op,
-//                targs,
-//                argsUpdated.reverse /* no .reverse */
-//              ),
-//              varReplaced
-//            )
-//          }
-//        case Select(term, name) =>
-//          val (replacedTerm, varReplaced) = replace(term)
-//          (Select(replacedTerm, name), varReplaced)
-//        case Apply(applyTerm, terms) =>
-//          val (replacedTerm, varReplaced) = replace(applyTerm)
-//          if (varReplaced)
-//            (Apply(replacedTerm, terms), varReplaced)
-//          else {
-//            val (termsUpdated, varReplaced) =
-//              terms.foldLeft((List.empty[Term], false)) {
-//                case ((termsUpdated, false), term) =>
-//                  replaceOnlyP(term) match {
-//                    case (termUpdated, varReplaced) =>
-//                      (termUpdated :: termsUpdated, varReplaced)
-//                  }
-//                case ((termsUpdated, true), term) =>
-//                  (term :: termsUpdated, true)
-//              }
-//            (Apply(applyTerm, termsUpdated.reverse), varReplaced)
-//          }
-//        case ApplyUnary(op, applyTerm) =>
-//          val (replacedTerm, varReplaced) = replace(applyTerm)
-//          (ApplyUnary(op, replacedTerm), varReplaced)
-//        case other =>
-//          (other, false)
-//      }
-//    }
-//
-//    replace(initialTerm)
-//  }
+      term match {
+        case Placeholder() =>
+          (newVars.head, newVars.tail)
+        case ApplyInfix(lhs, op, targs, args) =>
+          val (lhsReplaced, newVarsUpdated) = replace(lhs, newVars)
+          val (argsUpdated, newVarsFinal) =
+            args.foldLeft((List.empty[Term], newVarsUpdated)) {
+              case ((argsUpdated, newVarsUpdated), arg) =>
+                val (argUpdated, newVarsUpdated2) = replace(arg, newVarsUpdated)
+                (argUpdated :: argsUpdated, newVarsUpdated2)
+            }
+          (
+            ApplyInfix(lhsReplaced, op, targs, argsUpdated.reverse),
+            newVarsFinal
+          )
+        case Select(term, name) =>
+          val (replacedTerm, newVarsUpdated) = replace(term, newVars)
+          (Select(replacedTerm, name), newVarsUpdated)
+        case Apply(applyTerm, terms) =>
+          val (applyTermReplaced, newVarsUpdated) = replace(applyTerm, newVars)
+          val (termsUpdated, newVarsFinal) =
+            terms.foldLeft((List.empty[Term], newVarsUpdated)) {
+              case ((argsUpdated, newVarsUpdated), Placeholder()) =>
+                val (argUpdated, newVarsUpdated2) = replace(Placeholder(), newVarsUpdated)
+                (argUpdated :: argsUpdated, newVarsUpdated2)
+              case ((argsUpdated, newVarsUpdated), term) =>
+                (term :: argsUpdated, newVarsUpdated)
+            }
+          (
+            Apply(applyTermReplaced, termsUpdated.reverse),
+            newVarsFinal
+          )
+        case ApplyUnary(op, applyTerm) =>
+          val (replacedTerm, newVarsUpdated) = replace(applyTerm, newVars)
+          (ApplyUnary(op, replacedTerm), newVarsUpdated)
+        case other =>
+          (other, newVars)
+      }
+
+    replace(initialTerm, initialNewVars)._1
+  }
 
   private def countPlaceholders(term: Term): Int =
     term match {
@@ -351,7 +274,10 @@ class Placeholders(nextRandomName: () => Name) {
       case Select(term, _) =>
         countPlaceholders(term)
       case Apply(applyTerm, terms) =>
-        countPlaceholders(applyTerm) + terms.map(countPlaceholders).sum
+        countPlaceholders(applyTerm) + terms.collect {
+          case Placeholder() => 1
+          case _             => 0
+        }.sum
       case ApplyUnary(_, applyTerm) =>
         countPlaceholders(applyTerm)
       case _ =>

@@ -45,7 +45,10 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
     if (!fileShouldBeMutated(fileName))
       Patch.empty
     else {
-      val findMutations: FindMutations = new FindMutations(config.activeMutators, doc)
+      val placeholders: Placeholders =
+        new Placeholders(() => Name(s"_BLINKY_TEMP_${nextTempVarIndex}_"))
+      val findMutations: FindMutations =
+        new FindMutations(config.activeMutators, placeholders, doc)
 
       def createPatch(
           original: Term,
@@ -56,12 +59,12 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
           needsParens: Boolean
       ): Option[(Patch, Seq[Mutant])] =
         mutantSeq.headOption.map(_.original).map { originalReplaced =>
-          def replacer(initialTerm: Term): Term =
-            replaceTempVars
-              .foldLeft(initialTerm: Tree) { case (updatedTerm, (from, to)) =>
-                updatedTerm.transform { case Term.Name(`from`) => to }
-              }
-              .asInstanceOf[Term]
+          def replacer(initialTerm: Term): Term = initialTerm
+//            replaceTempVars
+//              .foldLeft(initialTerm: Tree) { case (updatedTerm, (from, to)) =>
+//                updatedTerm.transform { case Term.Name(`from`) => to }
+//              }
+//              .asInstanceOf[Term]
 
           val (_, mutatedStrBefore) =
             mutantSeq.map(mutant => (mutant.id, mutant.mutated)).foldRight((0, originalReplaced)) {

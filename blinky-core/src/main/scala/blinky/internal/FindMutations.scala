@@ -6,7 +6,11 @@ import scalafix.v1.SemanticDocument
 
 import scala.meta._
 
-class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocument) {
+class FindMutations(
+    activeMutators: Seq[Mutator],
+    placeholders: Placeholders,
+    implicit val doc: SemanticDocument
+) {
 
   def topTreeMutations(tree: Tree): Seq[(Term, MutatedTerms)] =
     tree match {
@@ -53,7 +57,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
     addLocation {
       termMutations(term, placeholderLocation, mainTermsOnly = false).flatMap {
         case (original, placeholderLocation, mutatedTerms) =>
-          Placeholders.replacePlaceholders(original, placeholderLocation, mutatedTerms).flatMap {
+          placeholders.replacePlaceholders(original, placeholderLocation, mutatedTerms).flatMap {
             case (original, mutatedTerms: StandardMutatedTerms)
                 if parensRequired && original == term =>
               Some((original, mutatedTerms.copy(needsParens = true)))
@@ -80,7 +84,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
 
     termMutations(term, placeholderLocation, mainTermsOnly = true).flatMap {
       case (original, placeholderLocation, mutatedTerms) =>
-        Placeholders.replacePlaceholders(original, placeholderLocation, mutatedTerms).flatMap {
+        placeholders.replacePlaceholders(original, placeholderLocation, mutatedTerms).flatMap {
           case (_, mutatedTerms: StandardMutatedTerms) if mutatedTerms.mutated.isEmpty =>
             None
           case (_, mutatedTerms: PlaceholderMutatedTerms) =>

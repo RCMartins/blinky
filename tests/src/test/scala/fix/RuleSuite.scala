@@ -12,8 +12,8 @@ import scala.meta.io.{AbsolutePath, RelativePath}
 class RuleSuite extends AbstractSemanticRuleSuite with AnyWordSpecLike with Matchers {
 
   private val only: Option[String] =
-    Some("TermPlaceholder9") // << to run only one test
-//    None
+//    Some("TermPlaceholder9") // << to run only one test
+    None
 
   private case class TestData(
       ruleTest: RuleTest,

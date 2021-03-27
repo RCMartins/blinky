@@ -11,13 +11,13 @@ object TermPlaceholder7 {
              else optional.map(_ + " ").getOrElse("")
 
   def addSpaceWith(optional: Option[String]): Option[String] => String =
-    _1_ => if (???) _1_.get ///
+    _4_ => if (???) _4_.get ///
       else if (???) optional.map(_ + " ").getOrElse("") ///
-      else if (???) _1_.getOrElse(optional.map(_ + " ").get) ///
-      else if (???) _1_.getOrElse("") ///
-      else if (???) _1_.getOrElse(optional.map(_ => "mutated!").getOrElse("")) ///
-      else if (???) _1_.getOrElse(optional.map(_ => "").getOrElse("")) ///
-      else if (???) _1_.getOrElse(optional.map(_ + " ").getOrElse("mutated!")) ///
-               else _1_.getOrElse(optional.map(_ + " ").getOrElse(""))
+      else if (???) _4_.getOrElse(optional.map(_ + " ").get) ///
+      else if (???) _4_.getOrElse("") ///
+      else if (???) _4_.getOrElse(optional.map(_ => "mutated!").getOrElse("")) ///
+      else if (???) _4_.getOrElse(optional.map(_ => "").getOrElse("")) ///
+      else if (???) _4_.getOrElse(optional.map(_ + " ").getOrElse("mutated!")) ///
+               else _4_.getOrElse(optional.map(_ + " ").getOrElse(""))
 
 }
