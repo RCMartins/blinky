@@ -76,6 +76,12 @@ object Instruction {
       next: Option[Boolean] => Instruction[A]
   ) extends Instruction[A]
 
+  final case class GrepFiles[+A](
+      basePath: Path,
+      fileName: String,
+      next: Seq[String] => Instruction[A]
+  ) extends Instruction[A]
+
   def succeed[A](value: => A): Return[A] =
     Return(() => value)
 
@@ -160,5 +166,8 @@ object Instruction {
       millis: Long
   ): Timeout[Option[Boolean]] =
     Timeout(runFunction, millis, succeed(_: Option[Boolean]))
+
+  def grepFiles(basePath: Path, fileName: String): GrepFiles[Seq[String]] =
+    GrepFiles(basePath, fileName, succeed(_: Seq[String]))
 
 }
