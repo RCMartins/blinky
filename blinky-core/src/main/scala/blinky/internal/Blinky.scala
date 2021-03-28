@@ -9,7 +9,7 @@ import play.api.libs.json.Json
 import scalafix.v1._
 
 import java.util.concurrent.atomic.AtomicInteger
-import scala.meta.Term.{Apply, If, Name, Select}
+import scala.meta.Term.{Apply, If, Name, Placeholder, Select}
 import scala.meta._
 import scala.meta.inputs.Input.VirtualFile
 import scala.util.Try
@@ -193,13 +193,19 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       original: Term,
       originalForDiff: Term,
       mutated: Term,
-      mutatedForDiff: Term,
+      mutatedForDiffOriginal: Term,
       needsParens: Boolean,
       fileName: String,
       mutantIndex: Int
   ): Mutant = {
     val pos = originalForDiff.pos
     val input = pos.input.text
+
+    val mutatedForDiff =
+      mutatedForDiffOriginal match {
+        case Placeholder() => Term.Name("identity")
+        case other         => other
+      }
 
     val mutatedSyntax = syntaxParens(mutatedForDiff, needsParens)
     val mutatedStr = input.substring(0, pos.start) + mutatedSyntax + input.substring(pos.end)

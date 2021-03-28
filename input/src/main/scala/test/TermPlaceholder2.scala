@@ -8,6 +8,8 @@ package test
 
 object TermPlaceholder2 {
 
-  val concat2: String => String = "test" + _
+  val concat: String => String = "test" + _
+
+  def trimList(list: List[String]): List[String] = list.map(_.trim)
 
 }

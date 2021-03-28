@@ -2,11 +2,8 @@ package blinky.internal
 
 import blinky.internal.MutatedTerms.{PlaceholderMutatedTerms, StandardMutatedTerms}
 
-import java.util.UUID
-import scala.annotation.tailrec
-import scala.collection.immutable
-import scala.meta.{Term, XtensionQuasiquoteTerm}
 import scala.meta.Term.{Apply, ApplyInfix, ApplyUnary, Name, Placeholder, Select}
+import scala.meta.{Term, XtensionQuasiquoteTerm}
 
 class Placeholders(nextRandomName: () => Name) {
 
@@ -25,16 +22,16 @@ class Placeholders(nextRandomName: () => Name) {
 
         val placeholderFunction = generatePlaceholderFunction(vars)
 
-        println(
-          PlaceholderMutatedTerms(
-            originalReplaced,
-            placeholderFunction,
-            mutantsReplaced,
-            vars.map(_.value),
-            placeholderLocation,
-            mutatedTerms.needsParens
-          )
-        )
+//        println(
+//          PlaceholderMutatedTerms(
+//            originalReplaced,
+//            placeholderFunction,
+//            mutantsReplaced,
+//            vars.map(_.value),
+//            placeholderLocation,
+//            mutatedTerms.needsParens
+//          )
+//        )
 
         Some(
           (
@@ -64,16 +61,16 @@ class Placeholders(nextRandomName: () => Name) {
     val amountOfPlaceholders: Int = countPlaceholders(originalTerm)
     val newVars: List[Name] = List.fill(amountOfPlaceholders)(nextRandomName())
 
-    println()
-    println("/" * 50)
-    println(newVars)
-    println(originalTerm)
+//    println()
+//    println("/" * 50)
+//    println(newVars)
+//    println(originalTerm)
 
     val originalReplaced =
       replaceAllPlaceholders(originalTerm, newVars)
 
-    println(originalReplaced)
-    println("-" * 50)
+//    println(originalReplaced)
+//    println("-" * 50)
 
     val mutatedReplacedOriginal: Seq[(Term, Term)] =
       initialMutants.map { term =>
@@ -92,11 +89,11 @@ class Placeholders(nextRandomName: () => Name) {
           (defaultPlaceholderFunction(remainingPlaceholders)(withP), withoutP)
       }
 
-    println(initialMutants)
-    println(mutatedReplacedOriginal)
-    println(mutatedReplaced)
+//    println(initialMutants)
+//    println(mutatedReplacedOriginal)
+//    println(mutatedReplaced)
 //    println(anyMutantsReplaced)
-    println("\\" * 50)
+//    println("\\" * 50)
 
     (
       newVars.nonEmpty,
