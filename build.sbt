@@ -141,8 +141,12 @@ lazy val docs =
     )
     .dependsOn(core)
 
-lazy val runCurrent = inputKey[Unit]("Run current blinky version on itself")
-lazy val runExamples = inputKey[Unit]("Run examples tests")
+lazy val runCurrent =
+  inputKey[Unit]("Run current blinky version on itself")
+lazy val runExamples =
+  inputKey[Unit]("Run example projects to test blinky")
+lazy val runCommunityProjects =
+  inputKey[Unit]("Run community scala projects to test blinky regressions")
 
 runCurrent := {
   val a = (core / publishLocal).value
@@ -156,4 +160,11 @@ runExamples := {
   val b = (cli / publishLocal).value
   val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
   RunExamples.run(version.value, args)
+}
+
+runCommunityProjects := {
+  val a = (core / publishLocal).value
+  val b = (cli / publishLocal).value
+  val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
+  RunCommunityProjects.run(version.value, args)
 }
