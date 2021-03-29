@@ -4,6 +4,7 @@ import blinky.internal.MutatedTerms.{PlaceholderMutatedTerms, StandardMutatedTer
 import blinky.v0.Mutator
 import scalafix.v1.SemanticDocument
 
+import scala.meta.Term.Placeholder
 import scala.meta._
 
 class FindMutations(
@@ -78,8 +79,15 @@ class FindMutations(
   ): Seq[Term] = {
     def replacePlaceholderToIdentity(term: Term): Term =
       term match {
-        case Term.Placeholder() => Term.Name("identity")
-        case other              => other
+//        case Term.Placeholder() => Term.Name("identity")
+//        case Term.Placeholder() =>
+//          val newName = placeholders.nextRandomName()
+//
+//          Term.Function(
+//            List(Term.Param(List.empty, newName, None, None)),
+//            newName
+//          )
+        case other => other
       }
 
     termMutations(term, placeholderLocation, mainTermsOnly = true).flatMap {
@@ -145,8 +153,57 @@ class FindMutations(
           apply,
           newPlaceholderLocation,
           topMainTermMutations(fun, placeholderLocation = newPlaceholderLocation)
-            .map(mutated => Term.Apply(mutated, args)) ++
-            listTermsMutateMain(args).map(Term.Apply(fun, _)),
+            .map(mutated => Term.Apply(mutated, args)) ++ {
+            val listOfLists = listTermsMutateMain(args)
+//            println("#" * 50)
+//            println((args, listOfLists))
+//            println("#" * 50)
+
+            val replaceIndex: List[Boolean] =
+              args.map {
+                case Placeholder() => false
+                case _             => true
+              }
+
+//            (args, list) match {
+//              case (List(Placeholder()), _) =>
+//                false
+//              case (_, List(List(Placeholder()))) =>
+//                true
+//              case _ =>
+//                false
+//            }
+//            if (replace) {
+//              List(List {
+//                val newName = placeholders.nextRandomName()
+//                Term.Function(
+//                  List(Term.Param(List.empty, newName, None, None)),
+//                  newName
+//                )
+//              }).map(Term.Apply(fun, _))
+//            } else {
+//              list.map(Term.Apply(fun, _))
+//            }
+
+            listOfLists.map { list =>
+              Term.Apply(
+                fun,
+                list
+                  .zip(replaceIndex)
+                  .map {
+                    case (Placeholder(), true) =>
+//                      val newName = placeholders.nextRandomName()
+//                      Term.Function(
+//                        List(Term.Param(List.empty, newName, None, None)),
+//                        newName
+//                      )
+                      Term.Name("identity")
+                    case (other, _) =>
+                      other
+                  }
+              )
+            }
+          },
           topTermMutations(
             fun,
             parensRequired = true,

@@ -66,6 +66,10 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
 //              }
 //              .asInstanceOf[Term]
 
+//          println("#" * 50)
+//          println(mutantSeq.mkString("\n"))
+//          println("#" * 50)
+
           val (_, mutatedStrBefore) =
             mutantSeq.map(mutant => (mutant.id, mutant.mutated)).foldRight((0, originalReplaced)) {
               case ((id, mutatedTerm), (_, originalTerm)) =>
@@ -139,12 +143,25 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                   PlaceholderMutatedTerms(
                     originalWithoutP,
                     placeholderFunction,
-                    mutationsFound,
+                    mutationsFoundNotFiltered,
                     newVars,
                     placeholderLocation,
                     needsParens
                   )
                 ) =>
+              val mutationsFound = {
+                var unique: Set[String] = Set.empty
+                mutationsFoundNotFiltered.filter { term =>
+                  val syntax = term._2.syntax
+                  if (unique(syntax))
+                    false
+                  else {
+                    unique = unique + syntax
+                    true
+                  }
+                }
+              }
+
               val mutantSeq: Seq[Mutant] =
                 mutationsFound
                   .filterNot { case (termWithP, _) =>

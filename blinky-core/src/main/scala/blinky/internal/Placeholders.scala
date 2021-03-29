@@ -59,48 +59,64 @@ class Placeholders(nextRandomName: () => Name) {
   ): (Boolean, Term, Seq[(Term, Term)], List[Name]) = {
 
     val amountOfPlaceholders: Int = countPlaceholders(originalTerm)
-    val newVars: List[Name] = List.fill(amountOfPlaceholders)(nextRandomName())
 
-//    println()
-//    println("/" * 50)
-//    println(newVars)
-//    println(originalTerm)
+    if (amountOfPlaceholders == 0) {
+      (
+        false,
+        originalTerm,
+        Nil,
+        Nil
+      )
+    } else {
+      val newVars: List[Name] = List.fill(amountOfPlaceholders)(nextRandomName())
 
-    val originalReplaced =
-      replaceAllPlaceholders(originalTerm, newVars)
+//      println()
+//      println("/" * 50)
+//      println(newVars)
+//      println(originalTerm)
 
-//    println(originalReplaced)
-//    println("-" * 50)
+      val originalReplaced =
+        replaceAllPlaceholders(originalTerm, newVars)
 
-    val mutatedReplacedOriginal: Seq[(Term, Term)] =
-      initialMutants.map { term =>
-        (term, replaceAllPlaceholders(term, newVars))
-      }
+//      println(originalReplaced)
+//      println("-" * 50)
+
+      val mutatedReplacedOriginal: Seq[(Term, Term)] =
+        initialMutants.map { term =>
+          (term, replaceAllPlaceholders(term, newVars))
+        }
 //    val anyMutantsReplaced =
 //      mutatedReplacedOriginal.exists { case (_, (_, mutantReplaced)) => mutantReplaced }
 
-    val mutatedReplaced =
-      mutatedReplacedOriginal.map { case (withP, withoutP) =>
-        val amountOfPlaceholdersTerm = countPlaceholders(withP)
-        val remainingPlaceholders = amountOfPlaceholders - amountOfPlaceholdersTerm
-        if (remainingPlaceholders == 0)
-          (withP, withoutP)
-        else
-          (defaultPlaceholderFunction(remainingPlaceholders)(withP), withoutP)
-      }
+      val mutatedReplaced =
+        mutatedReplacedOriginal.map { case (withP, withoutP) =>
+          val amountOfPlaceholdersTerm = countPlaceholders(withP)
+//          println((amountOfPlaceholders, amountOfPlaceholdersTerm))
+          val remainingPlaceholders = amountOfPlaceholders - amountOfPlaceholdersTerm
+          if (remainingPlaceholders == 0)
+//            withP match {
+//              case Placeholder() =>
+//                (Name("identity"), withoutP)
+//              case other         =>
+//                (other, withoutP)
+//            }
+            (withP, withoutP)
+          else
+            (defaultPlaceholderFunction(remainingPlaceholders)(withP), withoutP)
+        }
 
-//    println(initialMutants)
-//    println(mutatedReplacedOriginal)
-//    println(mutatedReplaced)
-//    println(anyMutantsReplaced)
-//    println("\\" * 50)
+//      println(initialMutants)
+//      println(mutatedReplacedOriginal)
+//      println(mutatedReplaced)
+//      println("\\" * 50)
 
-    (
-      newVars.nonEmpty,
-      originalReplaced,
-      mutatedReplaced,
-      newVars
-    )
+      (
+        newVars.nonEmpty,
+        originalReplaced,
+        mutatedReplaced,
+        newVars
+      )
+    }
 
 //    if (anyMutantsReplaced)
 //      loop(
@@ -262,7 +278,7 @@ class Placeholders(nextRandomName: () => Name) {
     replace(initialTerm, initialNewVars)._1
   }
 
-  private def countPlaceholders(term: Term): Int =
+  def countPlaceholders(term: Term): Int =
     term match {
       case Placeholder() =>
         1
