@@ -80,15 +80,12 @@ object RunExamples {
     println(msg)
     println("-" * msg.length)
 
-    val confPath = examplePath / ".blinky.conf"
     val result = %%(
       "cs",
       "launch",
       s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
       "--",
-      confPath,
-      "--verbose",
-      "true"
+      "--verbose=true"
     )(examplePath)
     println(result.out.string)
 

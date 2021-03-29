@@ -53,6 +53,18 @@ jobs:
           apps: bloop
       - run: ./.github/scripts/setup.sh
       - run: sbt runExamples
+  communityTests:
+    name: Community projects tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v10
+      - uses: laughedelic/coursier-setup@v1
+        with:
+          jvm: adopt:8
+          apps: bloop
+      - run: ./.github/scripts/setup.sh
+      - run: sbt "runCommunityProjects spire"
   scalaTests:
     name: Run Tests Matrix
     runs-on: ubuntu-latest
