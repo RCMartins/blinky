@@ -54,7 +54,6 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
           original: Term,
           mutantSeq: Seq[Mutant],
           placeholderFunction: Term => Term,
-          replaceTempVars: Seq[(String, Term)],
           placeholderLocation: Option[Term],
           needsParens: Boolean
       ): Option[(Patch, Seq[Mutant])] =
@@ -134,7 +133,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                 original,
                 mutantsSeq,
                 identity,
-                Seq.empty,
+//                Seq.empty,
                 None,
                 needsParens = needsParens
               )
@@ -185,16 +184,16 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                       None
                   }
 
-              val tempVarsReplaces =
-                newVars.map {
-                  (_, Term.Name(s"_BLINKY_TEMP_${nextTempVarIndex}_"))
-                }
+//              val tempVarsReplaces =
+//                newVars.map {
+//                  (_, Term.Name(s"_BLINKY_TEMP_${nextTempVarIndex}_"))
+//                }
 
               createPatch(
                 originalWithP,
                 mutantSeq,
                 placeholderFunction,
-                tempVarsReplaces,
+//                tempVarsReplaces,
                 placeholderLocation,
                 needsParens = needsParens
               )
