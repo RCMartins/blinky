@@ -95,7 +95,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
             case Some(placeholderLocation) =>
               val mutatedStr = replacer(mutatedStrBefore)
               val placeholderFunctionStr =
-                replacer(placeholderFunction(Term.Name("?"))).syntax.dropRight(1)
+                replacer(placeholderFunction(Term.Placeholder())).syntax.dropRight(1)
 //              println(placeholderFunctionStr)
               (
                 Patch.replaceTree(original, syntaxParens(mutatedStr, needsParens)) +
