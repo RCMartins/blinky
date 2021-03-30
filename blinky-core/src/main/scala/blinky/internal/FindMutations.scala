@@ -217,7 +217,7 @@ class FindMutations(
           topTermMutations(term, parensRequired = false, overrideOriginal = Some(applyType))
         )
       case select @ Term.Select(qual, name) =>
-        val newPlaceholderLocation = placeholderLocation.orElse(Some(select))
+        val newPlaceholderLocation = placeholderLocation //.orElse(Some(select)) TODO test this?
         selectSmallerMutation(
           select,
           newPlaceholderLocation,
