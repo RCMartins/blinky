@@ -287,10 +287,8 @@ class Placeholders(nextRandomName: () => Name) {
       case Select(term, _) =>
         countPlaceholders(term)
       case Apply(applyTerm, terms) =>
-        countPlaceholders(applyTerm) + terms.collect {
-          case Placeholder() => 1
-          case _             => 0
-        }.sum
+        countPlaceholders(applyTerm) +
+          terms.collect { case Placeholder() => 1 }.sum
       case ApplyUnary(_, applyTerm) =>
         countPlaceholders(applyTerm)
       case _ =>

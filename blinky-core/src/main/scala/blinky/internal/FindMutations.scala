@@ -92,13 +92,11 @@ class FindMutations(
 
     termMutations(term, placeholderLocation, mainTermsOnly = true).flatMap {
       case (original, placeholderLocation, mutatedTerms) =>
-        placeholders.replacePlaceholders(original, placeholderLocation, mutatedTerms).flatMap {
-          case (_, mutatedTerms: StandardMutatedTerms) if mutatedTerms.mutated.isEmpty =>
-            None
+        placeholders.replacePlaceholders(original, placeholderLocation, mutatedTerms).map {
           case (_, mutatedTerms: PlaceholderMutatedTerms) =>
-            Some(mutatedTerms.mutated.map(_._1).map(replacePlaceholderToIdentity))
+            mutatedTerms.mutated.map(_._1).map(replacePlaceholderToIdentity)
           case (_, mutatedTerms: StandardMutatedTerms) =>
-            Some(mutatedTerms.mutated)
+            mutatedTerms.mutated
         }
     }.flatten
   }

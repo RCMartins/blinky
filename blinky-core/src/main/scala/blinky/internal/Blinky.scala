@@ -54,7 +54,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
           original: Term,
           mutantSeq: Seq[Mutant],
           placeholderFunction: Term => Term,
-          placeholderLocation: Option[Term],
+          placeholderLocationOpt: Option[Term],
           needsParens: Boolean
       ): Option[(Patch, Seq[Mutant])] =
         mutantSeq.headOption.map(_.original).map { originalReplaced =>
@@ -88,14 +88,15 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                 (0, result)
             }
 
-          placeholderLocation match {
+          placeholderLocationOpt match {
             case None =>
               val mutatedStr = replacer(placeholderFunction(mutatedStrBefore))
               (Patch.replaceTree(original, syntaxParens(mutatedStr, needsParens)), mutantSeq)
             case Some(placeholderLocation) =>
               val mutatedStr = replacer(mutatedStrBefore)
               val placeholderFunctionStr =
-                replacer(placeholderFunction(Term.Name("@"))).syntax.takeWhile(_ != '`')
+                replacer(placeholderFunction(Term.Name("?"))).syntax.dropRight(1)
+//              println(placeholderFunctionStr)
               (
                 Patch.replaceTree(original, syntaxParens(mutatedStr, needsParens)) +
                   Patch.addLeft(placeholderLocation, placeholderFunctionStr),
@@ -143,7 +144,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                     originalWithoutP,
                     placeholderFunction,
                     mutationsFoundNotFiltered,
-                    newVars,
+                    _,
                     placeholderLocation,
                     needsParens
                   )
