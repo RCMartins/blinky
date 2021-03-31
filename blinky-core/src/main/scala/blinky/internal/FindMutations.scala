@@ -130,12 +130,18 @@ class FindMutations(
 
     mainTerm match {
       case applyInfix @ Term.ApplyInfix(left, op, targs, rightList) =>
+        val newPlaceholderLocation = Some(applyInfix) // TODO test this?
         selectSmallerMutation(
           applyInfix,
-          None,
-          topMainTermMutations(left).map(Term.ApplyInfix(_, op, targs, rightList)) ++
+          newPlaceholderLocation,
+          topMainTermMutations(left, placeholderLocation = newPlaceholderLocation)
+            .map(Term.ApplyInfix(_, op, targs, rightList)) ++
             listTermsMutateMain(rightList).map(Term.ApplyInfix(left, op, targs, _)),
-          topTermMutations(left, parensRequired = true) ++
+          topTermMutations(
+            left,
+            parensRequired = true,
+            placeholderLocation = newPlaceholderLocation
+          ) ++
             rightList.flatMap(topTermMutations(_, parensRequired = true))
         )
       case applyUnary @ Term.ApplyUnary(op, arg) =>
@@ -146,7 +152,7 @@ class FindMutations(
           topTermMutations(arg, parensRequired = true)
         )
       case apply @ Term.Apply(fun, args) =>
-        val newPlaceholderLocation = placeholderLocation.orElse(Some(apply))
+        val newPlaceholderLocation = Some(apply) // TODO test this?
         selectSmallerMutation(
           apply,
           newPlaceholderLocation,

@@ -12,4 +12,10 @@ object TermPlaceholder11 {
       else if (???) useF(identity, _3_).reverse ///
                else useF(_.reverse, _3_).reverse
 
+  implicit class StringExtensions(initial: String) {
+    def !(str1: String, str2: String): String = initial.replace(str1, str2)
+  }
+
+  def result: String => String = _4_ => (if (???) _4_ else _4_.trim) ! ("abc", "def")
+
 }
