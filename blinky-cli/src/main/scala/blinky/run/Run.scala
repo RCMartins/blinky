@@ -74,31 +74,17 @@ object Run {
                                   .filter(_.ext == "scala")
                                   .map(_.toString)
 
-//                              processResult <-
-//                                processFilesToMutate(projectRealPath, config.filesToMutate)
-
-                              result <-
-//                                processResult match {
-//                                  case Left(value) =>
-//                                    succeed(Left(value))
-//                                  case Right(filesToMutateStr) =>
-//                                    if (base.isEmpty)
-//                                      succeed(Right((filesToMutateStr, base)))
-//                                    else
-                                for {
-                                  copyResult <- copyFilesToTempFolder(
-                                    originalProjectRoot,
-                                    originalProjectPath,
-                                    projectRealPath
-                                  )
-                                  result <- optimiseFilesToMutate(
-                                    base,
-                                    copyResult,
-                                    projectRealPath,
-                                    config.filesToMutate
-                                  )
-                                } yield result
-//                                }
+                              copyResult <- copyFilesToTempFolder(
+                                originalProjectRoot,
+                                originalProjectPath,
+                                projectRealPath
+                              )
+                              result <- optimiseFilesToMutate(
+                                base,
+                                copyResult,
+                                projectRealPath,
+                                config.filesToMutate
+                              )
                             } yield result
                         }
                       else
@@ -112,9 +98,7 @@ object Run {
                             projectRealPath,
                             config.filesToMutate
                           )
-                        } yield processResult.map { filesToMutateStr =>
-                          (filesToMutateStr, Seq("all"))
-                        }
+                        } yield processResult.map((_, Seq("all")))
                     }
 
                     runResult <- filesToMutateEither match {
@@ -220,10 +204,7 @@ object Run {
       case FileFilter.SingleFileOrFolder(fileOrFolder) =>
         succeed(Right(fileOrFolder.toString))
       case FileFilter.FileName(fileName) =>
-        grepFiles(
-          projectRealPath,
-          fileName
-        ).flatMap(filterFiles(_, fileName))
+        lsFiles(projectRealPath).flatMap(filterFiles(_, fileName))
     }
 
   def optimiseFilesToMutate(

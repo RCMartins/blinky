@@ -4,6 +4,7 @@ import ammonite.ops.{Path, RelPath}
 import blinky.TestSpec
 import blinky.run.TestInstruction._
 import blinky.run.Utils.red
+import blinky.run.config.FileFilter
 import zio.ExitCode
 import zio.test._
 import zio.test.environment.TestEnvironment
@@ -18,6 +19,65 @@ object RunTest extends TestSpec {
 
   val spec: Spec[TestEnvironment, TestFailure[Nothing], TestSuccess] =
     suite("Run")(
+      suite("processFilesToMutate")(
+        test("when files filtering is SingleFileOrFolder") {
+          testInstruction(
+            Run.processFilesToMutate(
+              projectRealPath,
+              FileFilter.SingleFileOrFolder(RelPath("src/main/scala/SomeFile.scala"))
+            ),
+            TestReturn(Right("src/main/scala/SomeFile.scala"))
+          )
+        },
+        test("when filterFiles returns empty") {
+          testInstruction(
+            Run.processFilesToMutate(
+              projectRealPath,
+              FileFilter.FileName("FileD.scala")
+            ),
+            TestLsFiles(
+              projectRealPath,
+              Seq("src/FileA.scala", "src/FileB.scala", "src/FileC.scala"),
+              TestPrintLine(
+                s"--filesToMutate 'FileD.scala' does not exist.",
+                TestReturn(Left(ExitCode.failure))
+              )
+            )
+          )
+        },
+        test("when filterFiles returns exactly one file") {
+          testInstruction(
+            Run.processFilesToMutate(
+              projectRealPath,
+              FileFilter.FileName("FileA.scala")
+            ),
+            TestLsFiles(
+              projectRealPath,
+              Seq("src/FileA.scala", "src/FileB.scala", "src/FileC.scala"),
+              TestReturn(Right("src/FileA.scala"))
+            )
+          )
+        },
+        test("when filterFiles returns multiple files") {
+          testInstruction(
+            Run.processFilesToMutate(
+              projectRealPath,
+              FileFilter.FileName("FileB.scala")
+            ),
+            TestLsFiles(
+              projectRealPath,
+              Seq("src/FileA.scala", "src/foo/FileB.scala", "src/bar/FileB.scala"),
+              TestPrintLine(
+                s"""--filesToMutate is ambiguous.
+                   |Files ending with the same path:
+                   |src/foo/FileB.scala
+                   |src/bar/FileB.scala""".stripMargin,
+                TestReturn(Left(ExitCode.failure))
+              )
+            )
+          )
+        }
+      ),
       suite("copyFilesToTempFolder")(
         test("when both git and copy works") {
           testInstruction(

@@ -67,12 +67,7 @@ object AmmoniteExternalCalls extends ExternalCalls {
       }
     ).toEither
 
-  def grepFiles(
-      basePath: Path,
-      fileName: String
-  ): Seq[String] =
-    Try(
-      ls.rec(basePath).map(_.toString)
-    ).getOrElse(Seq.empty)
+  def lsFiles(basePath: Path): Seq[String] =
+    Try(ls.rec(basePath).map(_.toString)).getOrElse(Seq.empty)
 
 }

@@ -52,8 +52,8 @@ package object run {
           )
         case Timeout(runFunction, millis, next) =>
           Timeout(runFunction, millis, next(_: Option[Boolean]).flatMap(f))
-        case GrepFiles(basePath, fileName, next) =>
-          GrepFiles(basePath, fileName, next(_: Seq[String]).flatMap(f))
+        case LsFiles(basePath, next) =>
+          LsFiles(basePath, next(_: Seq[String]).flatMap(f))
       }
   }
 
