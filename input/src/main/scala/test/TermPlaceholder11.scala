@@ -18,6 +18,10 @@ object TermPlaceholder11 {
     def !(str1: String, str2: String): String = initial.replace(str1, str2)
   }
 
-  def result: String => String = _.trim ! ("abc", "def")
+  def result1: String => String = _.trim ! ("abc", "def")
+
+  def result2: (String, String) => String = _.trim ! (_, "def")
+
+  def result3: (String, String) => String = _.trim ! ("abc", _)
 
 }
