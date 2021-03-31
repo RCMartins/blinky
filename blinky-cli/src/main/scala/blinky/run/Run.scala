@@ -74,31 +74,31 @@ object Run {
                                   .filter(_.ext == "scala")
                                   .map(_.toString)
 
-                              processResult <-
-                                processFilesToMutate(projectRealPath, config.filesToMutate)
+//                              processResult <-
+//                                processFilesToMutate(projectRealPath, config.filesToMutate)
 
                               result <-
-                                processResult match {
-                                  case Left(value) =>
-                                    succeed(Left(value))
-                                  case Right(filesToMutateStr) =>
-                                    if (base.isEmpty)
-                                      succeed(Right((filesToMutateStr, base)))
-                                    else
-                                      for {
-                                        copyResult <- copyFilesToTempFolder(
-                                          originalProjectRoot,
-                                          originalProjectPath,
-                                          projectRealPath
-                                        )
-                                        result <- optimiseFilesToMutate(
-                                          base,
-                                          copyResult,
-                                          projectRealPath,
-                                          config.filesToMutate
-                                        )
-                                      } yield result
-                                }
+//                                processResult match {
+//                                  case Left(value) =>
+//                                    succeed(Left(value))
+//                                  case Right(filesToMutateStr) =>
+//                                    if (base.isEmpty)
+//                                      succeed(Right((filesToMutateStr, base)))
+//                                    else
+                                for {
+                                  copyResult <- copyFilesToTempFolder(
+                                    originalProjectRoot,
+                                    originalProjectPath,
+                                    projectRealPath
+                                  )
+                                  result <- optimiseFilesToMutate(
+                                    base,
+                                    copyResult,
+                                    projectRealPath,
+                                    config.filesToMutate
+                                  )
+                                } yield result
+//                                }
                             } yield result
                         }
                       else
@@ -195,15 +195,20 @@ object Run {
       files: Seq[String],
       fileName: String
   ): Instruction[Either[ExitCode, String]] = {
-    val filesFiltered = files.collect { case file if file.endsWith(fileName) => file }
+    val filesFiltered: Seq[String] =
+      files.collect { case file if file.endsWith(fileName) => file }
     filesFiltered match {
-      case List(singleFile) =>
-        succeed(Right(singleFile))
-      case Nil =>
+      case Seq() =>
         printLine(s"--filesToMutate '$fileName' does not exist.")
           .map(_ => Left(ExitCode.failure))
+      case Seq(singleFile) =>
+        succeed(Right(singleFile))
       case _ =>
-        printLine(s"--filesToMutate is ambiguous.").map(_ => Left(ExitCode.failure))
+        printLine(
+          s"""--filesToMutate is ambiguous.
+             |Files ending with the same path:
+             |${filesFiltered.mkString("\n")}""".stripMargin
+        ).map(_ => Left(ExitCode.failure))
     }
   }
 
