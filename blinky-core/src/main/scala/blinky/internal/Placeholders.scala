@@ -2,8 +2,8 @@ package blinky.internal
 
 import blinky.internal.MutatedTerms.{PlaceholderMutatedTerms, StandardMutatedTerms}
 
-import scala.meta.Term.{Apply, ApplyInfix, ApplyUnary, Name, Placeholder, Select}
-import scala.meta.{Term, XtensionQuasiquoteTerm}
+import scala.meta.Term
+import scala.meta.Term._
 
 class Placeholders(nextRandomName: () => Name) {
 
@@ -73,6 +73,7 @@ class Placeholders(nextRandomName: () => Name) {
 //      println()
 //      println("/" * 50)
 //      println(newVars)
+//      println(amountOfPlaceholders)
 //      println(originalTerm)
 
       val originalReplaced =
@@ -85,8 +86,6 @@ class Placeholders(nextRandomName: () => Name) {
         initialMutants.map { term =>
           (term, replaceAllPlaceholders(term, newVars))
         }
-//    val anyMutantsReplaced =
-//      mutatedReplacedOriginal.exists { case (_, (_, mutantReplaced)) => mutantReplaced }
 
       val mutatedReplaced =
         mutatedReplacedOriginal.map { case (withP, withoutP) =>
@@ -214,13 +213,7 @@ class Placeholders(nextRandomName: () => Name) {
 
   private def defaultPlaceholderFunction(amountOfPlaceholders: Int): Term => Term =
     (body: Term) => {
-      amountOfPlaceholders match {
-        case 1 => q"_ => $body"
-        case 2 => q"(_, _) => $body"
-        case 3 => q"(_, _, _) => $body"
-        case 4 => q"(_, _, _, _) => $body"
-        case 5 => ???
-      }
+      Function(List.fill(amountOfPlaceholders)(Param(Nil, meta.Name.Anonymous(), None, None)), body)
     }
 
   private def generatePlaceholderFunction(newVars: List[Name]): Term => Term =
@@ -293,6 +286,19 @@ class Placeholders(nextRandomName: () => Name) {
         countPlaceholders(applyTerm)
       case _ =>
         0
+    }
+
+  def countFuncPlaceholders(term: Term): Int =
+    term match {
+      case Function(params, _) =>
+        params.count {
+          case Param(_, meta.Name.Anonymous(), _, _) =>
+            println(("Name.text", ""))
+            true
+          case _ => false
+        }
+      case _ =>
+        countPlaceholders(term)
     }
 
 }
