@@ -53,33 +53,45 @@ class FindMutations(
       term: Term,
       parensRequired: Boolean,
       placeholderLocation: Option[Term] = None,
-      overrideOriginal: Option[Term] = None
+      overrideOriginal: Option[Term] = None,
+      inApplyPart: Boolean = false
   ): Seq[(Term, Option[Term], MutatedTerms)] =
+//    println((s"inApplyPart=$inApplyPart", term, s"overrideOriginal=$overrideOriginal"))
     addLocation {
-      termMutations(term, placeholderLocation, mainTermsOnly = false).flatMap {
-        case (original, placeholderLocation, mutatedTerms) =>
-          placeholders.replacePlaceholders(original, placeholderLocation, mutatedTerms).flatMap {
-            case (original, mutatedTerms: StandardMutatedTerms)
-                if parensRequired && original == term =>
-              Some((original, mutatedTerms.copy(needsParens = true)))
-            case (original, mutatedTerms: PlaceholderMutatedTerms)
-                if parensRequired && original == term =>
-              Some((original, mutatedTerms.copy(needsParens = true)))
-            case (original, mutatedTerms) if original == term && overrideOriginal.nonEmpty =>
-              Some((overrideOriginal.get, mutatedTerms))
-            case other =>
-              Some(other)
-          }
-      }
+      termMutations(term, placeholderLocation, mainTermsOnly = false, inApplyPart = inApplyPart)
+        .flatMap { case (original, placeholderLocation, mutatedTerms) =>
+          placeholders
+            .replacePlaceholders(original, placeholderLocation, mutatedTerms, inApplyPart)
+            .flatMap {
+              case (original, mutatedTerms) if original == term && overrideOriginal.nonEmpty =>
+                Some((overrideOriginal.get, mutatedTerms))
+              case (original, mutatedTerms: StandardMutatedTerms)
+                  if parensRequired && original == term =>
+                Some((original, mutatedTerms.copy(needsParens = true)))
+              case (original, mutatedTerms: PlaceholderMutatedTerms)
+                  if parensRequired && original == term =>
+                Some((original, mutatedTerms.copy(needsParens = true)))
+              case other =>
+                Some(other)
+            }
+        }
     }
 
   private def topMainTermMutations(
       term: Term,
-      placeholderLocation: Option[Term] = None
+      placeholderLocation: Option[Term] = None,
+      inApplyPart: Boolean = false
   ): Seq[Term] =
-    termMutations(term, placeholderLocation, mainTermsOnly = true).flatMap {
-      case (original, placeholderLocation, mutatedTerms) =>
-        placeholders.replacePlaceholders(original, placeholderLocation, mutatedTerms).map {
+    termMutations(
+      term,
+      placeholderLocation,
+      mainTermsOnly = true,
+      inApplyPart = inApplyPart
+    ).flatMap { case (original, placeholderLocation, mutatedTerms) =>
+//      println(("replacePlaceholders", original, placeholderLocation, mutatedTerms, inApplyPart))
+      placeholders
+        .replacePlaceholders(original, placeholderLocation, mutatedTerms, inApplyPart)
+        .map {
           case (_, mutatedTerms: PlaceholderMutatedTerms) =>
             mutatedTerms.mutated.map(_._1)
           case (_, mutatedTerms: StandardMutatedTerms) =>
@@ -90,7 +102,8 @@ class FindMutations(
   private def termMutations(
       mainTerm: Term,
       placeholderLocation: Option[Term],
-      mainTermsOnly: Boolean
+      mainTermsOnly: Boolean,
+      inApplyPart: Boolean
   ): Seq[(Term, Option[Term], MutatedTerms)] = {
     def selectSmallerMutation(
         term: Term,
@@ -102,6 +115,7 @@ class FindMutations(
       if (fullReplace) {
         Seq((term, placeholderLocation, mainMutations.toMutated(needsParens = needsParens)))
       } else if (mainMutations.nonEmpty || mainTermsOnly) {
+//        println((mainMutations.nonEmpty, mainTermsOnly))
         Seq(
           (
             term,
@@ -114,17 +128,64 @@ class FindMutations(
       }
     }
 
+    def selectLogic(
+        select: Term.Select,
+        qual: Term,
+        name: Term.Name
+    ): Seq[(Term, Option[Term], MutatedTerms)] =
+      selectSmallerMutation(
+        select,
+        placeholderLocation,
+        topMainTermMutations(
+          qual,
+          placeholderLocation = placeholderLocation,
+          inApplyPart = inApplyPart
+        )
+          .map(mutated => Term.Select(mutated, name)),
+        topTermMutations(
+          qual,
+          placeholderLocation = placeholderLocation,
+          parensRequired = true,
+          inApplyPart = inApplyPart
+        )
+      )
+
+//    println((mainTermsOnly, mainTerm.structure, mainTerm))
     mainTerm match {
       case applyInfix @ Term.ApplyInfix(left, op, targs, rightList) =>
+//        println(("applyInfix", applyInfix, s"inApplyPart=$inApplyPart"))
+
         val newPlaceholderLocation = Some(applyInfix)
         def applyInfixTopMainTermMutations: Seq[Term.ApplyInfix] =
           topMainTermMutations(left, placeholderLocation = newPlaceholderLocation)
             .map(Term.ApplyInfix(_, op, targs, rightList))
+
         selectSmallerMutation(
           applyInfix,
           newPlaceholderLocation,
-          applyInfixTopMainTermMutations ++
-            listTermsMutateMain(rightList).map(Term.ApplyInfix(left, op, targs, _)), {
+          applyInfixTopMainTermMutations ++ {
+            val listOfLists = listTermsMutateMain(rightList)
+
+            val replaceIndex: List[Boolean] =
+              rightList.map {
+                case Placeholder() => false
+                case _             => true
+              }
+
+            listOfLists.map { list =>
+              Term.ApplyInfix(
+                left,
+                op,
+                targs,
+                list
+                  .zip(replaceIndex)
+                  .map {
+                    case (Placeholder(), true) => Term.Name("identity")
+                    case (other, _)            => other
+                  }
+              )
+            }
+          }, {
             val funcMutations =
               topTermMutations(
                 left,
@@ -132,29 +193,71 @@ class FindMutations(
                 placeholderLocation = newPlaceholderLocation
               )
 
-            lazy val applyCountPlaceholders = placeholders.countPlaceholders(applyInfix)
+            lazy val applyCountPlaceholders =
+              placeholders.countPlaceholders(applyInfix, inApplyPart = inApplyPart)
             val placeholderMismatch =
               funcMutations.map(_._3).exists {
                 case StandardMutatedTerms(_, _) =>
                   false
                 case PlaceholderMutatedTerms(_, _, mutated, _, _, _) =>
                   mutated
-                    .map(term => placeholders.countFuncPlaceholders(term._1))
+                    .map(term =>
+                      placeholders.countFuncPlaceholders(term._1, inApplyPart = inApplyPart)
+                    )
                     .exists(_ != applyCountPlaceholders)
               }
 
-            (if (placeholderMismatch) {
-               Seq(
-                 (
-                   applyInfix,
-                   placeholderLocation,
-                   applyInfixTopMainTermMutations.toMutated(false)
-                 )
-               )
-             } else {
-               funcMutations
-             }) ++
-              rightList.flatMap(topTermMutations(_, parensRequired = true))
+            {
+              if (placeholderMismatch)
+                Seq(
+                  (
+                    applyInfix,
+                    placeholderLocation,
+                    applyInfixTopMainTermMutations.toMutated(false)
+                  )
+                )
+              else
+                funcMutations
+            } ++ {
+//              println(rightList)
+//              rightList.flatMap(topTermMutations(_, parensRequired = true))
+//              ???
+
+              {
+                val listOfLists = listTermsMutateMain(rightList)
+
+                val replaceIndex: List[Boolean] =
+                  rightList.map {
+                    case Placeholder() => false
+                    case _             => true
+                  }
+
+                val finalMutations =
+                  listOfLists
+                    .map { list =>
+                      Term.ApplyInfix(
+                        left,
+                        op,
+                        targs,
+                        list
+                          .zip(replaceIndex)
+                          .map {
+                            case (Placeholder(), true) if inApplyPart => Term.Name("identity")
+                            case (other, _)                           => other
+                          }
+                      )
+                    }
+
+//                println("#" * 50)
+//                println(
+//                  Seq((applyInfix, placeholderLocation, finalMutations.toMutated(false)))
+//                )
+//                println("#" * 50)
+
+                Seq((applyInfix, placeholderLocation, finalMutations.toMutated(false)))
+              }
+
+            }
           }
         )
       case applyUnary @ Term.ApplyUnary(op, arg) =>
@@ -167,7 +270,11 @@ class FindMutations(
       case apply @ Term.Apply(fun, args) =>
         val newPlaceholderLocation = Some(apply)
         def applyTopMainTermMutations: Seq[Term.Apply] =
-          topMainTermMutations(fun, placeholderLocation = newPlaceholderLocation)
+          topMainTermMutations(
+            fun,
+            placeholderLocation = newPlaceholderLocation,
+            inApplyPart = true
+          )
             .map(mutated => Term.Apply(mutated, args))
 
         selectSmallerMutation(
@@ -198,31 +305,34 @@ class FindMutations(
               topTermMutations(
                 fun,
                 parensRequired = true,
-                placeholderLocation = newPlaceholderLocation
+                placeholderLocation = newPlaceholderLocation,
+                inApplyPart = true
               )
 
-            lazy val applyCountPlaceholders = placeholders.countPlaceholders(apply)
+            lazy val applyCountPlaceholders =
+              placeholders.countPlaceholders(apply, inApplyPart = true)
             val placeholderMismatch =
               funcMutations.map(_._3).exists {
                 case StandardMutatedTerms(_, _) =>
                   false
                 case PlaceholderMutatedTerms(_, _, mutated, _, _, _) =>
                   mutated
-                    .map(term => placeholders.countFuncPlaceholders(term._1))
+                    .map(term => placeholders.countFuncPlaceholders(term._1, inApplyPart = true))
                     .exists(_ != applyCountPlaceholders)
               }
 
-            (if (placeholderMismatch) {
-               Seq(
-                 (
-                   apply,
-                   placeholderLocation,
-                   applyTopMainTermMutations.toMutated(false)
-                 )
-               )
-             } else {
-               funcMutations
-             }) ++
+            {
+              if (placeholderMismatch)
+                Seq(
+                  (
+                    apply,
+                    placeholderLocation,
+                    applyTopMainTermMutations.toMutated(false)
+                  )
+                )
+              else
+                funcMutations
+            } ++
               args.flatMap(topTermMutations(_, parensRequired = false))
           }
         )
@@ -234,17 +344,7 @@ class FindMutations(
           topTermMutations(term, parensRequired = false, overrideOriginal = Some(applyType))
         )
       case select @ Term.Select(qual, name) =>
-        selectSmallerMutation(
-          select,
-          placeholderLocation,
-          topMainTermMutations(qual, placeholderLocation = placeholderLocation)
-            .map(mutated => Term.Select(mutated, name)),
-          topTermMutations(
-            qual,
-            placeholderLocation = placeholderLocation,
-            parensRequired = true
-          )
-        )
+        selectLogic(select, qual, name)
       case tuple @ Term.Tuple(args) =>
         selectSmallerMutation(
           tuple,

@@ -17,7 +17,7 @@ object GeneralSyntax4 {
 
   val some1 = Some("value")
 
-  val pair1 = "str" -> (if (???) null else some1.orNull[String])
+  val pair1 = if (???) "str" -> null else "str" -> (some1.orNull[String])
 
   val applyType1 = if (???) Some(1 + 2).asInstanceOf[Option[Int]] ///
               else if (???) Some(1 + 2).asInstanceOf[Option[Int]].filterNot(v => v == 3) ///

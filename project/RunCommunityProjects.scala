@@ -19,6 +19,11 @@ object RunCommunityProjects {
         "https://github.com/typelevel/spire.git",
         "spire",
         defaultBlinkyConf("testsJVM")
+      ),
+      "playframework" -> Project(
+        "https://github.com/playframework/playframework.git",
+        "playframework",
+        defaultBlinkyConf("Play")
       )
     )
 
