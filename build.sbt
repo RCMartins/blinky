@@ -24,7 +24,7 @@ inThisBuild(
     scalaVersion := V.scala212,
     // addCompilerPlugin(scalafixSemanticdb),
     addCompilerPlugin(
-      "org.scalameta" % "semanticdb-scalac" % "4.4.10" cross CrossVersion.full
+      "org.scalameta" % "semanticdb-scalac" % "4.4.11" cross CrossVersion.full
     ),
     scalacOptions ++= {
       if (scalaVersion.value.startsWith("2.13."))
