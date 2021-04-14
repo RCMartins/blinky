@@ -18,8 +18,8 @@ object TermPlaceholder11 {
 
   def result1: String => String = _4_ => (if (???) _4_ else _4_.trim) ! ("abc", "def")
 
-  def result2: (String, String) => String = (_8_, _9_) => if (???) _8_ ! (_9_, "def") else _8_.trim ! (_9_, "def")
+  def result2: (String, String) => String = (_7_, _8_) => if (???) _7_ ! (_8_, "def") else _7_.trim ! (_8_, "def")
 
-  def result3: (String, String) => String = (_14_, _15_) => if (???) _14_ ! ("abc", _15_) else _14_.trim ! ("abc", _15_)
+  def result3: (String, String) => String = (_13_, _14_) => if (???) _13_ ! ("abc", _14_) else _13_.trim ! ("abc", _14_)
 
 }

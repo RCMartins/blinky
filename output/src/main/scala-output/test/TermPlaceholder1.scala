@@ -6,6 +6,6 @@ object TermPlaceholder1 {
 
   val func1: String => Int = _3_ => if (???) concat(_3_).length - 5 else concat(_3_).length + 5
 
-  val func2: String => String = _4_ => if (???) concat(_4_) + (1 - 1).toString else concat(_4_) + (1 + 1).toString
+  val func2: String => String = concat(_) + (if (???) 1 - 1 else 1 + 1).toString
 
 }

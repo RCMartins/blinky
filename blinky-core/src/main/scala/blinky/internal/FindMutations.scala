@@ -112,6 +112,14 @@ class FindMutations(
         subMutationsWithoutMain: => Seq[(Term, Option[Term], MutatedTerms)]
     ): Seq[(Term, Option[Term], MutatedTerms)] = {
       val (mainMutations, fullReplace, needsParens) = findAllMutations(term)
+
+//      println(s"selectSmallerMutation: ($fullReplace, ${mainMutations.nonEmpty}, $mainTermsOnly)")
+//      if (mainMutations.nonEmpty) {
+//        println("=" * 20)
+//        println(mainMutations.mkString("\n"))
+//        println("=" * 20)
+//      }
+
       if (fullReplace) {
         Seq((term, placeholderLocation, mainMutations.toMutated(needsParens = needsParens)))
       } else if (mainMutations.nonEmpty || mainTermsOnly) {
@@ -128,29 +136,8 @@ class FindMutations(
       }
     }
 
-    def selectLogic(
-        select: Term.Select,
-        qual: Term,
-        name: Term.Name
-    ): Seq[(Term, Option[Term], MutatedTerms)] =
-      selectSmallerMutation(
-        select,
-        placeholderLocation,
-        topMainTermMutations(
-          qual,
-          placeholderLocation = placeholderLocation,
-          inApplyPart = inApplyPart
-        )
-          .map(mutated => Term.Select(mutated, name)),
-        topTermMutations(
-          qual,
-          placeholderLocation = placeholderLocation,
-          parensRequired = true,
-          inApplyPart = inApplyPart
-        )
-      )
-
-//    println((mainTermsOnly, mainTerm.structure, mainTerm))
+    //    println((mainTermsOnly, mainTerm.structure, mainTerm))
+//    println("-" * 50 + s" $mainTerm " + "-" * 50)
     mainTerm match {
       case applyInfix @ Term.ApplyInfix(left, op, targs, rightList) =>
 //        println(("applyInfix", applyInfix, s"inApplyPart=$inApplyPart"))
@@ -207,6 +194,12 @@ class FindMutations(
                     .exists(_ != applyCountPlaceholders)
               }
 
+//            println("$" * 50)
+//            println(left)
+//            println(placeholderMismatch)
+//            println(funcMutations)
+//            println("$" * 50)
+
             {
               if (placeholderMismatch)
                 Seq(
@@ -223,40 +216,51 @@ class FindMutations(
 //              rightList.flatMap(topTermMutations(_, parensRequired = true))
 //              ???
 
-              {
-                val listOfLists = listTermsMutateMain(rightList)
+              val listOfLists = listTermsMutateMain(rightList)
 
-                val replaceIndex: List[Boolean] =
-                  rightList.map {
-                    case Placeholder() => false
-                    case _             => true
+              val replaceIndex: List[Boolean] =
+                rightList.map {
+                  case Placeholder() => false
+                  case _             => true
+                }
+
+              val finalMutations =
+                listOfLists
+                  .map { list =>
+                    Term.ApplyInfix(
+                      left,
+                      op,
+                      targs,
+                      list
+                        .zip(replaceIndex)
+                        .map {
+                          case (Placeholder(), true) if inApplyPart => Term.Name("identity")
+                          case (other, _)                           => other
+                        }
+                    )
                   }
 
-                val finalMutations =
-                  listOfLists
-                    .map { list =>
-                      Term.ApplyInfix(
-                        left,
-                        op,
-                        targs,
-                        list
-                          .zip(replaceIndex)
-                          .map {
-                            case (Placeholder(), true) if inApplyPart => Term.Name("identity")
-                            case (other, _)                           => other
-                          }
-                      )
-                    }
+//              println("#" * 50)
+//              println(inApplyPart)
+//              println(replaceIndex)
+//              println(listOfLists)
+//              println(finalMutations)
+//              println(
+//                Seq((applyInfix, placeholderLocation, finalMutations.toMutated(false)))
+//              )
+//              val hasPlaceholders2 =
+//                placeholders.countPlaceholders(left, inApplyPart) > 0
+//              println(listOfLists.map(_.map(placeholders.countPlaceholders(_, inApplyPart))))
+//              println((hasPlaceholders1 /*, hasPlaceholders2 */ ))
+//              println("#" * 50)
 
-//                println("#" * 50)
-//                println(
-//                  Seq((applyInfix, placeholderLocation, finalMutations.toMutated(false)))
-//                )
-//                println("#" * 50)
+              val hasPlaceholders1 =
+                listOfLists.exists(_.exists(placeholders.countPlaceholders(_, inApplyPart) > 0))
 
+              if (placeholderMismatch || hasPlaceholders1 /*|| hasPlaceholders2*/ )
                 Seq((applyInfix, placeholderLocation, finalMutations.toMutated(false)))
-              }
-
+              else
+                rightList.flatMap(topTermMutations(_, parensRequired = true))
             }
           }
         )
@@ -344,7 +348,18 @@ class FindMutations(
           topTermMutations(term, parensRequired = false, overrideOriginal = Some(applyType))
         )
       case select @ Term.Select(qual, name) =>
-        selectLogic(select, qual, name)
+        selectSmallerMutation(
+          select,
+          placeholderLocation,
+          topMainTermMutations(qual, placeholderLocation, inApplyPart)
+            .map(mutated => Term.Select(mutated, name)),
+          topTermMutations(
+            qual,
+            placeholderLocation = placeholderLocation,
+            parensRequired = true,
+            inApplyPart = inApplyPart
+          )
+        )
       case tuple @ Term.Tuple(args) =>
         selectSmallerMutation(
           tuple,
