@@ -102,8 +102,8 @@ lazy val cli =
     .settings(
       skip in publish := false,
       moduleName := "blinky-cli",
-      libraryDependencies += "com.geirsson"               %% "metaconfig-core"            % "0.9.10",
-      libraryDependencies += "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.10",
+      libraryDependencies += "com.geirsson"               %% "metaconfig-core"            % "0.9.11",
+      libraryDependencies += "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.11",
       libraryDependencies += "com.github.scopt"           %% "scopt"                      % "4.0.1",
       libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.6.1",
       libraryDependencies += "dev.zio"                    %% "zio"                        % "1.0.6",
