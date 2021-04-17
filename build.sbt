@@ -7,6 +7,8 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
+val semanticdbScalac = "4.4.13"
+
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
   List(
@@ -24,7 +26,7 @@ inThisBuild(
     scalaVersion := V.scala212,
     // addCompilerPlugin(scalafixSemanticdb),
     addCompilerPlugin(
-      "org.scalameta" % "semanticdb-scalac" % "4.4.10" cross CrossVersion.full
+      "org.scalameta" % "semanticdb-scalac" % semanticdbScalac cross CrossVersion.full
     ),
     scalacOptions ++= {
       if (scalaVersion.value.startsWith("2.13."))
@@ -67,7 +69,8 @@ lazy val core =
         version,
         "stable" -> stableVersion.value,
         scalaVersion,
-        sbtVersion
+        sbtVersion,
+        "semanticdbVersion" -> semanticdbScalac
       )
     )
 
