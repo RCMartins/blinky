@@ -1,7 +1,7 @@
 package blinky.run
 
 import ammonite.ops.pwd
-import blinky.TestSpec
+import blinky.{BuildInfo, TestSpec}
 import blinky.run.TestInstruction._
 import zio.test._
 import zio.test.environment.TestEnvironment
@@ -85,7 +85,7 @@ object SetupTest extends TestSpec {
               "sbt",
               Seq(
                 "set ThisBuild / semanticdbEnabled := true",
-                "set ThisBuild / semanticdbVersion := \"4.4.10\"",
+                s"""set ThisBuild / semanticdbVersion := "${BuildInfo.semanticdbVersion}"""",
                 "compile"
               ),
               Map("BLINKY" -> "true"),

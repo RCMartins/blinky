@@ -1,6 +1,7 @@
 package blinky.run
 
 import ammonite.ops.Path
+import blinky.BuildInfo
 import blinky.run.Instruction.{CopyResource, runAsyncSuccess, runSync, succeed}
 
 object Setup {
@@ -22,7 +23,7 @@ object Setup {
       "sbt",
       Seq(
         "set ThisBuild / semanticdbEnabled := true",
-        "set ThisBuild / semanticdbVersion := \"4.4.10\"",
+        s"""set ThisBuild / semanticdbVersion := "${BuildInfo.semanticdbVersion}"""",
         "compile"
       ),
       envArgs = Map("BLINKY" -> "true"),
