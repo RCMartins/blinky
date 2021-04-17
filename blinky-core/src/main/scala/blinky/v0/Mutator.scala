@@ -37,7 +37,8 @@ object Mutator {
       ScalaTry,
       Collections,
       PartialFunctions,
-      ScalaStrings
+      ScalaStrings,
+      ControlFlow
     )
 
   val all: Map[String, Mutator] =
@@ -550,6 +551,22 @@ object Mutator {
       }
     }
 
+  }
+
+  object ControlFlow extends MutatorGroup {
+    override val groupName: String = "ControlFlow"
+
+    override val getSubMutators: List[Mutator] =
+      List(
+        IfMutator
+      )
+
+    object IfMutator extends SimpleMutator("If") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case Term.If(_, thenTerm, elseTerm) =>
+          default(thenTerm, elseTerm)
+      }
+    }
   }
 
   private def default(terms: Term*): ReplaceType = Standard(terms.toList)

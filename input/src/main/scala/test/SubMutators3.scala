@@ -11,6 +11,7 @@ Blinky.enabledMutators = [
   { Collections = [ListApply, SeqApply, SetApply] }
   { PartialFunctions = [RemoveOneCase] }
   { ScalaStrings = [Concat, Trim, ToUpperCase, ToLowerCase] }
+  { ControlFlow = [If] }
 ]
  */
 package test
