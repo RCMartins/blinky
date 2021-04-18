@@ -472,12 +472,9 @@ object Mutator {
                     .filterNot(_.structure == caseTerm.pat.structure)
 
                 val caseTermsMutated =
-                  if (alternatives.length > 1)
-                    alternatives
-                      .map(pat => caseTerm.copy(pat = pat))
-                      .reverse
-                  else
-                    Nil
+                  alternatives
+                    .map(pat => caseTerm.copy(pat = pat))
+                    .reverse
 
                 changeOneCase(
                   before :+ caseTerm,
