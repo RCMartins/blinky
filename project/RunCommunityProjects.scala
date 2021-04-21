@@ -3,7 +3,12 @@ import os.copy
 
 object RunCommunityProjects {
 
-  private case class Project(url: String, folderName: String, blinkyConf: String)
+  private case class Project(
+      url: String,
+      folderName: String,
+      blinkyConf: String,
+      extraCommands: Path => Unit
+  )
 
   private def defaultBlinkyConf(projectName: String, filesToMutate: String): String =
     s"""projectPath = "."
@@ -18,12 +23,14 @@ object RunCommunityProjects {
       "spire" -> Project(
         "https://github.com/typelevel/spire.git",
         "spire",
-        defaultBlinkyConf("testsJVM", "core/src/main")
+        defaultBlinkyConf("testsJVM", "core/src/main"),
+        _ => ()
       ),
       "playframework" -> Project(
         "https://github.com/playframework/playframework.git",
         "playframework",
-        defaultBlinkyConf("Play", "core/play/src/main")
+        defaultBlinkyConf("Play", "core/play/src/main"),
+        path => %("git", "fetch", "--unshallow")(path)
       )
     )
 
@@ -41,6 +48,8 @@ object RunCommunityProjects {
   private def testProject(versionNumber: String, project: Project): Unit = {
     val tempPath: Path = tmp.dir()
     %("git", "clone", project.url)(tempPath)
+    project.extraCommands(tempPath)
+
     val projectPath = tempPath / project.folderName
 
     write(projectPath / ".blinky.conf", project.blinkyConf)
