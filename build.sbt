@@ -61,7 +61,7 @@ lazy val core =
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.9.2",
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
       libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.3.8",
-      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.7" % "test",
+      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.8" % "test",
       coverageMinimum := 94,
       coverageFailOnMinimum := true,
       buildInfoPackage := "blinky",
@@ -108,10 +108,10 @@ lazy val cli =
       libraryDependencies += "com.geirsson"               %% "metaconfig-core"            % "0.9.11",
       libraryDependencies += "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.11",
       libraryDependencies += "com.github.scopt"           %% "scopt"                      % "4.0.1",
-      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.6.1",
-      libraryDependencies += "dev.zio"                    %% "zio"                        % "1.0.7",
-      libraryDependencies += "dev.zio"                    %% "zio-test"                   % "1.0.7" % "test",
-      libraryDependencies += "dev.zio"                    %% "zio-test-sbt"               % "1.0.7" % "test",
+      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.7.1",
+      libraryDependencies += "dev.zio"                    %% "zio"                        % "1.0.6",
+      libraryDependencies += "dev.zio"                    %% "zio-test"                   % "1.0.6" % "test",
+      libraryDependencies += "dev.zio"                    %% "zio-test-sbt"               % "1.0.6" % "test",
       testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
       Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimum := 30,
@@ -125,7 +125,7 @@ lazy val tests =
     .settings(
       libraryDependencies += "ch.epfl.scala"  % "scalafix-testkit" %
         scalafixTestkitV(scalaVersion.value)  % Test cross CrossVersion.full,
-      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.7" % Test,
+      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.8" % Test,
       scalafixTestkitOutputSourceDirectories :=
         sourceDirectories.in(output, Compile).value,
       scalafixTestkitInputSourceDirectories :=
