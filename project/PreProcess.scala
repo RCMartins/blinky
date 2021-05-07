@@ -27,16 +27,23 @@ object PreProcess {
     def replacedQuestionMarks(str: String): String = {
       val id: AtomicInteger = new AtomicInteger(1)
 
-      "\\?\\?\\?".r
+      val afterMutationReplaces =
+        "\\?\\?\\?".r
+          .replaceAllIn(
+            str,
+            _ => "_root_.scala.sys.env.contains(\"BLINKY_MUTATION_" + id.getAndIncrement() + "\")"
+          )
+
+      "(_\\d+_)".r
         .replaceAllIn(
-          str,
-          _ => "_root_.scala.sys.env.contains(\"BLINKY_MUTATION_" + id.getAndIncrement() + "\")"
+          afterMutationReplaces,
+          tempVarN => s"_BLINKY_TEMP$tempVarN"
         )
     }
 
     def replaceLongLines(text: String): String = {
       val replaced1 = "///\\s*".r.replaceAllIn(text, "")
-      "//\n".r.replaceAllIn(replaced1, "")
+      replaced1 // "//\n".r.replaceAllIn(replaced1, "")
     }
 
     val outputFileContent = input.contentAsString

@@ -5,10 +5,10 @@ object RunCommunityProjects {
 
   private case class Project(url: String, folderName: String, blinkyConf: String)
 
-  private def defaultBlinkyConf(projectName: String): String =
+  private def defaultBlinkyConf(projectName: String, filesToMutate: String): String =
     s"""projectPath = "."
        |projectName = "$projectName"
-       |filesToMutate = "core/src/main"
+       |filesToMutate = "$filesToMutate"
        |""".stripMargin
 
   private val pluginsText = """addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.8")"""
@@ -18,7 +18,12 @@ object RunCommunityProjects {
       "spire" -> Project(
         "https://github.com/typelevel/spire.git",
         "spire",
-        defaultBlinkyConf("testsJVM")
+        defaultBlinkyConf("testsJVM", "core/src/main")
+      ),
+      "playframework" -> Project(
+        "https://github.com/playframework/playframework.git",
+        "playframework",
+        defaultBlinkyConf("Play", "core/play/src/main")
       )
     )
 

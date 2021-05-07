@@ -251,6 +251,9 @@ object Mutator {
 
     object OrNull extends SimpleMutator("OrNull") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case orNull @ Term.ApplyType(Term.Select(_, Term.Name("orNull")), _)
+            if SymbolMatcher.exact("scala/Option#orNull().").matches(orNull.symbol) =>
+          fullReplace(Lit.Null())
         case orNull @ Term.Select(_, Term.Name("orNull"))
             if SymbolMatcher.exact("scala/Option#orNull().").matches(orNull.symbol) =>
           default(Lit.Null())

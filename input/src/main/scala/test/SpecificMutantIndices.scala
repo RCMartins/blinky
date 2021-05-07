@@ -1,7 +1,8 @@
 /*
 rule = Blinky
 Blinky.filesToMutate = [all]
-Blinky.specificMutants = "2,4,6-8,12"
+Blinky.enabledMutators = [LiteralStrings, ScalaStrings]
+Blinky.specificMutants = "2,4,6-8,12,14"
  */
 package test
 
@@ -14,4 +15,5 @@ object SpecificMutantIndices {
   val string7 = s"$string2"
   val string8 = s"test"
   val string9 = f""
+  val string10 = Some(string2).map(_ + "!!")
 }
