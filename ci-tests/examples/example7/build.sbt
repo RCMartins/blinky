@@ -3,6 +3,6 @@ lazy val example =
     .in(file("."))
     .settings(
       scalaVersion := "2.12.11",
-      libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.8" % Test,
+      libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % Test,
       scalacOptions += (if (sys.env.contains("BLINKY")) "" else "-Xfatal-warnings")
     )
