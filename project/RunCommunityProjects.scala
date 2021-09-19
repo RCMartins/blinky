@@ -11,7 +11,7 @@ object RunCommunityProjects {
        |filesToMutate = "core/src/main"
        |""".stripMargin
 
-  private val pluginsText = """addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.8")"""
+  private val pluginsText = """addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.9")"""
 
   private val projects: Map[String, Project] =
     Map(
