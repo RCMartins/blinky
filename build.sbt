@@ -7,7 +7,7 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
-val semanticdbScalac = "4.4.15"
+val semanticdbScalac = "4.4.28"
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -108,10 +108,10 @@ lazy val cli =
       libraryDependencies += "com.geirsson"               %% "metaconfig-core"            % "0.9.11",
       libraryDependencies += "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.11",
       libraryDependencies += "com.github.scopt"           %% "scopt"                      % "4.0.1",
-      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.7.4",
-      libraryDependencies += "dev.zio"                    %% "zio"                        % "1.0.7",
-      libraryDependencies += "dev.zio"                    %% "zio-test"                   % "1.0.7" % "test",
-      libraryDependencies += "dev.zio"                    %% "zio-test-sbt"               % "1.0.7" % "test",
+      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.7.1",
+      libraryDependencies += "dev.zio"                    %% "zio"                        % "1.0.12",
+      libraryDependencies += "dev.zio"                    %% "zio-test"                   % "1.0.12" % "test",
+      libraryDependencies += "dev.zio"                    %% "zio-test-sbt"               % "1.0.12" % "test",
       testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
       Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimum := 30,
