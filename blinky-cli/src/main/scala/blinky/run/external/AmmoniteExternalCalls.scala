@@ -7,7 +7,7 @@ import scala.util.{Failure, Success, Try}
 
 object AmmoniteExternalCalls extends ExternalCalls {
 
-  //TODO: all commands need an error side, Either or Option
+  // TODO: all commands need an error side, Either or Option
 
   def runSync(
       op: String,

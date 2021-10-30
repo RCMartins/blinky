@@ -52,7 +52,7 @@ object Run {
                     filesToMutateEither <- {
                       if (config.options.onlyMutateDiff)
                         // maybe copy the .git folder so it can be used by TestMutations, etc?
-                        //cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
+                        // cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
                         runAsync("git", Seq("rev-parse", "master"), path = gitFolder).flatMap {
                           case Left(commandError) =>
                             ConsoleReporter
