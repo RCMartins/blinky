@@ -7,7 +7,7 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
-val semanticdbScalac = "4.4.30"
+val semanticdbScalac = "4.4.32"
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
