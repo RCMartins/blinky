@@ -5,7 +5,7 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
-val semanticdbScalac = "4.4.30"
+val semanticdbScalac = "4.4.35"
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -56,7 +56,8 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] =
       "stable" -> stableVersion.value,
       scalaVersion,
       "scalaMinorVersion" -> scalaVersion.value.take(4),
-      sbtVersion
+      sbtVersion,
+      "semanticdbVersion" -> semanticdbScalac
     )
   )
 
@@ -73,14 +74,7 @@ lazy val core =
       libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.10" % "test",
       coverageMinimum := 94,
       coverageFailOnMinimum := true,
-      buildInfoPackage := "blinky",
-      buildInfoKeys := Seq[BuildInfoKey](
-        version,
-        "stable" -> stableVersion.value,
-        scalaVersion,
-        sbtVersion,
-        "semanticdbVersion" -> semanticdbScalac
-      )
+      buildInfoSettings
     )
 
 lazy val input =
@@ -134,9 +128,9 @@ lazy val tests =
   project
     .enablePlugins(ScalafixTestkitPlugin)
     .settings(
-      libraryDependencies += "ch.epfl.scala"  % "scalafix-testkit" %
-        SBTDefaults.scalafixTestkitV(scalaVersion.value)  % Test cross CrossVersion.full,
-      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.10" % Test,
+      libraryDependencies += "ch.epfl.scala"             % "scalafix-testkit" %
+        SBTDefaults.scalafixTestkitV(scalaVersion.value) % Test cross CrossVersion.full,
+      libraryDependencies += "org.scalatest"            %% "scalatest"        % "3.2.10" % Test,
       scalafixTestkitOutputSourceDirectories :=
         sourceDirectories.in(output, Compile).value,
       scalafixTestkitInputSourceDirectories :=
