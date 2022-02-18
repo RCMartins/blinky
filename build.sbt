@@ -35,8 +35,8 @@ inThisBuild(
     scalacOptions -= (if (sys.env.contains("CI") && !sys.env.contains("BLINKY")) ""
                       else "-Werror"),
     coverageEnabled := false,
-    fork in Test := false,
-    skip in publish := true
+    Test / fork := false,
+    publish / skip := true
   )
 )
 
@@ -45,7 +45,7 @@ Global / fileInputExcludeFilter := ((_: Path, _: FileAttributes) => false)
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val stableVersion = Def.setting {
-  version.in(ThisBuild).value.replaceAll("\\+.*", "")
+  (ThisBuild / version).value.replaceAll("\\+.*", "")
 }
 
 lazy val buildInfoSettings: Seq[Def.Setting[_]] =
@@ -65,7 +65,7 @@ lazy val core =
   project
     .in(file("blinky-core"))
     .settings(
-      skip in publish := false,
+      publish / skip := false,
       moduleName := "blinky",
       libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.9.2",
@@ -107,7 +107,7 @@ lazy val cli =
     .in(file("blinky-cli"))
     .enablePlugins(BuildInfoPlugin)
     .settings(
-      skip in publish := false,
+      publish / skip := false,
       moduleName := "blinky-cli",
       libraryDependencies += "com.geirsson"               %% "metaconfig-core"            % "0.9.11",
       libraryDependencies += "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.11",
@@ -132,11 +132,11 @@ lazy val tests =
         SBTDefaults.scalafixTestkitV(scalaVersion.value) % Test cross CrossVersion.full,
       libraryDependencies += "org.scalatest"            %% "scalatest"        % "3.2.10" % Test,
       scalafixTestkitOutputSourceDirectories :=
-        sourceDirectories.in(output, Compile).value,
+        (output / Compile / sourceDirectories).value,
       scalafixTestkitInputSourceDirectories :=
-        sourceDirectories.in(input, Compile).value,
+        (input / Compile / sourceDirectories).value,
       scalafixTestkitInputClasspath :=
-        fullClasspath.in(input, Compile).value
+        (input / Compile / fullClasspath).value
     )
     .dependsOn(core, output)
 
@@ -145,7 +145,7 @@ lazy val docs =
     .in(file("blinky-docs"))
     .enablePlugins(BuildInfoPlugin, MdocPlugin, DocusaurusPlugin)
     .settings(
-      mdoc := run.in(Compile).evaluated
+      mdoc := (Compile / run).evaluated
     )
     .settings(buildInfoSettings)
     .dependsOn(core)
@@ -177,3 +177,6 @@ runCommunityProjects := {
   val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
   RunCommunityProjects.run(version.value, args)
 }
+
+Global / excludeLintKeys += core / buildInfoPackage
+Global / excludeLintKeys += core / buildInfoKeys
