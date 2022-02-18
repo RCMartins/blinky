@@ -40,11 +40,12 @@ object OptionsConfig {
     testInOrder = false
   )
 
-  implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.instance[Duration] {
-    case Conf.Str(durationStr) => Configured.Ok(Duration(durationStr))
-  }
+  implicit val durationDecoder: ConfDecoder[Duration] =
+    ConfDecoder.fromPartial[Duration]("String") { case Conf.Str(durationStr) =>
+      Configured.Ok(Duration(durationStr))
+    }
 
-  implicit val doubleDecoder: ConfDecoder[Double] = ConfDecoder.instance[Double] {
+  implicit val doubleDecoder: ConfDecoder[Double] = ConfDecoder.fromPartial[Double]("number") {
     case Conf.Num(number) => Configured.Ok(number.toDouble)
   }
 
@@ -59,13 +60,13 @@ object OptionsConfig {
           Left("Invalid value, should be in 'int/int' format")
       }
 
-  implicit val multiRunDecoder: ConfDecoder[(Int, Int)] = ConfDecoder.instance[(Int, Int)] {
-    case Conf.Str(multiRunStr) =>
+  implicit val multiRunDecoder: ConfDecoder[(Int, Int)] =
+    ConfDecoder.fromPartial[(Int, Int)]("String") { case Conf.Str(multiRunStr) =>
       stringToMultiRunParser(multiRunStr) match {
         case Right(multiRunValue) => Configured.Ok(multiRunValue)
         case Left(message)        => Configured.error(message)
       }
-  }
+    }
 
   implicit val surface: Surface[OptionsConfig] =
     generic.deriveSurface[OptionsConfig]
