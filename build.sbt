@@ -72,7 +72,7 @@ lazy val core =
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
       libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.4.1",
       libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.10" % "test",
-      coverageMinimum := 94,
+      coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
       buildInfoSettings
     )
@@ -89,7 +89,7 @@ lazy val output =
       scalacOptions := Seq.empty,
       Compile / sourceGenerators += Def.task {
         val sourcesFolder = file((Compile / scalaSource).value.toString + "-output")
-        val generatedFolder = (sourceManaged in Compile).value
+        val generatedFolder = (Compile / sourceManaged).value
 
         val cachedFunc =
           FileFunction.cached(
@@ -118,7 +118,7 @@ lazy val cli =
       libraryDependencies += "dev.zio"                    %% "zio-test-sbt"               % "1.0.12" % "test",
       testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
       Test / scalacOptions -= "-Ywarn-unused:locals",
-      coverageMinimum := 30,
+      coverageMinimumStmtTotal := 30,
       coverageFailOnMinimum := true
     )
     .settings(buildInfoSettings)
