@@ -1,14 +1,13 @@
 package blinky.internal
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import ammonite.ops._
 import better.files.File
-import blinky.v0.BlinkyConfig
+import blinky.v0.{BlinkyConfig, MutantRange}
 import metaconfig.Configured
 import play.api.libs.json.Json
 import scalafix.v1._
 
+import java.util.concurrent.atomic.AtomicInteger
 import scala.meta._
 import scala.meta.inputs.Input.VirtualFile
 import scala.util.Try
@@ -18,6 +17,8 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
   private val mutantsOutputFileOpt: Option[File] =
     Some(config.mutantsOutputFile).filter(_.nonEmpty).map(File(_))
   mutantsOutputFileOpt.foreach(_.createFileIfNotExists())
+  private val specificMutants: Seq[MutantRange] =
+    config.specificMutants
 
   private def nextIndex: Int = mutationId.getAndIncrement()
 
@@ -35,13 +36,13 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       .map(new Blinky(_))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
-    val findMutations: FindMutations = new FindMutations(config.activeMutators, doc)
-
     val VirtualFile(fileName, _) = doc.input
 
     if (!fileShouldBeMutated(fileName))
       Patch.empty
     else {
+      val findMutations: FindMutations = new FindMutations(config.activeMutators, doc)
+
       def createPatch(
           mutantSeq: Seq[Mutant],
           needsParens: Boolean
@@ -66,7 +67,13 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
             val mutantsSeq =
               mutantsFound
                 .filterNot(_.structure == original.structure)
-                .map(mutated => createMutant(original, mutated, needsParens, fileName))
+                .flatMap { mutated =>
+                  val mutantIndex = nextIndex
+                  if (specificMutants.exists(_.contains(mutantIndex)))
+                    Some(createMutant(original, mutated, needsParens, fileName, mutantIndex))
+                  else
+                    None
+                }
             createPatch(mutantsSeq, needsParens = needsParens)
           }
           .unzip
@@ -80,7 +87,8 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       original: Term,
       mutated: Term,
       needsParens: Boolean,
-      fileName: String
+      fileName: String,
+      mutantIndex: Int
   ): Mutant = {
     val pos = original.pos
     val input = pos.input.text
@@ -89,7 +97,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
     val mutatedInput = input.substring(0, pos.start) + mutatedSyntax + input.substring(pos.end)
 
     val gitDiff: String = calculateGitDiff(original, mutatedInput)
-    Mutant(nextIndex, gitDiff, fileName, original, mutated, needsParens)
+    Mutant(mutantIndex, gitDiff, fileName, original, mutated, needsParens)
   }
 
   def calculateGitDiff(original: Term, mutatedInput: String): String =

@@ -11,6 +11,7 @@ class BlinkyConfigTest extends TestSpec {
         BlinkyConfig(
           mutantsOutputFile = "",
           filesToMutate = Seq.empty,
+          Seq(MutantRange(1, Int.MaxValue)),
           enabledMutators = Mutators.all,
           disabledMutators = Mutators(Nil)
         )

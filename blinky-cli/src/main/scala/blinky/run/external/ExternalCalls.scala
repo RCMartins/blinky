@@ -36,4 +36,6 @@ trait ExternalCalls {
       toPath: Path
   ): Either[Throwable, Unit]
 
+  def lsFiles(basePath: Path): Seq[String]
+
 }

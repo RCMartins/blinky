@@ -5,6 +5,8 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
+val semanticdbScalac = "4.4.30"
+
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
   List(
@@ -20,8 +22,16 @@ inThisBuild(
       )
     ),
     scalaVersion := V.scala213,
-    addCompilerPlugin(scalafixSemanticdb),
-    scalacOptions ++= SBTDefaults.defaultScalacFlags,
+    // addCompilerPlugin(scalafixSemanticdb),
+    addCompilerPlugin(
+      "org.scalameta" % "semanticdb-scalac" % semanticdbScalac cross CrossVersion.full
+    ),
+    scalacOptions ++= {
+      if (scalaVersion.value.startsWith("2.13."))
+        SBTDefaults.defaultScalacFlags213
+      else
+        SBTDefaults.defaultScalacFlags212
+    },
     scalacOptions -= (if (sys.env.contains("CI") && !sys.env.contains("BLINKY")) ""
                       else "-Werror"),
     coverageEnabled := false,
@@ -59,10 +69,18 @@ lazy val core =
       libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.9.2",
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
-      libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.3.8",
-      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.6" % "test",
+      libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.4.1",
+      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.10" % "test",
       coverageMinimum := 94,
-      coverageFailOnMinimum := true
+      coverageFailOnMinimum := true,
+      buildInfoPackage := "blinky",
+      buildInfoKeys := Seq[BuildInfoKey](
+        version,
+        "stable" -> stableVersion.value,
+        scalaVersion,
+        sbtVersion,
+        "semanticdbVersion" -> semanticdbScalac
+      )
     )
 
 lazy val input =
@@ -97,13 +115,13 @@ lazy val cli =
     .settings(
       skip in publish := false,
       moduleName := "blinky-cli",
-      libraryDependencies += "com.geirsson"               %% "metaconfig-core"            % "0.9.10",
-      libraryDependencies += "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.10",
+      libraryDependencies += "com.geirsson"               %% "metaconfig-core"            % "0.9.11",
+      libraryDependencies += "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.11",
       libraryDependencies += "com.github.scopt"           %% "scopt"                      % "4.0.1",
-      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.6.1",
-      libraryDependencies += "dev.zio"                    %% "zio"                        % "1.0.5",
-      libraryDependencies += "dev.zio"                    %% "zio-test"                   % "1.0.5" % "test",
-      libraryDependencies += "dev.zio"                    %% "zio-test-sbt"               % "1.0.5" % "test",
+      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.7.5",
+      libraryDependencies += "dev.zio"                    %% "zio"                        % "1.0.12",
+      libraryDependencies += "dev.zio"                    %% "zio-test"                   % "1.0.12" % "test",
+      libraryDependencies += "dev.zio"                    %% "zio-test-sbt"               % "1.0.12" % "test",
       testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
       Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimum := 30,
@@ -116,8 +134,9 @@ lazy val tests =
   project
     .enablePlugins(ScalafixTestkitPlugin)
     .settings(
-      libraryDependencies += "ch.epfl.scala"  % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
-      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.6"           % Test,
+      libraryDependencies += "ch.epfl.scala"  % "scalafix-testkit" %
+        scalafixTestkitV(scalaVersion.value)  % Test cross CrossVersion.full,
+      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.10" % Test,
       scalafixTestkitOutputSourceDirectories :=
         sourceDirectories.in(output, Compile).value,
       scalafixTestkitInputSourceDirectories :=
@@ -137,8 +156,12 @@ lazy val docs =
     .settings(buildInfoSettings)
     .dependsOn(core)
 
-lazy val runCurrent = inputKey[Unit]("Run current blinky version on itself")
-lazy val runExamples = inputKey[Unit]("Run examples tests")
+lazy val runCurrent =
+  inputKey[Unit]("Run current blinky version on itself")
+lazy val runExamples =
+  inputKey[Unit]("Run example projects to test blinky")
+lazy val runCommunityProjects =
+  inputKey[Unit]("Run community scala projects to test blinky regressions")
 
 runCurrent := {
   val a = (core / publishLocal).value
@@ -152,4 +175,11 @@ runExamples := {
   val b = (cli / publishLocal).value
   val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
   RunExamples.run(version.value, args)
+}
+
+runCommunityProjects := {
+  val a = (core / publishLocal).value
+  val b = (cli / publishLocal).value
+  val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
+  RunCommunityProjects.run(version.value, args)
 }

@@ -67,4 +67,7 @@ object AmmoniteExternalCalls extends ExternalCalls {
       }
     ).toEither
 
+  def lsFiles(basePath: Path): Seq[String] =
+    Try(ls.rec(basePath).map(_.toString)).getOrElse(Seq.empty)
+
 }

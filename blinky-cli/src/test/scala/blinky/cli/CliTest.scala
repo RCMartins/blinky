@@ -3,9 +3,11 @@ package blinky.cli
 import better.files.File
 import blinky.BuildInfo.version
 import blinky.TestSpec
+import blinky.run.config.FileFilter.{FileName, SingleFileOrFolder}
 import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
 import blinky.run.modules.{CliModule, ParserModule, TestModules}
-import blinky.v0.Mutators
+import blinky.v0.{MutantRange, Mutators}
+import os.RelPath
 import scopt.DefaultOEffectSetup
 import zio.test.Assertion._
 import zio.test._
@@ -62,6 +64,8 @@ object CliTest extends TestSpec {
                |  --timeoutFactor <decimal>
                |                           Time factor for each mutant test
                |  --timeout <duration>     Duration of additional flat timeout for each mutant test
+               |  --testInOrder <bool>     If set, forces the mutants to be tested in order: 1,2,3,... (default false)
+               |  --mutant <range>         Mutant indices to test. Defaults to 1-2147483647
                |""".stripMargin
           }
         } &&
@@ -79,7 +83,7 @@ object CliTest extends TestSpec {
             Right(
               MutationsConfigValidated(
                 projectPath = File(getFilePath("some-project")),
-                filesToMutate = "src/main/scala",
+                filesToMutate = SingleFileOrFolder(RelPath("src/main/scala")),
                 filesToExclude = "",
                 mutators = SimpleBlinkyConfig(
                   enabled = Mutators.all,
@@ -94,9 +98,11 @@ object CliTest extends TestSpec {
                   failOnMinimum = false,
                   mutationMinimum = 25.0,
                   onlyMutateDiff = false,
+                  mutant = Seq(MutantRange(1, Int.MaxValue)),
                   multiRun = (1, 1),
                   timeoutFactor = 1.5,
-                  timeout = 5.second
+                  timeout = 5.second,
+                  testInOrder = false
                 )
               )
             )
@@ -121,9 +127,11 @@ object CliTest extends TestSpec {
                 failOnMinimum = true,
                 mutationMinimum = 66.7,
                 onlyMutateDiff = false,
+                mutant = Seq(MutantRange(5, 20)),
                 multiRun = (1, 3),
                 timeoutFactor = 2.0,
-                timeout = 10.second
+                timeout = 10.second,
+                testInOrder = true
               )
             )
           })
@@ -139,7 +147,9 @@ object CliTest extends TestSpec {
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
           assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
-          assert(config.map(_.filesToMutate))(equalSome("src/main/scala/Example.scala")) &&
+          assert(config.map(_.filesToMutate))(
+            equalSome(SingleFileOrFolder(RelPath("src/main/scala/Example.scala")))
+          ) &&
           assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
           assert(config.map(_.options.testCommand))(equalSome("example1"))
       },
@@ -154,39 +164,39 @@ object CliTest extends TestSpec {
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
           assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
-          assert(config.map(_.filesToMutate))(equalSome("src/main/scala/Example.scala")) &&
+          assert(config.map(_.filesToMutate))(
+            equalSome(SingleFileOrFolder(RelPath("src/main/scala/Example.scala")))
+          ) &&
           assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
           assert(config.map(_.options.testCommand))(equalSome("example1"))
       },
       testM(
-        "blinky wrongPath1.conf returns an error when the 'filesToMutate' param is invalid"
+        "blinky wrongPath1.conf returns a fileName object"
       ) {
         val (zioResult, parser) = parse(getFilePath("wrongPath1.conf"))()
 
         for {
           result <- zioResult
+          config = result.toOption
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
-          assert(result)(equalTo {
-            Left(
-              "--filesToMutate 'src/main/scala/UnknownFile.scala' does not exist."
-            )
-          })
+          assert(config.map(_.filesToMutate))(
+            equalSome(FileName("src/main/scala/UnknownFile.scala"))
+          )
       },
       testM(
-        "blinky wrongPath2.conf returns an error when the 'filesToMutate' param is invalid"
+        "blinky wrongPath2.conf returns a fileName object"
       ) {
         val (zioResult, parser) = parse(getFilePath("wrongPath2.conf"))()
 
         for {
           result <- zioResult
+          config = result.toOption
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
-          assert(result)(equalTo {
-            Left(
-              "--filesToMutate 'src/main/scala/UnknownFile' does not exist."
-            )
-          })
+          assert(config.map(_.filesToMutate))(
+            equalSome(FileName("src/main/scala/UnknownFile.scala"))
+          )
       },
       testM("blinky <no conf file> returns an error if there is no default .blinky.conf file") {
         val pwdFolder = File(".")
@@ -255,7 +265,11 @@ object CliTest extends TestSpec {
             "--timeoutFactor",
             "1.75",
             "--timeout",
-            "3 seconds"
+            "3 seconds",
+            "--testInOrder",
+            "true",
+            "--mutant",
+            "10-50"
           )
 
           val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)()
@@ -265,10 +279,10 @@ object CliTest extends TestSpec {
             config = result.toOption
           } yield assert(parser.getOut)(equalTo("")) &&
             assert(parser.getErr)(equalTo("")) &&
-            assert(config.map(_.projectPath))(
-              equalSome(File(getFilePath("some-project")))
+            assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
+            assert(config.map(_.filesToMutate))(
+              equalSome(SingleFileOrFolder(RelPath("src/main/scala/Main.scala")))
             ) &&
-            assert(config.map(_.filesToMutate))(equalSome("src/main/scala/Main.scala")) &&
             assert(config.map(_.filesToExclude))(equalSome("src/main/scala/Utils.scala")) &&
             assert(config.map(_.options))(equalSome {
               OptionsConfig(
@@ -280,9 +294,11 @@ object CliTest extends TestSpec {
                 failOnMinimum = true,
                 mutationMinimum = 73.9,
                 onlyMutateDiff = true,
+                mutant = Seq(MutantRange(10, 50)),
                 multiRun = (2, 3),
                 timeoutFactor = 1.75,
-                timeout = 3.second
+                timeout = 3.second,
+                testInOrder = true
               )
             })
         },
@@ -301,7 +317,7 @@ object CliTest extends TestSpec {
             assert(parser.getErr)(equalTo("")) &&
             assert(result)(equalTo {
               Left(
-                s"""--projectPath '${pwd / "non-existent" / "project-path"}' does not exist.""".stripMargin
+                s"""--projectPath '${pwd / "non-existent" / "project-path"}' does not exist."""
               )
             })
         }
@@ -316,7 +332,7 @@ object CliTest extends TestSpec {
             assert(parser.getErr)(equalTo("")) &&
             assert(result)(equalTo {
               Left(
-                s"""mutationMinimum value is invalid. It should be a number between 0 and 100.""".stripMargin
+                "mutationMinimum value is invalid. It should be a number between 0 and 100."
               )
             })
         },
@@ -329,7 +345,7 @@ object CliTest extends TestSpec {
             assert(parser.getErr)(equalTo("")) &&
             assert(result)(equalTo {
               Left(
-                s"""mutationMinimum value is invalid. It should be a number between 0 and 100.""".stripMargin
+                "mutationMinimum value is invalid. It should be a number between 0 and 100."
               )
             })
         },

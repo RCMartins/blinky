@@ -1,15 +1,7 @@
 package blinky.run
 
 import ammonite.ops.{Path, RelPath}
-import blinky.run.Instruction.{
-  CopyRelativeFiles,
-  CopyResource,
-  PrintLine,
-  Return,
-  RunAsync,
-  RunAsyncSuccess,
-  RunSync
-}
+import blinky.run.Instruction._
 import zio.test.Assertion.equalTo
 import zio.test.{TestResult, assert}
 
@@ -112,6 +104,12 @@ object TestInstruction {
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
+  final case class TestLsFiles[+A](
+      basePath: Path,
+      mockResult: Seq[String],
+      next: TestInstruction[A]
+  ) extends TestInstruction[A]
+
   def testInstruction[A](
       actualInstruction: Instruction[A],
       expectationInstruction: TestInstruction[A]
@@ -163,6 +161,12 @@ object TestInstruction {
         assert(filesToCopy1)(equalTo(filesToCopy2)) &&
           assert(fromPath1)(equalTo(fromPath2)) &&
           assert(toPath1)(equalTo(toPath2)) &&
+          testInstruction(next1(mockResult), next2)
+      case (
+            LsFiles(basePath1, next1),
+            TestLsFiles(basePath2, mockResult, next2)
+          ) =>
+        assert(basePath1)(equalTo(basePath2)) &&
           testInstruction(next1(mockResult), next2)
       case (other1, other2) =>
         println(
