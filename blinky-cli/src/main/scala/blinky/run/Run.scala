@@ -1,6 +1,6 @@
 package blinky.run
 
-import ammonite.ops.{Path, RelPath}
+import os.{Path, RelPath}
 import blinky.BuildInfo
 import blinky.run.Instruction._
 import blinky.run.config.{FileFilter, MutationsConfigValidated, SimpleBlinkyConfig}
@@ -33,7 +33,7 @@ object Run {
             else
               empty
           runResult <-
-            runAsync("git", Seq("rev-parse", "--show-toplevel"), path = originalProjectRoot)
+            runSyncEither("git", Seq("rev-parse", "--show-toplevel"), path = originalProjectRoot)
               .flatMap {
                 case Left(commandError) =>
                   ConsoleReporter
@@ -53,14 +53,14 @@ object Run {
                       if (config.options.onlyMutateDiff)
                         // maybe copy the .git folder so it can be used by TestMutations, etc?
                         //cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
-                        runAsync("git", Seq("rev-parse", "master"), path = gitFolder)
+                        runSyncEither("git", Seq("rev-parse", "master"), path = gitFolder)
                           .flatMap {
                             case Left(commandError) =>
                               ConsoleReporter
                                 .gitIssues(commandError)
                                 .map(_ => Left(ExitCode.failure))
                             case Right(masterHash) =>
-                              runAsync(
+                              runSyncEither(
                                 "git",
                                 Seq("--no-pager", "diff", "--name-only", masterHash),
                                 path = gitFolder
@@ -156,7 +156,7 @@ object Run {
                             )
                           }
 
-                          runResult <- runAsync(
+                          runResult <- runSyncEither(
                             coursier,
                             Seq(
                               "fetch",
@@ -282,7 +282,7 @@ object Run {
   ): Instruction[Either[ExitCode, Unit]] =
     for {
       // Copy only the files tracked by git into our temporary folder
-      gitResultEither <- runAsync(
+      gitResultEither <- runSyncEither(
         "git",
         Seq("ls-files", "--others", "--exclude-standard", "--cached"),
         path = originalProjectPath

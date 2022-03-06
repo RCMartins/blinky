@@ -5,7 +5,7 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
-val semanticdbScalac = "4.4.35"
+val semanticdbScalac = "4.5.0"
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -22,7 +22,6 @@ inThisBuild(
       )
     ),
     scalaVersion := V.scala213,
-    // addCompilerPlugin(scalafixSemanticdb),
     addCompilerPlugin(
       "org.scalameta" % "semanticdb-scalac" % semanticdbScalac cross CrossVersion.full
     ),
@@ -70,7 +69,7 @@ lazy val core =
       libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.9.2",
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
-      libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.4.1",
+      libraryDependencies += "com.lihaoyi"          %% "os-lib"        % "0.8.1",
       libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.10" % "test",
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,

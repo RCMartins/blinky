@@ -1,6 +1,6 @@
 package blinky.run
 
-import ammonite.ops.Path
+import os.Path
 import blinky.run.Instruction._
 import blinky.run.Utils._
 import blinky.run.config.OptionsConfig
@@ -60,7 +60,7 @@ object TestMutationsBloop {
               path = projectPath
             )
             _ <- printLine("Running tests with original config")
-            compileResult <- runAsyncEither(
+            compileResult <- runSyncEither(
               "bloop",
               Seq("compile", escapeString(options.compileCommand)),
               envArgs = Map("BLINKY" -> "true"),

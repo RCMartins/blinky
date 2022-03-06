@@ -1,6 +1,6 @@
 package blinky.run
 
-import ammonite.ops.{Path, RelPath}
+import os.{Path, RelPath}
 import blinky.run.Instruction._
 import zio.test.Assertion.equalTo
 import zio.test.{TestResult, assert}
@@ -29,7 +29,7 @@ object TestInstruction {
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
-  final case class TestRunAsync[A](
+  final case class TestRunSyncEither[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
@@ -38,7 +38,7 @@ object TestInstruction {
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
-  final case class TestRunAsyncSuccess[A](
+  final case class TestRunSyncSuccess[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
@@ -130,8 +130,8 @@ object TestInstruction {
           assert(path1)(equalTo(path2)) &&
           testInstruction(next1, next2)
       case (
-            RunAsync(op1, args1, envArgs1, path1, next1),
-            TestRunAsync(op2, args2, envArgs2, path2, mockResult, next2)
+            RunSyncEither(op1, args1, envArgs1, path1, next1),
+            TestRunSyncEither(op2, args2, envArgs2, path2, mockResult, next2)
           ) =>
         assert(op1)(equalTo(op2)) &&
           assert(args1)(equalTo(args2)) &&
@@ -139,8 +139,8 @@ object TestInstruction {
           assert(path1)(equalTo(path2)) &&
           testInstruction(next1(mockResult), next2)
       case (
-            RunAsyncSuccess(op1, args1, envArgs1, path1, next1),
-            TestRunAsyncSuccess(op2, args2, envArgs2, path2, mockResult, next2)
+            RunSyncSuccess(op1, args1, envArgs1, path1, next1),
+            TestRunSyncSuccess(op2, args2, envArgs2, path2, mockResult, next2)
           ) =>
         assert(op1)(equalTo(op2)) &&
           assert(args1)(equalTo(args2)) &&

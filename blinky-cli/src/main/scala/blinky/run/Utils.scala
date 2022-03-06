@@ -2,11 +2,11 @@ package blinky.run
 
 object Utils {
 
-  def red(str: String): String = s"\u001B[31m" + str + "\u001B[0m"
+  def red(str: String): String = "\u001B[31m" + str + "\u001B[0m"
 
-  def green(str: String): String = s"\u001B[32m" + str + "\u001B[0m"
+  def green(str: String): String = "\u001B[32m" + str + "\u001B[0m"
 
-  def cyan(str: String): String = s"\u001B[36m" + str + "\u001B[0m"
+  def cyan(str: String): String = "\u001B[36m" + str + "\u001B[0m"
 
   def stripPathPrefix(string: String, pathPrefix: String): String = {
     val pos = string.indexOf(pathPrefix)

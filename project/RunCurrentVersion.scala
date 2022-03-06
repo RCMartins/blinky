@@ -1,16 +1,19 @@
-import ammonite.ops._
-import ammonite.ops.Shellable.StringShellable
+import os.Path
 
 object RunCurrentVersion {
 
   def run(versionNumber: String, args: Array[String]): Unit = {
-    val path = pwd
-    val confPath: Path = Path(args.head, base = pwd)
+    val path = os.pwd
+    val confPath: Path = Path(args.head, base = path)
     val extraParams: Array[String] = args.tail
 
     val commitMsg = {
       val Seq(line1, line2) =
-        %%("git", "log", "-2", "--pretty=format:%s")(path).out.lines.map(_.toLowerCase)
+        os.proc("git", "log", "-2", "--pretty=format:%s")
+          .call(cwd = path)
+          .out
+          .lines
+          .map(_.toLowerCase)
 
       if (line1.matches("merge [0-9a-f]{40} into [0-9a-f]{40}")) line2 else line1
     }
@@ -33,7 +36,8 @@ object RunCurrentVersion {
         ) ++
           extraParams.toSeq
 
-      %.applyDynamic("cs")(allParams.filter(_.nonEmpty).map(StringShellable): _*)(path)
+      os.proc(("cs" +: allParams.filter(_.nonEmpty)).map(os.Shellable.StringShellable): _*)
+        .call(cwd = path)
     }
   }
 }
