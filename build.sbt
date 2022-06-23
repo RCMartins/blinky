@@ -7,7 +7,7 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
-val semanticdbScalac = "4.4.30"
+val semanticdbScalac = "4.5.9"
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -37,8 +37,8 @@ inThisBuild(
     scalacOptions -= (if (sys.env.contains("CI") && !sys.env.contains("BLINKY")) ""
                       else "-Xfatal-warnings"),
     coverageEnabled := false,
-    fork in Test := false,
-    skip in publish := true
+    Test / fork := false,
+    publish / skip := true
   )
 )
 
@@ -47,7 +47,7 @@ Global / fileInputExcludeFilter := ((_: Path, _: FileAttributes) => false)
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val stableVersion = Def.setting {
-  version.in(ThisBuild).value.replaceAll("\\+.*", "")
+  (ThisBuild / version).value.replaceAll("\\+.*", "")
 }
 
 lazy val core =
@@ -55,14 +55,14 @@ lazy val core =
     .in(file("blinky-core"))
     .enablePlugins(BuildInfoPlugin)
     .settings(
-      skip in publish := false,
+      publish / skip := false,
       moduleName := "blinky",
       libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.9.2",
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
       libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.4.1",
       libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.10" % "test",
-      coverageMinimum := 94,
+      coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
       buildInfoPackage := "blinky",
       buildInfoKeys := Seq[BuildInfoKey](
@@ -86,7 +86,7 @@ lazy val output =
       scalacOptions := Seq.empty,
       Compile / sourceGenerators += Def.task {
         val sourcesFolder = file((Compile / scalaSource).value.toString + "-output")
-        val generatedFolder = (sourceManaged in Compile).value
+        val generatedFolder = (Compile / sourceManaged).value
 
         val cachedFunc =
           FileFunction.cached(
@@ -103,7 +103,7 @@ lazy val cli =
   project
     .in(file("blinky-cli"))
     .settings(
-      skip in publish := false,
+      publish / skip := false,
       moduleName := "blinky-cli",
       libraryDependencies += "com.geirsson"               %% "metaconfig-core"            % "0.9.11",
       libraryDependencies += "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.11",
@@ -114,7 +114,7 @@ lazy val cli =
       libraryDependencies += "dev.zio"                    %% "zio-test-sbt"               % "1.0.12" % "test",
       testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
       Test / scalacOptions -= "-Ywarn-unused:locals",
-      coverageMinimum := 30,
+      coverageMinimumStmtTotal := 30,
       coverageFailOnMinimum := true
     )
     .dependsOn(core)
@@ -127,11 +127,11 @@ lazy val tests =
         scalafixTestkitV(scalaVersion.value)  % Test cross CrossVersion.full,
       libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.10" % Test,
       scalafixTestkitOutputSourceDirectories :=
-        sourceDirectories.in(output, Compile).value,
+        (output / Compile / sourceDirectories).value,
       scalafixTestkitInputSourceDirectories :=
-        sourceDirectories.in(input, Compile).value,
+        (input / Compile / sourceDirectories).value,
       scalafixTestkitInputClasspath :=
-        fullClasspath.in(input, Compile).value
+        (input / Compile / fullClasspath).value
     )
     .dependsOn(core, output)
 
@@ -140,7 +140,7 @@ lazy val docs =
     .in(file("blinky-docs"))
     .enablePlugins(MdocPlugin, DocusaurusPlugin)
     .settings(
-      mdoc := run.in(Compile).evaluated
+      mdoc := (Compile / run).evaluated
     )
     .dependsOn(core)
 
