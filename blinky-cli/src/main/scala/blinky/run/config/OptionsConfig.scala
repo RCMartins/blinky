@@ -40,11 +40,11 @@ object OptionsConfig {
     testInOrder = false
   )
 
-  implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.instance[Duration] {
+  implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.from[Duration] {
     case Conf.Str(durationStr) => Configured.Ok(Duration(durationStr))
   }
 
-  implicit val doubleDecoder: ConfDecoder[Double] = ConfDecoder.instance[Double] {
+  implicit val doubleDecoder: ConfDecoder[Double] = ConfDecoder.from[Double] {
     case Conf.Num(number) => Configured.Ok(number.toDouble)
   }
 
@@ -59,7 +59,7 @@ object OptionsConfig {
           Left("Invalid value, should be in 'int/int' format")
       }
 
-  implicit val multiRunDecoder: ConfDecoder[(Int, Int)] = ConfDecoder.instance[(Int, Int)] {
+  implicit val multiRunDecoder: ConfDecoder[(Int, Int)] = ConfDecoder.from[(Int, Int)] {
     case Conf.Str(multiRunStr) =>
       stringToMultiRunParser(multiRunStr) match {
         case Right(multiRunValue) => Configured.Ok(multiRunValue)

@@ -10,7 +10,7 @@ object Mutators {
 
   implicit val readerMutations: ConfDecoder[Mutators] = {
     def readerMutationsAux(path: String): ConfDecoder[Mutators] =
-      ConfDecoder.instanceF[Mutators] {
+      ConfDecoder.from[Mutators] {
         case Conf.Str(mutatorName) =>
           Mutator.findMutators(path + mutatorName) match {
             case Nil  => Configured.notOk(ConfError.message(s"$path$mutatorName was not found!"))
