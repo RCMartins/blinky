@@ -141,6 +141,12 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
           topMainTermMutations(body).map(mutated => Term.Function(params, mutated)),
           topTermMutations(body, parensRequired = false)
         )
+      case function @ Term.AnonymousFunction(term) =>
+        selectSmallerMutation(
+          function,
+          topMainTermMutations(term).map(mutated => Term.AnonymousFunction(mutated)),
+          topTermMutations(term, parensRequired = false)
+        )
       case assign @ Term.Assign(name, exp) =>
         selectSmallerMutation(
           assign,

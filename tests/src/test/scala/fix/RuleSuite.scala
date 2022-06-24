@@ -107,9 +107,9 @@ class RuleSuite extends AbstractSemanticRuleSuite with AnyWordSpecLike with Matc
             else
               fail(
                 s"""Actual:
-                   |${mutantsFile.contentAsString}
+                   |${mutantsFile.contentAsString.grouped(100).mkString("\n")}
                    |Expected:
-                   |${mutantsExpectedFile.contentAsString}
+                   |${mutantsExpectedFile.contentAsString.grouped(100).mkString("\n")}
                    |""".stripMargin
               )
           }
