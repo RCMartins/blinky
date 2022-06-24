@@ -37,6 +37,7 @@ object SBTDefaults {
 
   lazy val defaultScalacFlags213: List[String] =
     List(
+      "-deprecation",
       "-encoding",
       "UTF-8",
       "-explaintypes",
