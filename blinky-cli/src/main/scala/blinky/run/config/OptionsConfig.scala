@@ -42,10 +42,12 @@ object OptionsConfig {
 
   implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.from[Duration] {
     case Conf.Str(durationStr) => Configured.Ok(Duration(durationStr))
+    case conf                  => Configured.error(s"Expected a duration, actual: $conf")
   }
 
   implicit val doubleDecoder: ConfDecoder[Double] = ConfDecoder.from[Double] {
     case Conf.Num(number) => Configured.Ok(number.toDouble)
+    case conf             => Configured.error(s"Expected a double, actual: $conf")
   }
 
   def stringToMultiRunParser: String => Either[String, (Int, Int)] =
@@ -65,6 +67,8 @@ object OptionsConfig {
         case Right(multiRunValue) => Configured.Ok(multiRunValue)
         case Left(message)        => Configured.error(message)
       }
+    case conf =>
+      Configured.error(s"""Expected a formatted String (e.g. "1", "2/3"), actual: $conf""")
   }
 
   implicit val surface: Surface[OptionsConfig] =
