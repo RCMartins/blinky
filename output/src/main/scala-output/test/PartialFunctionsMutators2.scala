@@ -3,8 +3,7 @@ package test
 object PartialFunctionsMutators2 {
   case class Foo(str: String, bool: Boolean)
 
-  ('a' to 'z').toList.collect {
-    (if (???) {
+  ('a' to 'z').toList.collect (if (???) {
   case c @ 'a' => c
   case 'i' | 'o' => '#'
 } else if (???) {
@@ -20,14 +19,12 @@ object PartialFunctionsMutators2 {
   case c @ ('a' | 'e') => c
   case 'i' | 'o' => '#'
 })
-  }
 
-  List(Foo("bar", true)).collect { (if (???) {
+  List(Foo("bar", true)).collect (if (???) {
   case Foo("abc", _) => 123
 } else if (???) {
   case Foo("bar", _) => 123
 } else {
   case Foo("abc" | "bar", _) => 123
 })
-  }
 }
