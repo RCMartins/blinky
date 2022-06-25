@@ -20,6 +20,7 @@ Because of several factors like time to run or importance we may want to enable/
 * [Scala Collections](#scala-collections)
 * [Partial Functions](#partial-functions)
 * [Scala Strings](#scala-strings)
+* [Control Flow](#control-flow)
 
 ### Literal Booleans
 
@@ -656,6 +657,48 @@ example:
 ```diff
 - val value = " foo ".toLowerCase
 + val value = " foo "
+```
+
+---
+
+### Control Flow
+
+group name: ControlFlow
+
+#### If control flow
+
+name: If
+
+description: Changes the standard if control flow into two mutants.
+One that always go to the then part and another that always go to the else part.
+If the else part doesn't exist then it's replaced with the mutant `()`  
+
+example mutation 1:
+
+```diff
+- if (condition) somethingThen() else somethingElse()
++ somethingThen()
+```
+
+example mutation 2:
+
+```diff
+- if (condition) somethingThen() else somethingElse()
++ somethingElse()
+```
+
+example mutation 3:
+
+```diff
+- if (condition) somethingThen()
++ somethingThen()
+```
+
+example mutation 4:
+
+```diff
+- if (condition) somethingThen()
++ ()
 ```
 
 ---
