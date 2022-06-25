@@ -40,12 +40,14 @@ object OptionsConfig {
     testInOrder = false
   )
 
-  implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.instance[Duration] {
+  implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.from[Duration] {
     case Conf.Str(durationStr) => Configured.Ok(Duration(durationStr))
+    case conf                  => Configured.error(s"Expected a duration, actual: $conf")
   }
 
-  implicit val doubleDecoder: ConfDecoder[Double] = ConfDecoder.instance[Double] {
+  implicit val doubleDecoder: ConfDecoder[Double] = ConfDecoder.from[Double] {
     case Conf.Num(number) => Configured.Ok(number.toDouble)
+    case conf             => Configured.error(s"Expected a double, actual: $conf")
   }
 
   def stringToMultiRunParser: String => Either[String, (Int, Int)] =
@@ -59,12 +61,14 @@ object OptionsConfig {
           Left("Invalid value, should be in 'int/int' format")
       }
 
-  implicit val multiRunDecoder: ConfDecoder[(Int, Int)] = ConfDecoder.instance[(Int, Int)] {
+  implicit val multiRunDecoder: ConfDecoder[(Int, Int)] = ConfDecoder.from[(Int, Int)] {
     case Conf.Str(multiRunStr) =>
       stringToMultiRunParser(multiRunStr) match {
         case Right(multiRunValue) => Configured.Ok(multiRunValue)
         case Left(message)        => Configured.error(message)
       }
+    case conf =>
+      Configured.error(s"""Expected a String in 'int/int' format, actual: $conf""")
   }
 
   implicit val surface: Surface[OptionsConfig] =
