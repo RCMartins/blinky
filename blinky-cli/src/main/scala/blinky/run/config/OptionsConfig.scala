@@ -54,7 +54,7 @@ object OptionsConfig {
   private val InvalidMultiRunConfIndex: String =
     "Invalid index value, should be >= 1"
   private val InvalidMultiRunConfAmount: String =
-    "Invalid amount, should be bigger than index"
+    "Invalid amount, should be greater or equal than index"
   private val InvalidMultiRunConfFormat: String =
     "Invalid value, should be a String in 'int/int' format"
   private val InvalidMultiRunConfFormatShort: String =

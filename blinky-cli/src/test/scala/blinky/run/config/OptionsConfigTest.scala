@@ -71,7 +71,7 @@ object OptionsConfigTest extends TestSpec {
             Configured.error(
               """Type mismatch;
                 |  found    : String (value: "2/1")
-                |  expected : Invalid amount, should be bigger than index""".stripMargin
+                |  expected : Invalid amount, should be greater or equal than index""".stripMargin
             )
           )
         )
