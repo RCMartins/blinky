@@ -78,33 +78,22 @@ object Run {
                                       .filter(file => file.ext == "scala" || file.ext == "sbt")
                                       .map(_.toString)
 
-                                  for {
-                                    processResult <-
-                                      processFilesToMutate(projectRealPath, config.filesToMutate)
-
-                                    result <-
-                                      processResult match {
-                                        case Left(value) =>
-                                          succeed(Left(value))
-                                        case Right(filesToMutateStr) =>
-                                          if (base.isEmpty)
-                                            succeed(Right((filesToMutateStr, base)))
-                                          else
-                                            for {
-                                              copyResult <- copyFilesToTempFolder(
-                                                originalProjectRoot,
-                                                originalProjectPath,
-                                                projectRealPath
-                                              )
-                                              result <- optimiseFilesToMutate(
-                                                base,
-                                                copyResult,
-                                                projectRealPath,
-                                                config.filesToMutate
-                                              )
-                                            } yield result
-                                      }
-                                  } yield result
+                                  if (base.isEmpty)
+                                    succeed(Right(("", base)))
+                                  else
+                                    for {
+                                      copyResult <- copyFilesToTempFolder(
+                                        originalProjectRoot,
+                                        originalProjectPath,
+                                        projectRealPath
+                                      )
+                                      result <- optimiseFilesToMutate(
+                                        base,
+                                        copyResult,
+                                        projectRealPath,
+                                        config.filesToMutate
+                                      )
+                                    } yield result
                               }
                           }
                       else
