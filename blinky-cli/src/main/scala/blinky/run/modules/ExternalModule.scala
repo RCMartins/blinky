@@ -1,6 +1,6 @@
 package blinky.run.modules
 
-import blinky.run.external.{AmmoniteExternalCalls, ExternalCalls}
+import blinky.run.external.{ExternalCalls, OSExternalCalls}
 import zio.{Layer, ZIO, ZLayer}
 
 object ExternalModule {
@@ -15,7 +15,7 @@ object ExternalModule {
   val live: Layer[Nothing, ExternalModule] =
     ZLayer.succeed(new Service {
       override def external: ZIO[Any, Nothing, ExternalCalls] =
-        ZIO.succeed(AmmoniteExternalCalls)
+        ZIO.succeed(OSExternalCalls)
     })
 
 }

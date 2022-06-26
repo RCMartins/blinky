@@ -59,8 +59,8 @@ object CliTest extends TestSpec {
                |  --mutationMinimum <decimal>
                |                           Minimum mutation score, value must be between 0 and 100, with one decimal place
                |  --failOnMinimum <bool>   If set, exits with non-zero code when the mutation score is below mutationMinimum value
-               |  --multiRun <job-index/number-of-jobs>
-               |                           Only test the mutants of the given index, 1 <= job-index <= number-of-jobs
+               |  --multiRun <job-index/amount-of-jobs>
+               |                           Only test the mutants of the given index, 1 <= job-index <= amount-of-jobs
                |  --timeoutFactor <decimal>
                |                           Time factor for each mutant test
                |  --timeout <duration>     Duration of additional flat timeout for each mutant test
@@ -235,7 +235,18 @@ object CliTest extends TestSpec {
           result <- zioResult
         } yield assert(parser.getOut)(equalTo("")) &&
           assert(parser.getErr)(equalTo("")) &&
-          assert(result)(equalTo(Left("Invalid value, should be in 'int/int' format")))
+          assert(result)(
+            equalTo(
+              Left(
+                """<input>:2:0 error: Type mismatch;
+                  |  found    : String (value: "1-2")
+                  |  expected : Invalid value, should be a String in 'int/int' format
+                  |  multiRun = "1-2"
+                  |^
+                  |""".stripMargin
+              )
+            )
+          )
       },
       suite("using overrides parameters")(
         testM("return the changed parameters") {
@@ -357,7 +368,7 @@ object CliTest extends TestSpec {
           } yield assert(parser.getOut)(equalTo("")) &&
             assert(parser.getErr)(
               equalTo(
-                """Error: Option --multiRun failed when given '0/1'. Invalid values, they should be >= 1
+                """Error: Option --multiRun failed when given '0/1'. Invalid index value, should be >= 1
                   |Try --help for more information.
                   |""".stripMargin
               )
@@ -371,7 +382,7 @@ object CliTest extends TestSpec {
           } yield assert(parser.getOut)(equalTo("")) &&
             assert(parser.getErr)(
               equalTo(
-                """Error: Option --multiRun failed when given '3/2'. Invalid values, they should be >= 1
+                """Error: Option --multiRun failed when given '3/2'. Invalid amount, should be greater or equal than index
                   |Try --help for more information.
                   |""".stripMargin
               )

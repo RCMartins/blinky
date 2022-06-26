@@ -40,32 +40,47 @@ object OptionsConfig {
     testInOrder = false
   )
 
-  implicit val durationDecoder: ConfDecoder[Duration] = ConfDecoder.instance[Duration] {
-    case Conf.Str(durationStr) => Configured.Ok(Duration(durationStr))
-  }
+  implicit val durationDecoder: ConfDecoder[Duration] =
+    ConfDecoder.fromPartial[Duration]("Duration string") {
+      case Conf.Str(durationStr) if Try(Duration(durationStr)).isSuccess =>
+        Configured.Ok(Duration(durationStr))
+    }
 
-  implicit val doubleDecoder: ConfDecoder[Double] = ConfDecoder.instance[Double] {
-    case Conf.Num(number) => Configured.Ok(number.toDouble)
-  }
+  implicit val doubleDecoder: ConfDecoder[Double] =
+    ConfDecoder.fromPartial[Double]("Number") { case Conf.Num(number) =>
+      Configured.Ok(number.toDouble)
+    }
+
+  private val InvalidMultiRunConfIndex: String =
+    "Invalid index value, should be >= 1"
+  private val InvalidMultiRunConfAmount: String =
+    "Invalid amount, should be greater or equal than index"
+  private val InvalidMultiRunConfFormat: String =
+    "Invalid value, should be a String in 'int/int' format"
+  private val InvalidMultiRunConfFormatShort: String =
+    "String in 'int/int' format"
 
   def stringToMultiRunParser: String => Either[String, (Int, Int)] =
     (str: String) =>
       Try(str.split("/").toList.map(_.toInt)) match {
-        case Success(List(index, amount)) if index >= 1 && amount >= index =>
+        case Success(List(index, _)) if index < 1 =>
+          Left(InvalidMultiRunConfIndex)
+        case Success(List(index, amount)) if index > amount =>
+          Left(InvalidMultiRunConfAmount)
+        case Success(List(index, amount)) =>
           Right((index, amount))
-        case Success(_) =>
-          Left("Invalid values, they should be >= 1")
-        case Failure(_) =>
-          Left("Invalid value, should be in 'int/int' format")
+        case Success(_) | Failure(_) =>
+          Left(InvalidMultiRunConfFormat)
       }
 
-  implicit val multiRunDecoder: ConfDecoder[(Int, Int)] = ConfDecoder.instance[(Int, Int)] {
-    case Conf.Str(multiRunStr) =>
-      stringToMultiRunParser(multiRunStr) match {
-        case Right(multiRunValue) => Configured.Ok(multiRunValue)
-        case Left(message)        => Configured.error(message)
-      }
-  }
+  implicit val multiRunDecoder: ConfDecoder[(Int, Int)] =
+    ConfDecoder.fromPartial[(Int, Int)](InvalidMultiRunConfFormatShort) {
+      case conf @ Conf.Str(multiRunStr) =>
+        stringToMultiRunParser(multiRunStr) match {
+          case Right(multiRunValue) => Configured.Ok(multiRunValue)
+          case Left(message)        => Configured.typeMismatch(message, conf)
+        }
+    }
 
   implicit val surface: Surface[OptionsConfig] =
     generic.deriveSurface[OptionsConfig]

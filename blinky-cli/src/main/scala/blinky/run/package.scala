@@ -1,6 +1,6 @@
 package blinky
 
-import ammonite.ops.Path
+import os.Path
 import blinky.run.Instruction._
 
 package object run {
@@ -23,12 +23,10 @@ package object run {
           PrintErrorLine(line, next.flatMap(f))
         case RunSync(op, args, envArgs, path, next) =>
           RunSync(op, args, envArgs, path, next.flatMap(f))
-        case RunAsync(op, args, envArgs, path, next) =>
-          RunAsync(op, args, envArgs, path, next(_: Either[String, String]).flatMap(f))
-        case RunAsyncSuccess(op, args, envArgs, path, next) =>
-          RunAsyncSuccess(op, args, envArgs, path, next(_: Boolean).flatMap(f))
-        case RunAsyncEither(op, args, envArgs, path, next) =>
-          RunAsyncEither(op, args, envArgs, path, next(_: Either[String, String]).flatMap(f))
+        case RunSyncSuccess(op, args, envArgs, path, next) =>
+          RunSyncSuccess(op, args, envArgs, path, next(_: Boolean).flatMap(f))
+        case RunSyncEither(op, args, envArgs, path, next) =>
+          RunSyncEither(op, args, envArgs, path, next(_: Either[String, String]).flatMap(f))
         case MakeTemporaryDirectory(next) =>
           MakeTemporaryDirectory(next(_: Path).flatMap(f))
         case MakeDirectory(path, next) =>

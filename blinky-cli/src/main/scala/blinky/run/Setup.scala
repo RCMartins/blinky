@@ -1,16 +1,16 @@
 package blinky.run
 
-import ammonite.ops.Path
+import os.Path
 import blinky.BuildInfo
-import blinky.run.Instruction.{CopyResource, runAsyncSuccess, runSync, succeed}
+import blinky.run.Instruction.{CopyResource, runSync, runSyncSuccess, succeed}
 
 object Setup {
 
   def setupCoursier(path: Path): Instruction[String] =
-    runAsyncSuccess("coursier", Seq("--help"), path = path).flatMap {
+    runSyncSuccess("coursier", Seq("--help"), path = path).flatMap {
       case true => succeed("coursier")
       case false =>
-        runAsyncSuccess("cs", Seq("--help"), path = path).flatMap {
+        runSyncSuccess("cs", Seq("--help"), path = path).flatMap {
           case true  => succeed("cs")
           case false => copyExeFromResources("coursier", path).map(_ => "./coursier")
         }
@@ -22,8 +22,8 @@ object Setup {
     runSync(
       "sbt",
       Seq(
-        "set ThisBuild / semanticdbEnabled := true",
-        s"""set ThisBuild / semanticdbVersion := "${BuildInfo.semanticdbVersion}"""",
+        "set Global / semanticdbEnabled := true",
+        s"""set Global / semanticdbVersion := "${BuildInfo.semanticdbVersion}"""",
         "compile"
       ),
       envArgs = Map("BLINKY" -> "true"),

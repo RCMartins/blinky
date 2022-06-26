@@ -1,6 +1,6 @@
 package blinky.run
 
-import ammonite.ops.{Path, RelPath}
+import os.{Path, RelPath}
 import blinky.TestSpec
 import blinky.run.TestInstruction._
 import blinky.run.Utils.red
@@ -82,7 +82,7 @@ object RunTest extends TestSpec {
         test("when both git and copy works") {
           testInstruction(
             Run.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
-            TestRunAsync(
+            TestRunSyncEither(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               Map.empty,
@@ -102,7 +102,7 @@ object RunTest extends TestSpec {
         test("when git works but the copy fails") {
           testInstruction(
             Run.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
-            TestRunAsync(
+            TestRunSyncEither(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               Map.empty,
@@ -125,7 +125,7 @@ object RunTest extends TestSpec {
         test("when git fails") {
           testInstruction(
             Run.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
-            TestRunAsync(
+            TestRunSyncEither(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               Map.empty,
