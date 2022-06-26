@@ -114,7 +114,7 @@ If set, only mutates added and edited files in git diff against the master branc
 Default: false
 
 #### multiRun
-Only test the mutants of the given index, 1 <= job-index <= number-of-jobs
+Only test the mutants of the given index, 1 <= job-index <= amount-of-jobs
 
 This parameter helps running Blinky in parallel, useful to run Blinky in independent machines.
 E.g. If you have two CI jobs that run Blinky on the same project and configuration, you can use:
@@ -129,7 +129,7 @@ This makes each CI job run half the mutations without overlapping (i.e. testing 
 The first CI will test mutants 1,3,5,7,9,...
 The second CI will test mutants 2,4,6,8,10,...
 
-Format: <job-index>/<number-of-jobs>  
+Format: <job-index>/<amount-of-jobs>  
 Default: 1/1
 
 #### mutant

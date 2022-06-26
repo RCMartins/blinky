@@ -1,6 +1,6 @@
 package blinky.run
 
-import ammonite.ops.{Path, RelPath}
+import os.{Path, RelPath}
 import blinky.BuildInfo
 import blinky.run.Instruction._
 import blinky.run.config.{FileFilter, MutationsConfigValidated, SimpleBlinkyConfig}
@@ -24,7 +24,7 @@ object Run {
           .getOrElse(RelPath(config.projectPath.pathAsString))
       originalProjectPath = originalProjectRoot / originalProjectRelPath
 
-      inst = {
+      instruction = {
         for {
           cloneProjectTempFolder <- makeTemporaryFolder
           _ <-
@@ -33,7 +33,7 @@ object Run {
             else
               empty
           runResult <-
-            runAsync("git", Seq("rev-parse", "--show-toplevel"), path = originalProjectRoot)
+            runSyncEither("git", Seq("rev-parse", "--show-toplevel"), path = originalProjectRoot)
               .flatMap {
                 case Left(commandError) =>
                   ConsoleReporter
@@ -52,41 +52,50 @@ object Run {
                     filesToMutateEither <- {
                       if (config.options.onlyMutateDiff)
                         // maybe copy the .git folder so it can be used by TestMutations, etc?
-                        //cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
-                        runAsync("git", Seq("rev-parse", "master"), path = gitFolder).flatMap {
-                          case Left(commandError) =>
-                            ConsoleReporter
-                              .gitIssues(commandError)
-                              .map(_ => Left(ExitCode.failure))
-                          case Right(masterHash) =>
-                            for {
-                              diffLines <- runAsync(
+                        // cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
+                        runSyncEither("git", Seq("rev-parse", "master"), path = gitFolder)
+                          .flatMap {
+                            case Left(commandError) =>
+                              ConsoleReporter
+                                .gitIssues(commandError)
+                                .map(_ => Left(ExitCode.failure))
+                            case Right(masterHash) =>
+                              runSyncEither(
                                 "git",
                                 Seq("--no-pager", "diff", "--name-only", masterHash),
                                 path = gitFolder
-                              ).map(_.right.get)
+                              ).flatMap {
+                                case Left(commandError) =>
+                                  ConsoleReporter
+                                    .gitIssues(commandError)
+                                    .map(_ => Left(ExitCode.failure))
+                                case Right(diffLines) =>
+                                  val base: Seq[String] =
+                                    diffLines
+                                      .split(System.lineSeparator())
+                                      .toSeq
+                                      .map(file => cloneProjectBaseFolder / RelPath(file))
+                                      .filter(file => file.ext == "scala" || file.ext == "sbt")
+                                      .map(_.toString)
 
-                              base: Seq[String] =
-                                diffLines
-                                  .split(System.lineSeparator())
-                                  .toSeq
-                                  .map(file => cloneProjectBaseFolder / RelPath(file))
-                                  .filter(_.ext == "scala")
-                                  .map(_.toString)
-
-                              copyResult <- copyFilesToTempFolder(
-                                originalProjectRoot,
-                                originalProjectPath,
-                                projectRealPath
-                              )
-                              result <- optimiseFilesToMutate(
-                                base,
-                                copyResult,
-                                projectRealPath,
-                                config.filesToMutate
-                              )
-                            } yield result
-                        }
+                                  if (base.isEmpty)
+                                    succeed(Right(("", base)))
+                                  else
+                                    for {
+                                      copyResult <- copyFilesToTempFolder(
+                                        originalProjectRoot,
+                                        originalProjectPath,
+                                        projectRealPath
+                                      )
+                                      result <- optimiseFilesToMutate(
+                                        base,
+                                        copyResult,
+                                        projectRealPath,
+                                        config.filesToMutate
+                                      )
+                                    } yield result
+                              }
+                          }
                       else
                         for {
                           _ <- copyFilesToTempFolder(
@@ -136,44 +145,51 @@ object Run {
                             )
                           }
 
-                          toolPath <- runAsync(
+                          runResult <- runSyncEither(
                             coursier,
                             Seq(
                               "fetch",
-                              s"com.github.rcmartins:${ruleName.toLowerCase}_2.12:${BuildInfo.version}",
+                              s"com.github.rcmartins:${ruleName.toLowerCase}_${BuildInfo.scalaMinorVersion}:${BuildInfo.version}",
                               "-p"
                             ),
                             Map(
                               "COURSIER_REPOSITORIES" -> "ivy2Local|sonatype:snapshots|sonatype:releases"
                             ),
                             path = projectRealPath
-                          ).map(_.right.get)
-
-                          _ <- {
-                            val params: Seq[String] =
-                              Seq(
-                                if (config.options.verbose) "--verbose" else "",
-                                if (config.filesToExclude.nonEmpty)
-                                  s"--exclude=${config.filesToExclude}"
-                                else "",
-                                s"--tool-classpath=$toolPath",
-                                s"--files=$filesToMutateStr",
-                                s"--config=$scalafixConfFile",
-                                "--auto-classpath=target"
-                              ).filter(_.nonEmpty)
-
-                            runSync("./scalafix", params, path = projectRealPath)
+                          ).flatMap {
+                            case Left(commandError) =>
+                              ConsoleReporter
+                                .gitIssues(commandError)
+                                .map(_ => ExitCode.failure)
+                            case Right(toolPath) =>
+                              val params: Seq[String] =
+                                Seq(
+                                  if (config.options.verbose) "--verbose" else "",
+                                  if (config.filesToExclude.nonEmpty)
+                                    s"--exclude=${config.filesToExclude}"
+                                  else "",
+                                  s"--tool-classpath=$toolPath",
+                                  s"--files=$filesToMutateStr",
+                                  s"--config=$scalafixConfFile",
+                                  "--auto-classpath=target"
+                                ).filter(_.nonEmpty)
+                              for {
+                                _ <- printLine(toolPath)
+                                _ <- runSync("./scalafix", params, path = projectRealPath)
+                                runResult <- TestMutationsBloop.run(
+                                  projectRealPath,
+                                  blinkyConf,
+                                  config.options
+                                )
+                              } yield runResult
                           }
-
-                          runResult <-
-                            TestMutationsBloop.run(projectRealPath, blinkyConf, config.options)
                         } yield runResult
                     }
                   } yield runResult
               }
         } yield runResult
       }
-    } yield inst
+    } yield instruction
 
   private def filterFiles(
       files: Seq[String],
@@ -255,7 +271,7 @@ object Run {
   ): Instruction[Either[ExitCode, Unit]] =
     for {
       // Copy only the files tracked by git into our temporary folder
-      gitResultEither <- runAsync(
+      gitResultEither <- runSyncEither(
         "git",
         Seq("ls-files", "--others", "--exclude-standard", "--cached"),
         path = originalProjectPath

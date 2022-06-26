@@ -1,6 +1,6 @@
 package blinky.run.config
 
-import ammonite.ops.RelPath
+import os.RelPath
 import better.files.File
 import blinky.run.config.FileFilter.{FileName, SingleFileOrFolder}
 

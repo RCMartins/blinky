@@ -53,19 +53,12 @@ object Interpreter {
         case RunSync(op, args, envArgs, path, next) =>
           externalCalls.runSync(op, args, envArgs, path)
           interpreterNext(next)
-        case RunAsync(op, args, envArgs, path, next) =>
-          val result = externalCalls.runAsync(op, args, envArgs, path)
+        case RunSyncEither(op, args, envArgs, path, next) =>
+          val result = externalCalls.runSyncEither(op, args, envArgs, path)
           interpreterNext(next(result))
-        case RunAsyncSuccess(op, args, envArgs, path, next) =>
-          val result = externalCalls.runAsync(op, args, envArgs, path)
+        case RunSyncSuccess(op, args, envArgs, path, next) =>
+          val result = externalCalls.runSyncEither(op, args, envArgs, path)
           interpreterNext(next(result.isRight))
-        case RunAsyncEither(op, args, envArgs, path, next) =>
-          externalCalls.runAsync(op, args, envArgs, path) match {
-            case Left(value) =>
-              interpreterNext(next(Left(value)))
-            case Right(value) =>
-              interpreterNext(next(Right(value)))
-          }
         case CopyInto(from, to, next) =>
           externalCalls.copyInto(from, to)
           interpreterNext(next)
@@ -88,7 +81,7 @@ object Interpreter {
           val result = externalCalls.copyRelativeFiles(filesToCopy, fromPath, toPath)
           interpreterNext(next(result))
         case LsFiles(basePath, next) =>
-          val result = externalCalls.lsFiles(basePath)
+          val result = externalCalls.listFiles(basePath)
           interpreterNext(next(result))
         case timeout @ Timeout(_, _, _) =>
           Left(timeout)

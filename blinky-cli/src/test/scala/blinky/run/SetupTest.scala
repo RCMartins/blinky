@@ -1,6 +1,6 @@
 package blinky.run
 
-import ammonite.ops.pwd
+import os.{Path, pwd}
 import blinky.{BuildInfo, TestSpec}
 import blinky.run.TestInstruction._
 import zio.test._
@@ -8,7 +8,7 @@ import zio.test.environment.TestEnvironment
 
 object SetupTest extends TestSpec {
 
-  private val path = pwd
+  private val path: Path = pwd
 
   val spec: Spec[TestEnvironment, TestFailure[Nothing], TestSuccess] =
     suite("Setup")(
@@ -16,7 +16,7 @@ object SetupTest extends TestSpec {
         test("return the correct instruction when 'coursier' is available") {
           testInstruction(
             Setup.setupCoursier(path),
-            TestRunAsyncSuccess(
+            TestRunSyncSuccess(
               "coursier",
               Seq("--help"),
               Map.empty,
@@ -29,13 +29,13 @@ object SetupTest extends TestSpec {
         test("return the correct instruction when 'cs' is available") {
           testInstruction(
             Setup.setupCoursier(path),
-            TestRunAsyncSuccess(
+            TestRunSyncSuccess(
               "coursier",
               Seq("--help"),
               Map.empty,
               path,
               mockResult = false,
-              TestRunAsyncSuccess(
+              TestRunSyncSuccess(
                 "cs",
                 Seq("--help"),
                 Map.empty,
@@ -49,13 +49,13 @@ object SetupTest extends TestSpec {
         test("return the correct instruction when 'coursier and 'cs' is unavailable") {
           testInstruction(
             Setup.setupCoursier(path),
-            TestRunAsyncSuccess(
+            TestRunSyncSuccess(
               "coursier",
               Seq("--help"),
               Map.empty,
               path,
               mockResult = false,
-              TestRunAsyncSuccess(
+              TestRunSyncSuccess(
                 "cs",
                 Seq("--help"),
                 Map.empty,
@@ -84,8 +84,8 @@ object SetupTest extends TestSpec {
             TestRunSync(
               "sbt",
               Seq(
-                "set ThisBuild / semanticdbEnabled := true",
-                s"""set ThisBuild / semanticdbVersion := "${BuildInfo.semanticdbVersion}"""",
+                "set Global / semanticdbEnabled := true",
+                s"""set Global / semanticdbVersion := "${BuildInfo.semanticdbVersion}"""",
                 "compile"
               ),
               Map("BLINKY" -> "true"),
