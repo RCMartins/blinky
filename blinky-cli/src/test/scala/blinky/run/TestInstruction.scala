@@ -119,55 +119,55 @@ object TestInstruction {
         assert(value1())(equalTo(value2))
       case (PrintLine(line1, next1), TestPrintLine(line2, next2)) =>
         assert(line1)(equalTo(line2)) &&
-          testInstruction(next1, next2)
+        testInstruction(next1, next2)
       case (
             RunSync(op1, args1, envArgs1, path1, next1),
             TestRunSync(op2, args2, envArgs2, path2, next2)
           ) =>
         assert(op1)(equalTo(op2)) &&
-          assert(args1)(equalTo(args2)) &&
-          assert(envArgs1)(equalTo(envArgs2)) &&
-          assert(path1)(equalTo(path2)) &&
-          testInstruction(next1, next2)
+        assert(args1)(equalTo(args2)) &&
+        assert(envArgs1)(equalTo(envArgs2)) &&
+        assert(path1)(equalTo(path2)) &&
+        testInstruction(next1, next2)
       case (
             RunSyncEither(op1, args1, envArgs1, path1, next1),
             TestRunSyncEither(op2, args2, envArgs2, path2, mockResult, next2)
           ) =>
         assert(op1)(equalTo(op2)) &&
-          assert(args1)(equalTo(args2)) &&
-          assert(envArgs1)(equalTo(envArgs2)) &&
-          assert(path1)(equalTo(path2)) &&
-          testInstruction(next1(mockResult), next2)
+        assert(args1)(equalTo(args2)) &&
+        assert(envArgs1)(equalTo(envArgs2)) &&
+        assert(path1)(equalTo(path2)) &&
+        testInstruction(next1(mockResult), next2)
       case (
             RunSyncSuccess(op1, args1, envArgs1, path1, next1),
             TestRunSyncSuccess(op2, args2, envArgs2, path2, mockResult, next2)
           ) =>
         assert(op1)(equalTo(op2)) &&
-          assert(args1)(equalTo(args2)) &&
-          assert(envArgs1)(equalTo(envArgs2)) &&
-          assert(path1)(equalTo(path2)) &&
-          testInstruction(next1(mockResult), next2)
+        assert(args1)(equalTo(args2)) &&
+        assert(envArgs1)(equalTo(envArgs2)) &&
+        assert(path1)(equalTo(path2)) &&
+        testInstruction(next1(mockResult), next2)
       case (
             CopyResource(resource1, destinationPath1, next1),
             TestCopyResource(resource2, destinationPath2, next2)
           ) =>
         assert(resource1)(equalTo(resource2)) &&
-          assert(destinationPath1)(equalTo(destinationPath2)) &&
-          testInstruction(next1, next2)
+        assert(destinationPath1)(equalTo(destinationPath2)) &&
+        testInstruction(next1, next2)
       case (
             CopyRelativeFiles(filesToCopy1, fromPath1, toPath1, next1),
             TestCopyRelativeFiles(filesToCopy2, fromPath2, toPath2, mockResult, next2)
           ) =>
         assert(filesToCopy1)(equalTo(filesToCopy2)) &&
-          assert(fromPath1)(equalTo(fromPath2)) &&
-          assert(toPath1)(equalTo(toPath2)) &&
-          testInstruction(next1(mockResult), next2)
+        assert(fromPath1)(equalTo(fromPath2)) &&
+        assert(toPath1)(equalTo(toPath2)) &&
+        testInstruction(next1(mockResult), next2)
       case (
             LsFiles(basePath1, next1),
             TestLsFiles(basePath2, mockResult, next2)
           ) =>
         assert(basePath1)(equalTo(basePath2)) &&
-          testInstruction(next1(mockResult), next2)
+        testInstruction(next1(mockResult), next2)
       case (other1, other2) =>
         println(
           s"""elem1: ${println(other1.getClass.getSimpleName)}
