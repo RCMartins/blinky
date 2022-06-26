@@ -1,6 +1,6 @@
 package blinky.run.external
 
-import ammonite.ops.{Path, RelPath}
+import os.{Path, RelPath}
 
 trait ExternalCalls {
 
@@ -11,7 +11,7 @@ trait ExternalCalls {
       path: Path
   ): Unit
 
-  def runAsync(
+  def runSyncEither(
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
@@ -36,6 +36,6 @@ trait ExternalCalls {
       toPath: Path
   ): Either[Throwable, Unit]
 
-  def lsFiles(basePath: Path): Seq[String]
+  def listFiles(basePath: Path): Seq[String]
 
 }
