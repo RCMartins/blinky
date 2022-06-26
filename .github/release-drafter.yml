@@ -22,6 +22,7 @@ autolabeler:
       - '*.sbt'
     branch:
       - '/chore\/.+/'
+      - '/update\/.+/'
   - label: 'bug'
     branch:
       - '/fix\/.+/'
