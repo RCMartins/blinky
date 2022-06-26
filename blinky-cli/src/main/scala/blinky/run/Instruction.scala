@@ -1,6 +1,6 @@
 package blinky.run
 
-import ammonite.ops.{Path, RelPath}
+import os.{Path, RelPath}
 
 sealed trait Instruction[+A]
 
@@ -22,15 +22,7 @@ object Instruction {
       next: Instruction[A]
   ) extends Instruction[A]
 
-  final case class RunAsync[A](
-      op: String,
-      args: Seq[String],
-      envArgs: Map[String, String],
-      path: Path,
-      next: Either[String, String] => Instruction[A]
-  ) extends Instruction[A]
-
-  final case class RunAsyncSuccess[A](
+  final case class RunSyncSuccess[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
@@ -38,7 +30,7 @@ object Instruction {
       next: Boolean => Instruction[A]
   ) extends Instruction[A]
 
-  final case class RunAsyncEither[A](
+  final case class RunSyncEither[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
@@ -101,43 +93,35 @@ object Instruction {
   ): RunSync[Unit] =
     RunSync(op, args, envArgs, path, succeed(()))
 
-  def runAsync(
+  def runSyncSuccess(
       op: String,
       args: Seq[String],
       envArgs: Map[String, String] = Map.empty,
       path: Path
-  ): RunAsync[Either[String, String]] =
-    RunAsync(op, args, envArgs, path, succeed(_: Either[String, String]))
+  ): RunSyncSuccess[Boolean] =
+    RunSyncSuccess(op, args, envArgs, path, succeed(_: Boolean))
 
-  def runAsyncSuccess(
+  def runSyncEither(
       op: String,
       args: Seq[String],
       envArgs: Map[String, String] = Map.empty,
       path: Path
-  ): RunAsyncSuccess[Boolean] =
-    RunAsyncSuccess(op, args, envArgs, path, succeed(_: Boolean))
-
-  def runAsyncEither(
-      op: String,
-      args: Seq[String],
-      envArgs: Map[String, String] = Map.empty,
-      path: Path
-  ): RunAsyncEither[Either[String, String]] =
-    RunAsyncEither(op, args, envArgs, path, succeed(_: Either[String, String]))
+  ): RunSyncEither[Either[String, String]] =
+    RunSyncEither(op, args, envArgs, path, succeed(_: Either[String, String]))
 
   def runBashSuccess(
       arg: String,
       envArgs: Map[String, String] = Map.empty,
       path: Path
-  ): RunAsyncSuccess[Boolean] =
-    RunAsyncSuccess("bash", Seq("-c", arg), envArgs, path, succeed(_: Boolean))
+  ): RunSyncSuccess[Boolean] =
+    RunSyncSuccess("bash", Seq("-c", arg), envArgs, path, succeed(_: Boolean))
 
   def runBashEither(
       arg: String,
       envArgs: Map[String, String] = Map.empty,
       path: Path
-  ): RunAsyncEither[Either[String, String]] =
-    RunAsyncEither("bash", Seq("-c", arg), envArgs, path, succeed(_: Either[String, String]))
+  ): RunSyncEither[Either[String, String]] =
+    RunSyncEither("bash", Seq("-c", arg), envArgs, path, succeed(_: Either[String, String]))
 
   def makeTemporaryFolder: MakeTemporaryDirectory[Path] =
     MakeTemporaryDirectory(path => succeed(path))

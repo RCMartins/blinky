@@ -11,7 +11,25 @@ categories:
       - 'docs'
   - title: '🧰 Maintenance'
     label: 'chore'
-
+autolabeler:
+  - label: 'docs'
+    files:
+      - '*.md'
+    branch:
+      - '/docs{0,1}\/.+/'
+  - label: 'chore'
+    files:
+      - '*.sbt'
+    branch:
+      - '/chore\/.+/'
+  - label: 'bug'
+    branch:
+      - '/fix\/.+/'
+    title:
+      - '/fix/i'
+  - label: 'enhancement'
+    branch:
+      - '/feature\/.+/'
 template: |
   ## What’s Changed
 

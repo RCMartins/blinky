@@ -1,6 +1,5 @@
 package blinky.internal
 
-import ammonite.ops._
 import better.files.File
 import blinky.v0.{BlinkyConfig, MutantRange}
 import metaconfig.Configured
@@ -113,15 +112,13 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
 
             val gitDiff =
               Try(
-                %%(
+                os.proc(
                   "git",
                   "diff",
                   "--no-index",
                   originalFile.toString,
                   mutatedFile.toString
-                )(
-                  pwd
-                )
+                ).call(cwd = os.pwd)
               ).failed.get.toString
                 .split("\n")
                 .drop(5)

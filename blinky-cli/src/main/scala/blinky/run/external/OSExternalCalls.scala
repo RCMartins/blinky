@@ -1,11 +1,10 @@
 package blinky.run.external
 
-import ammonite.ops.Shellable.StringShellable
-import ammonite.ops._
+import os.{Path, RelPath}
 
 import scala.util.{Failure, Success, Try}
 
-object AmmoniteExternalCalls extends ExternalCalls {
+object OSExternalCalls extends ExternalCalls {
 
   //TODO: all commands need an error side, Either or Option
 
@@ -15,42 +14,43 @@ object AmmoniteExternalCalls extends ExternalCalls {
       envArgs: Map[String, String],
       path: Path
   ): Unit =
-    Command(Vector.empty, envArgs, Shellout.executeInteractive)
-      .applyDynamic(op)(args.map(StringShellable): _*)(path)
+    os.proc((op +: args).map(os.Shellable.StringShellable): _*)
+      .call(cwd = path, env = envArgs)
+  // TODO check exit code at least...
 
-  def runAsync(
+  def runSyncEither(
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
       path: Path
   ): Either[String, String] =
     Try(
-      Command(Vector.empty, envArgs, Shellout.executeStream)
-        .applyDynamic(op)(args.map(StringShellable): _*)(path)
+      os.proc((op +: args).map(os.Shellable.StringShellable): _*)
+        .call(cwd = path, env = envArgs)
     ) match {
       case Failure(exception) =>
         Left(exception.toString)
       case Success(value) =>
-        Right(value.out.string.trim)
+        Right(value.out.text().trim)
     }
 
   def makeTemporaryDirectory(): Path =
-    tmp.dir()
+    os.temp.dir()
 
   def makeDirectory(path: Path): Unit =
-    mkdir(path)
+    os.makeDir(path)
 
   def copyInto(from: Path, to: Path): Unit =
-    cp.into(from, to)
+    os.copy.into(from, to)
 
   def writeFile(filePath: Path, content: String): Unit =
-    write(filePath, content)
+    os.write(filePath, content)
 
   def readFile(path: Path): Either[Throwable, String] =
-    Try(read(path)).toEither
+    Try(os.read(path)).toEither
 
   def isFile(path: Path): Boolean =
-    path.isFile
+    os.isFile(path)
 
   def copyRelativeFiles(
       filesToCopy: Seq[RelPath],
@@ -60,14 +60,14 @@ object AmmoniteExternalCalls extends ExternalCalls {
     Try(
       filesToCopy.foreach { fileToCopy =>
         val fromFile = fromPath / fileToCopy
-        if (exists(fromFile)) {
-          mkdir(toPath / fileToCopy / up)
-          cp.into(fromFile, toPath / fileToCopy / up)
+        if (os.exists(fromFile)) {
+          os.makeDir.all(toPath / fileToCopy / os.up)
+          os.copy.into(fromFile, toPath / fileToCopy / os.up, replaceExisting = true)
         }
       }
     ).toEither
 
-  def lsFiles(basePath: Path): Seq[String] =
-    Try(ls.rec(basePath).map(_.toString)).getOrElse(Seq.empty)
+  def listFiles(basePath: Path): Seq[String] =
+    Try(os.walk(basePath).map(_.toString)).getOrElse(Seq.empty)
 
 }

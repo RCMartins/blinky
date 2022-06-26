@@ -123,11 +123,11 @@ object Parser {
         )
         .maxOccurs(1),
       opt[(Int, Int)]("multiRun")(readMultiRun)
-        .valueName("<job-index/number-of-jobs>")
+        .valueName("<job-index/amount-of-jobs>")
         .action { (fraction, config) =>
           config.add(_.modify(_.options.multiRun).setTo(fraction))
         }
-        .text("Only test the mutants of the given index, 1 <= job-index <= number-of-jobs")
+        .text("Only test the mutants of the given index, 1 <= job-index <= amount-of-jobs")
         .maxOccurs(1),
       opt[Double]("timeoutFactor")
         .valueName("<decimal>")

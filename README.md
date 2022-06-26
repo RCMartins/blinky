@@ -31,6 +31,12 @@ data of all files that we want to mutate.
 ### [User documentation][docs]
 Head over to [the user docs][docs] for instructions on how to install blinky.
 
+### Project maintenance
+Create a new scalafix executable after upgrading scalafix dependency with:
+```
+coursier bootstrap ch.epfl.scala:scalafix-cli_2.13.8:0.9.34 -f --main scalafix.cli.Cli -o scalafix
+```
+
 [badge-github-actions]: https://github.com/RCMartins/blinky/actions/workflows/ci.yml/badge.svg?branch=master "build"
 [badge-coveralls]: https://coveralls.io/repos/github/RCMartins/blinky/badge.svg?branch=master "coveralls"
 [badge-release]: https://img.shields.io/maven-central/v/com.github.rcmartins/blinky_2.12.svg?label=maven%20central "release"

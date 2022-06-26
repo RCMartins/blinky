@@ -7,10 +7,9 @@ object SBTDefaults {
       "-explaintypes",
       "-unchecked",
       "-feature",
-      "-deprecation:true",
-      "-Xfuture",
+      "-deprecation",
+      "-Werror",
       "-Xcheckinit",
-      "-Xlint:by-name-right-associative",
       "-Xlint:constant",
       "-Xlint:delayedinit-select",
       "-Xlint:doc-detached",
@@ -21,28 +20,24 @@ object SBTDefaults {
       "-Xlint:private-shadow",
       "-Xlint:stars-align",
       "-Xlint:type-parameter-shadow",
-      "-Xlint:unsound-match",
       "-Ywarn-dead-code",
-      "-Ywarn-inaccessible",
-      "-Ywarn-nullary-override",
-      "-Ywarn-nullary-unit",
+      "-Xlint:inaccessible",
+      "-Xlint:nullary-unit",
       "-Ywarn-numeric-widen",
       "-Ywarn-extra-implicit",
-      "-Ywarn-infer-any",
+      "-Xlint:infer-any",
       "-Ywarn-unused:imports",
       "-Ywarn-unused:locals",
       "-Ywarn-unused:privates",
-      "-Ypartial-unification",
-      "-Yno-adapted-args",
-      "-Ywarn-unused:implicits",
+      "-Ywarn-unused:patvars",
       "-Ywarn-unused:params",
       "-Ywarn-macros:after",
-      "-Yrangepos",
-      "-Xfatal-warnings"
+      "-Xlint:adapted-args"
     )
 
   lazy val defaultScalacFlags213: List[String] =
     List(
+      "-deprecation",
       "-encoding",
       "UTF-8",
       "-explaintypes",
@@ -81,11 +76,16 @@ object SBTDefaults {
       "2.12.11" -> "0.9.18",
       "2.12.12" -> "0.9.24",
       "2.12.13" -> "0.9.26",
+      "2.12.14" -> "0.9.30",
+      "2.12.15" -> "0.9.34",
       // 2.13.x:
       "2.13.2" -> "0.9.17",
       "2.13.3" -> "0.9.23",
       "2.13.4" -> "0.9.25",
-      "2.13.5" -> "0.9.26"
+      "2.13.5" -> "0.9.26",
+      "2.13.6" -> "0.9.31",
+      "2.13.7" -> "0.9.33",
+      "2.13.8" -> "0.9.34"
     )
 
 }

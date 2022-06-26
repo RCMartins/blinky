@@ -55,6 +55,11 @@ object UtilsTest extends TestSpec {
           )
 
         suite("prettyDiff")(
+          test("return an empty string when the input is invalid") {
+            val result =
+              Utils.prettyDiff("@@ -1,2 +3,4 -5,6 @@", "", "", color = true)
+            assert(result)(equalTo(""))
+          },
           test("return the raw 'git diff' output with line numbers (when color is on)") {
             val original =
               """@@ -3,7 +3,7 @@ package test
