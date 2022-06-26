@@ -150,7 +150,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
       case block @ Term.Block(stats) =>
         selectSmallerMutation(
           block,
-          Seq.empty, //TODO when the top stats are completely done we should update this
+          Seq.empty, // TODO when the top stats are completely done we should update this
           stats.flatMap(topTreeMutations)
         )
       case ifTerm @ Term.If(cond, thenPart, elsePart) =>
@@ -177,7 +177,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
             .map { case (mutated, index) =>
               Term.NewAnonymous(Template(early, inits.updated(index, mutated), self, stats))
             } ++
-            Seq.empty, //TODO when the top stats are completely done we should update this
+            Seq.empty, // TODO when the top stats are completely done we should update this
           inits
             .flatMap(_.argss.flatMap(_.flatMap(topTermMutations(_, parensRequired = false)))) ++
             stats.flatMap(topTreeMutations)
