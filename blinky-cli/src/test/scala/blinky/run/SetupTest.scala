@@ -1,16 +1,15 @@
 package blinky.run
 
-import os.{Path, pwd}
-import blinky.{BuildInfo, TestSpec}
 import blinky.run.TestInstruction._
+import blinky.{BuildInfo, TestSpec}
+import os.{Path, pwd}
 import zio.test._
-import zio.test.environment.TestEnvironment
 
 object SetupTest extends TestSpec {
 
   private val path: Path = pwd
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing], TestSuccess] =
+  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("Setup")(
       suite("setupCoursier")(
         test("return the correct instruction when 'coursier' is available") {

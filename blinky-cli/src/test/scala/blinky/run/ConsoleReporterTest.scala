@@ -7,13 +7,12 @@ import blinky.run.RunResult._
 import blinky.run.config.OptionsConfig
 import zio.test.Assertion._
 import zio.test._
-import zio.test.environment.TestEnvironment
 
 import scala.annotation.tailrec
 
 object ConsoleReporterTest extends TestSpec {
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing], TestSuccess] =
+  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("ConsoleReporter")(
       test("print the mutation score") {
         val (result, out) =

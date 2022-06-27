@@ -11,7 +11,6 @@ import os.RelPath
 import scopt.DefaultOEffectSetup
 import zio.test.Assertion._
 import zio.test._
-import zio.test.environment._
 import zio.{Layer, UIO}
 
 import java.io.ByteArrayOutputStream
@@ -20,9 +19,9 @@ import scala.concurrent.duration._
 
 object CliTest extends TestSpec {
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing], TestSuccess] =
+  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("Cli")(
-      testM("blinky --version should return the version number of blinky") {
+      test("blinky --version should return the version number of blinky") {
         val (zioResult, parser) = parse("--version")()
         for {
           _ <- zioResult
@@ -32,7 +31,7 @@ object CliTest extends TestSpec {
         }) &&
           assert(parser.getErr)(equalTo(""))
       },
-      testM("blinky --help should return the help text") {
+      test("blinky --help should return the help text") {
         val (zioResult, parser) = parse("--help")()
 
         for {
@@ -71,7 +70,7 @@ object CliTest extends TestSpec {
         } &&
           assert(parser.getErr)(equalTo(""))
       },
-      testM("blinky empty.conf should return the default config options") {
+      test("blinky empty.conf should return the default config options") {
         val (zioResult, parser) =
           parse(getFilePath("empty.conf"))(File(getFilePath("some-project")))
 
@@ -108,7 +107,7 @@ object CliTest extends TestSpec {
             )
           })
       },
-      testM("blinky options1.conf should return the correct options") {
+      test("blinky options1.conf should return the correct options") {
         val (zioResult, parser) =
           parse(getFilePath("options1.conf"))(File(getFilePath("some-project")))
 
@@ -136,7 +135,7 @@ object CliTest extends TestSpec {
             )
           })
       },
-      testM(
+      test(
         "blinky simple1.conf returns the correct projectName, compileCommand and testCommand"
       ) {
         val (zioResult, parser) = parse(getFilePath("simple1.conf"))()
@@ -153,7 +152,7 @@ object CliTest extends TestSpec {
           assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
           assert(config.map(_.options.testCommand))(equalSome("example1"))
       },
-      testM(
+      test(
         "blinky simple2.conf returns the correct projectName, compileCommand and testCommand"
       ) {
         val (zioResult, parser) = parse(getFilePath("simple2.conf"))()
@@ -170,7 +169,7 @@ object CliTest extends TestSpec {
           assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
           assert(config.map(_.options.testCommand))(equalSome("example1"))
       },
-      testM(
+      test(
         "blinky wrongPath1.conf returns a fileName object"
       ) {
         val (zioResult, parser) = parse(getFilePath("wrongPath1.conf"))()
@@ -184,7 +183,7 @@ object CliTest extends TestSpec {
             equalSome(FileName("src/main/scala/UnknownFile.scala"))
           )
       },
-      testM(
+      test(
         "blinky wrongPath2.conf returns a fileName object"
       ) {
         val (zioResult, parser) = parse(getFilePath("wrongPath2.conf"))()
@@ -198,7 +197,7 @@ object CliTest extends TestSpec {
             equalSome(FileName("src/main/scala/UnknownFile.scala"))
           )
       },
-      testM("blinky <no conf file> returns an error if there is no default .blinky.conf file") {
+      test("blinky <no conf file> returns an error if there is no default .blinky.conf file") {
         val pwdFolder = File(".")
         val (zioResult, parser) = parse()(pwdFolder)
 
@@ -213,7 +212,7 @@ object CliTest extends TestSpec {
             )
           })
       },
-      testM("blinky <non-existent-file> returns an error if there is no unknown.conf file") {
+      test("blinky <non-existent-file> returns an error if there is no unknown.conf file") {
         val pwdFolder = File(getFilePath("."))
         val (zioResult, parser) = parse("unknown.conf")(pwdFolder)
 
@@ -228,7 +227,7 @@ object CliTest extends TestSpec {
             )
           })
       },
-      testM("return an error multiRun field in wrong") {
+      test("return an error multiRun field in wrong") {
         val (zioResult, parser) = parse(getFilePath("wrongMultiRun.conf"))()
 
         for {
@@ -249,7 +248,7 @@ object CliTest extends TestSpec {
           )
       },
       suite("using overrides parameters")(
-        testM("return the changed parameters") {
+        test("return the changed parameters") {
           val params: Seq[String] = Seq(
             "--projectPath",
             "some-project",
@@ -313,7 +312,7 @@ object CliTest extends TestSpec {
               )
             })
         },
-        testM("return an error if projectPath does not exist") {
+        test("return an error if projectPath does not exist") {
           val params: Seq[String] = Seq(
             "--projectPath",
             "non-existent/project-path"
@@ -334,7 +333,7 @@ object CliTest extends TestSpec {
         }
       ),
       suite("mutationMinimum value check")(
-        testM("return an error if mutationMinimum is negative") {
+        test("return an error if mutationMinimum is negative") {
           val (zioResult, parser) = parse("--mutationMinimum", "-0.1")()
 
           for {
@@ -347,7 +346,7 @@ object CliTest extends TestSpec {
               )
             })
         },
-        testM("return an error if mutationMinimum is above 100") {
+        test("return an error if mutationMinimum is above 100") {
           val (zioResult, parser) = parse("--mutationMinimum", "100.1")()
 
           for {
@@ -360,7 +359,7 @@ object CliTest extends TestSpec {
               )
             })
         },
-        testM("return an error multiRun field in wrong (less than 1)") {
+        test("return an error multiRun field in wrong (less than 1)") {
           val (zioResult, parser) = parse("--multiRun", "0/1")()
 
           for {
@@ -374,7 +373,7 @@ object CliTest extends TestSpec {
               )
             )
         },
-        testM("return an error multiRun field in wrong (index <= total)") {
+        test("return an error multiRun field in wrong (index <= total)") {
           val (zioResult, parser) = parse("--multiRun", "3/2")()
 
           for {

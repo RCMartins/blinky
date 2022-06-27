@@ -3,19 +3,18 @@ package blinky.run.modules
 import scopt.{DefaultOEffectSetup, OEffectSetup}
 import zio.{Layer, ZIO, ZLayer}
 
+trait ParserModule {
+  def parser: ZIO[Any, Nothing, OEffectSetup]
+}
+
 object ParserModule {
 
-  trait Service {
-    def parser: ZIO[Any, Nothing, OEffectSetup]
-  }
-
-  def parser: ZIO[ParserModule, Nothing, OEffectSetup] =
-    ZIO.accessM[ParserModule](_.get.parser)
-
-  val live: Layer[Nothing, ParserModule] =
-    ZLayer.succeed(new Service {
-      override def parser: ZIO[Any, Nothing, OEffectSetup] =
-        ZIO.succeed(new DefaultOEffectSetup {})
-    })
+  val layer: Layer[Nothing, ParserModule] =
+    ZLayer.succeed(
+      new ParserModule {
+        override def parser: ZIO[Any, Nothing, OEffectSetup] =
+          ZIO.succeed(new DefaultOEffectSetup {})
+      }
+    )
 
 }

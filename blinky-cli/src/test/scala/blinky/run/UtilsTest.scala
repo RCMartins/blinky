@@ -3,11 +3,10 @@ package blinky.run
 import blinky.TestSpec
 import zio.test.Assertion._
 import zio.test._
-import zio.test.environment.TestEnvironment
 
 object UtilsTest extends TestSpec {
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing], TestSuccess] =
+  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("Utils")(
       test("red should return the terminal color code for red color") {
         assert(Utils.red("test line"))(equalTo("\u001B[31mtest line\u001B[0m"))
