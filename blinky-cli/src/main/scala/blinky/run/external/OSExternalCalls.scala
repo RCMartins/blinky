@@ -1,6 +1,6 @@
 package blinky.run.external
 
-import os.{Path, RelPath}
+import os.{Path, ProcessOutput, RelPath}
 
 import scala.util.{Failure, Success, Try}
 
@@ -15,7 +15,12 @@ object OSExternalCalls extends ExternalCalls {
       path: Path
   ): Unit =
     os.proc((op +: args).map(os.Shellable.StringShellable): _*)
-      .call(cwd = path, env = envArgs)
+      .call(
+        cwd = path,
+        env = envArgs,
+        stdout = ProcessOutput.Readlines(println),
+        mergeErrIntoOut = true
+      )
   // TODO check exit code at least...
 
   def runSyncEither(

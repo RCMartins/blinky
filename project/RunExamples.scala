@@ -1,4 +1,4 @@
-import os.{CommandResult, Path, copy}
+import os.{CommandResult, Path, ProcessOutput, copy}
 
 object RunExamples {
 
@@ -50,11 +50,11 @@ object RunExamples {
 
     showIfError(os.proc("git", "init").call(cwd = testDirectory))
     showIfError(
-      os.proc("git", "config", "--global", "user.email", "you@example.com")
+      os.proc("git", "config", "user.email", "you@example.com")
         .call(cwd = testDirectory)
     )
     showIfError(
-      os.proc("git", "config", "--global", "user.name", "Your Name").call(cwd = testDirectory)
+      os.proc("git", "config", "user.name", "Your Name").call(cwd = testDirectory)
     )
     showIfError(
       os.proc("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")
@@ -86,11 +86,12 @@ object RunExamples {
       preProcessDirectory(defaultDirectory, originalExamplePath)
 
     println("\n")
-    val msg = s"Testing $examplePath:"
+    val msg = s"Testing $examplePath"
     println("-" * msg.length)
     println(msg)
     println("-" * msg.length)
 
+    var outResultText: List[String] = Nil
     val result: CommandResult =
       os
         .proc(
@@ -100,14 +101,20 @@ object RunExamples {
           "--",
           "--verbose=true"
         )
-        .call(cwd = examplePath)
-    println(result.out.text())
+        .call(
+          cwd = examplePath,
+          stdout = ProcessOutput.Readlines { text =>
+            outResultText = text :: outResultText
+            println(text)
+          },
+          stderr = ProcessOutput.Readlines(Console.err.println)
+        )
 
     val extraCheckText: String =
       os.read(examplePath / "result.txt")
         .split("\n")
         .map { expectedResult =>
-          if (!result.out.text().contains(expectedResult))
+          if (!outResultText.exists(_.contains(expectedResult)))
             s"""${"-" * 10}
                |Example failed. Expected line does not appear:
                |$expectedResult

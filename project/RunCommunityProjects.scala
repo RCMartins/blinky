@@ -1,4 +1,4 @@
-import os.Path
+import os.{Path, ProcessOutput}
 
 object RunCommunityProjects {
 
@@ -48,7 +48,11 @@ object RunCommunityProjects {
       "--",
       "--verbose=true",
       "--dryRun=true"
-    ).call(cwd = projectPath)
+    ).call(
+      cwd = projectPath,
+      stdout = ProcessOutput.Readlines(println),
+      stderr = ProcessOutput.Readlines(Console.err.println)
+    )
   }
 
 }
