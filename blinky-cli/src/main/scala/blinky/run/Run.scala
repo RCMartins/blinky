@@ -26,14 +26,23 @@ object Run {
 
       instruction = {
         for {
-          cloneProjectTempFolder <- makeTemporaryFolder
+          cloneProjectTempFolderEither <- makeTemporaryFolder
+          cloneProjectTempFolder = cloneProjectTempFolderEither.toOption.get
+          /*
+           TODO .leftExit(error =>
+            printErrorLine(
+              s"""Error creating temporary folder:
+                 |$error
+                 |""".stripMargin
+            )
+          )*/
           _ <-
             if (config.options.verbose)
               printLine(s"Temporary project folder: $cloneProjectTempFolder")
             else
               empty
           runResult <-
-            runSyncEither("git", Seq("rev-parse", "--show-toplevel"), path = originalProjectRoot)
+            runResultEither("git", Seq("rev-parse", "--show-toplevel"), path = originalProjectRoot)
               .flatMap {
                 case Left(commandError) =>
                   ConsoleReporter
@@ -53,14 +62,14 @@ object Run {
                       if (config.options.onlyMutateDiff)
                         // maybe copy the .git folder so it can be used by TestMutations, etc?
                         // cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
-                        runSyncEither("git", Seq("rev-parse", "master"), path = gitFolder)
+                        runResultEither("git", Seq("rev-parse", "master"), path = gitFolder)
                           .flatMap {
                             case Left(commandError) =>
                               ConsoleReporter
                                 .gitIssues(commandError)
                                 .map(_ => Left(ExitCode.failure))
                             case Right(masterHash) =>
-                              runSyncEither(
+                              runResultEither(
                                 "git",
                                 Seq("--no-pager", "diff", "--name-only", masterHash),
                                 path = gitFolder
@@ -141,11 +150,11 @@ object Run {
                               confFile,
                               s"""rules = $ruleName
                                  |Blinky $scalaFixConf""".stripMargin,
-                              succeed(confFile)
+                              _ => succeed(confFile) // TODO
                             )
                           }
 
-                          runResult <- runSyncEither(
+                          runResult <- runResultEither(
                             coursier,
                             Seq(
                               "fetch",
@@ -175,7 +184,7 @@ object Run {
                                 ).filter(_.nonEmpty)
                               for {
                                 _ <- printLine(toolPath)
-                                _ <- runSync("./scalafix", params, path = projectRealPath)
+                                _ <- runStream("./scalafix", params, path = projectRealPath)
                                 runResult <- TestMutationsBloop.run(
                                   projectRealPath,
                                   blinkyConf,
@@ -220,7 +229,16 @@ object Run {
       case FileFilter.SingleFileOrFolder(fileOrFolder) =>
         succeed(Right(fileOrFolder.toString))
       case FileFilter.FileName(fileName) =>
-        lsFiles(projectRealPath).flatMap(filterFiles(_, fileName))
+        lsFiles(projectRealPath).flatMap {
+          case Left(throwable) =>
+            printErrorLine(
+              s"""Failed to list files in $projectRealPath
+                 |$throwable
+                 |""".stripMargin
+            ).map(_ => Left(ExitCode.failure))
+          case Right(files) =>
+            filterFiles(files, fileName)
+        }
     }
 
   def optimiseFilesToMutate(
@@ -271,7 +289,7 @@ object Run {
   ): Instruction[Either[ExitCode, Unit]] =
     for {
       // Copy only the files tracked by git into our temporary folder
-      gitResultEither <- runSyncEither(
+      gitResultEither <- runResultEither(
         "git",
         Seq("ls-files", "--others", "--exclude-standard", "--cached"),
         path = originalProjectPath

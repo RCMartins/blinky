@@ -7,7 +7,6 @@ import blinky.run.modules.ExternalModule
 import zio.URIO
 import zio.duration.durationLong
 
-import java.nio.file.{Files, Paths}
 import scala.annotation.tailrec
 
 object Interpreter {
@@ -48,29 +47,26 @@ object Interpreter {
           val path = externalCalls.makeTemporaryDirectory()
           interpreterNext(next(path))
         case MakeDirectory(path, next) =>
-          externalCalls.makeDirectory(path)
-          interpreterNext(next)
-        case RunSync(op, args, envArgs, path, next) =>
-          externalCalls.runSync(op, args, envArgs, path)
-          interpreterNext(next)
-        case RunSyncEither(op, args, envArgs, path, next) =>
-          val result = externalCalls.runSyncEither(op, args, envArgs, path)
+          val result = externalCalls.makeDirectory(path)
           interpreterNext(next(result))
-        case RunSyncSuccess(op, args, envArgs, path, next) =>
-          val result = externalCalls.runSyncEither(op, args, envArgs, path)
+        case RunStream(op, args, envArgs, timeout, path, next) =>
+          val result = externalCalls.runStream(op, args, envArgs, timeout, path)
+          interpreterNext(next(result))
+        case RunResultEither(op, args, envArgs, timeout, path, next) =>
+          val result = externalCalls.runResult(op, args, envArgs, timeout, path)
+          interpreterNext(next(result))
+        case RunResultSuccess(op, args, envArgs, timeout, path, next) =>
+          val result = externalCalls.runResult(op, args, envArgs, timeout, path)
           interpreterNext(next(result.isRight))
         case CopyInto(from, to, next) =>
-          externalCalls.copyInto(from, to)
-          interpreterNext(next)
+          val result = externalCalls.copyInto(from, to)
+          interpreterNext(next(result))
         case CopyResource(resource, destinationPath, next) =>
-          Files.copy(
-            getClass.getResource(resource).openStream,
-            Paths.get(destinationPath.toString)
-          )
-          interpreterNext(next)
+          val result = externalCalls.copyResource(resource, destinationPath)
+          interpreterNext(next(result))
         case WriteFile(path, content, next) =>
-          externalCalls.writeFile(path, content)
-          interpreterNext(next)
+          val result = externalCalls.writeFile(path, content)
+          interpreterNext(next(result))
         case ReadFile(path, next) =>
           val content = externalCalls.readFile(path)
           interpreterNext(next(content))

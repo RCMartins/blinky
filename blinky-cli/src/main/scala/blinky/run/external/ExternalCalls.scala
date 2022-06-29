@@ -4,27 +4,29 @@ import os.{Path, RelPath}
 
 trait ExternalCalls {
 
-  def runSync(
+  def runStream(
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
+      timeout: Option[Long],
       path: Path
-  ): Unit
+  ): Either[Throwable, Unit]
 
-  def runSyncEither(
+  def runResult(
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
+      timeout: Option[Long],
       path: Path
-  ): Either[String, String]
+  ): Either[Throwable, String]
 
-  def makeTemporaryDirectory(): Path
+  def makeTemporaryDirectory(): Either[Throwable, Path]
 
-  def makeDirectory(path: Path): Unit
+  def makeDirectory(path: Path): Either[Throwable, Unit]
 
-  def copyInto(from: Path, to: Path): Unit
+  def copyInto(from: Path, to: Path): Either[Throwable, Unit]
 
-  def writeFile(filePath: Path, content: String): Unit
+  def writeFile(filePath: Path, content: String): Either[Throwable, Unit]
 
   def readFile(path: Path): Either[Throwable, String]
 
@@ -36,6 +38,11 @@ trait ExternalCalls {
       toPath: Path
   ): Either[Throwable, Unit]
 
-  def listFiles(basePath: Path): Seq[String]
+  def copyResource(
+      resource: String,
+      destinationPath: Path
+  ): Either[Throwable, Unit]
+
+  def listFiles(basePath: Path): Either[Throwable, Seq[String]]
 
 }

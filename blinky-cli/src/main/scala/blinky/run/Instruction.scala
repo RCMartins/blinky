@@ -6,6 +6,19 @@ sealed trait Instruction[+A]
 
 object Instruction {
 
+//  abstract class InstructionWithLeftExit[+A, B](next: Either[Throwable, B] => Instruction[A])
+//      extends Instruction[A] {
+//
+//    def leftExit(function: Throwable => Instruction[_]): Instruction[B] =
+//      ResolveErrorSide(next, function) // .map(_ => ExitCode.failure)
+//
+//  }
+//
+//  final case class ResolveErrorSide[A, B](
+//      instruction: Either[Throwable, B] => Instruction[A],
+//      errorSideF: Throwable => Instruction[_]
+//  ) extends Instruction[B]
+
   final case class Return[A](value: () => A) extends Instruction[A]
 
   final case class Empty[A](next: Instruction[A]) extends Instruction[A]
@@ -14,41 +27,56 @@ object Instruction {
 
   final case class PrintErrorLine[A](line: String, next: Instruction[A]) extends Instruction[A]
 
-  final case class RunSync[A](
+  final case class RunStream[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
+      timeout: Option[Long],
       path: Path,
-      next: Instruction[A]
+      next: Either[Throwable, Unit] => Instruction[A]
   ) extends Instruction[A]
 
-  final case class RunSyncSuccess[A](
+  final case class RunResultSuccess[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
+      timeout: Option[Long],
       path: Path,
       next: Boolean => Instruction[A]
   ) extends Instruction[A]
 
-  final case class RunSyncEither[A](
+  final case class RunResultEither[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
+      timeout: Option[Long],
       path: Path,
-      next: Either[String, String] => Instruction[A]
+      next: Either[Throwable, String] => Instruction[A]
   ) extends Instruction[A]
 
-  final case class MakeTemporaryDirectory[A](next: Path => Instruction[A]) extends Instruction[A]
+  final case class MakeTemporaryDirectory[A](next: Either[Throwable, Path] => Instruction[A])
+      extends Instruction[A] // InstructionWithLeftExit[A, Path](next)
 
-  final case class MakeDirectory[A](path: Path, next: Instruction[A]) extends Instruction[A]
-
-  final case class CopyInto[A](from: Path, to: Path, next: Instruction[A]) extends Instruction[A]
-
-  final case class CopyResource[A](resource: String, destinationPath: Path, next: Instruction[A])
+  final case class MakeDirectory[A](path: Path, next: Either[Throwable, Unit] => Instruction[A])
       extends Instruction[A]
 
-  final case class WriteFile[A](path: Path, content: String, next: Instruction[A])
-      extends Instruction[A]
+  final case class CopyInto[A](
+      from: Path,
+      to: Path,
+      next: Either[Throwable, Unit] => Instruction[A]
+  ) extends Instruction[A]
+
+  final case class CopyResource[A](
+      resource: String,
+      destinationPath: Path,
+      next: Either[Throwable, Unit] => Instruction[A]
+  ) extends Instruction[A]
+
+  final case class WriteFile[A](
+      path: Path,
+      content: String,
+      next: Either[Throwable, Unit] => Instruction[A]
+  ) extends Instruction[A]
 
   final case class ReadFile[A](path: Path, next: Either[Throwable, String] => Instruction[A])
       extends Instruction[A]
@@ -62,14 +90,16 @@ object Instruction {
       next: Either[Throwable, Unit] => Instruction[A]
   ) extends Instruction[A]
 
-  final case class Timeout[+A](
+  final case class Timeout[+A]( // TODO remove
       runFunction: Instruction[Boolean],
       millis: Long,
       next: Option[Boolean] => Instruction[A]
   ) extends Instruction[A]
 
-  final case class LsFiles[+A](basePath: Path, next: Seq[String] => Instruction[A])
-      extends Instruction[A]
+  final case class LsFiles[+A](
+      basePath: Path,
+      next: Either[Throwable, Seq[String]] => Instruction[A]
+  ) extends Instruction[A]
 
   def succeed[A](value: => A): Return[A] =
     Return(() => value)
@@ -85,52 +115,64 @@ object Instruction {
   def printErrorLine(line: String): PrintErrorLine[Unit] =
     PrintErrorLine(line, succeed(()))
 
-  def runSync(
+  def runStream(
       op: String,
       args: Seq[String],
       envArgs: Map[String, String] = Map.empty,
+      timeout: Option[Long] = None,
       path: Path
-  ): RunSync[Unit] =
-    RunSync(op, args, envArgs, path, succeed(()))
+  ): RunStream[Either[Throwable, Unit]] =
+    RunStream(op, args, envArgs, timeout, path, succeed(_: Either[Throwable, Unit]))
 
-  def runSyncSuccess(
+  def runResultSuccess(
       op: String,
       args: Seq[String],
       envArgs: Map[String, String] = Map.empty,
+      timeout: Option[Long] = None,
       path: Path
-  ): RunSyncSuccess[Boolean] =
-    RunSyncSuccess(op, args, envArgs, path, succeed(_: Boolean))
+  ): RunResultSuccess[Boolean] =
+    RunResultSuccess(op, args, envArgs, timeout, path, succeed(_: Boolean))
 
-  def runSyncEither(
+  def runResultEither(
       op: String,
       args: Seq[String],
       envArgs: Map[String, String] = Map.empty,
+      timeout: Option[Long] = None,
       path: Path
-  ): RunSyncEither[Either[String, String]] =
-    RunSyncEither(op, args, envArgs, path, succeed(_: Either[String, String]))
+  ): RunResultEither[Either[Throwable, String]] =
+    RunResultEither(op, args, envArgs, timeout, path, succeed(_: Either[Throwable, String]))
 
   def runBashSuccess(
       arg: String,
       envArgs: Map[String, String] = Map.empty,
+      timeout: Option[Long] = None,
       path: Path
-  ): RunSyncSuccess[Boolean] =
-    RunSyncSuccess("bash", Seq("-c", arg), envArgs, path, succeed(_: Boolean))
+  ): RunResultSuccess[Boolean] =
+    RunResultSuccess("bash", Seq("-c", arg), envArgs, timeout, path, succeed(_: Boolean))
 
   def runBashEither(
       arg: String,
       envArgs: Map[String, String] = Map.empty,
+      timeout: Option[Long] = None,
       path: Path
-  ): RunSyncEither[Either[String, String]] =
-    RunSyncEither("bash", Seq("-c", arg), envArgs, path, succeed(_: Either[String, String]))
+  ): RunResultEither[Either[Throwable, String]] =
+    RunResultEither(
+      "bash",
+      Seq("-c", arg),
+      envArgs,
+      timeout,
+      path,
+      succeed(_: Either[Throwable, String])
+    )
 
-  def makeTemporaryFolder: MakeTemporaryDirectory[Path] =
+  def makeTemporaryFolder: MakeTemporaryDirectory[Either[Throwable, Path]] =
     MakeTemporaryDirectory(path => succeed(path))
 
-  def makeDirectory(path: Path): MakeDirectory[Unit] =
-    MakeDirectory(path, succeed(()))
+  def makeDirectory(path: Path): MakeDirectory[Either[Throwable, Unit]] =
+    MakeDirectory(path, succeed(_: Either[Throwable, Unit]))
 
-  def copyInto(from: Path, to: Path): CopyInto[Unit] =
-    CopyInto(from, to, succeed(()))
+  def copyInto(from: Path, to: Path): CopyInto[Either[Throwable, Unit]] =
+    CopyInto(from, to, succeed(_: Either[Throwable, Unit]))
 
   def readFile(path: Path): ReadFile[Either[Throwable, String]] =
     ReadFile(path, succeed(_: Either[Throwable, String]))
@@ -142,13 +184,19 @@ object Instruction {
   ): CopyRelativeFiles[Either[Throwable, Unit]] =
     CopyRelativeFiles(filesToCopy, fromPath, toPath, succeed(_: Either[Throwable, Unit]))
 
-  def runWithTimeout(
+  def runWithTimeout( // TODO remove
       runFunction: Instruction[Boolean],
       millis: Long
   ): Timeout[Option[Boolean]] =
     Timeout(runFunction, millis, succeed(_: Option[Boolean]))
 
-  def lsFiles(basePath: Path): LsFiles[Seq[String]] =
-    LsFiles(basePath, succeed(_: Seq[String]))
+  def lsFiles(basePath: Path): LsFiles[Either[Throwable, Seq[String]]] =
+    LsFiles(basePath, succeed(_: Either[Throwable, Seq[String]]))
+
+  def copyResource(
+      resource: String,
+      destinationPath: Path
+  ): CopyResource[Either[Throwable, Unit]] =
+    CopyResource(resource, destinationPath, succeed(_: Either[Throwable, Unit]))
 
 }

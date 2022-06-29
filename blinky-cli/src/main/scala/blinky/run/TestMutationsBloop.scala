@@ -53,14 +53,14 @@ object TestMutationsBloop {
           printLine("Try changing the mutation settings.").map(_ => ExitCode.success)
         else
           for {
-            _ <- runSync(
+            _ <- runStream(
               "sbt",
               Seq("bloopInstall"),
               envArgs = Map("BLINKY" -> "true"),
               path = projectPath
             )
             _ <- printLine("Running tests with original config")
-            compileResult <- runSyncEither(
+            compileResult <- runResultEither(
               "bloop",
               Seq("compile", escapeString(options.compileCommand)),
               envArgs = Map("BLINKY" -> "true"),
@@ -69,7 +69,7 @@ object TestMutationsBloop {
             res <- compileResult match {
               case Left(error) =>
                 val newIssueLink = "https://github.com/RCMartins/blinky/issues/new"
-                printErrorLine(error)
+                printErrorLine(error.toString)
                   .flatMap(_ =>
                     printErrorLine(
                       s"""There are compile errors after applying the Blinky rule.
