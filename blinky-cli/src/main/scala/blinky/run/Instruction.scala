@@ -6,19 +6,6 @@ sealed trait Instruction[+A]
 
 object Instruction {
 
-//  abstract class InstructionWithLeftExit[+A, B](next: Either[Throwable, B] => Instruction[A])
-//      extends Instruction[A] {
-//
-//    def leftExit(function: Throwable => Instruction[_]): Instruction[B] =
-//      ResolveErrorSide(next, function) // .map(_ => ExitCode.failure)
-//
-//  }
-//
-//  final case class ResolveErrorSide[A, B](
-//      instruction: Either[Throwable, B] => Instruction[A],
-//      errorSideF: Throwable => Instruction[_]
-//  ) extends Instruction[B]
-
   final case class Return[A](value: () => A) extends Instruction[A]
 
   final case class Empty[A](next: Instruction[A]) extends Instruction[A]
@@ -55,7 +42,7 @@ object Instruction {
   ) extends Instruction[A]
 
   final case class MakeTemporaryDirectory[A](next: Either[Throwable, Path] => Instruction[A])
-      extends Instruction[A] // InstructionWithLeftExit[A, Path](next)
+      extends Instruction[A]
 
   final case class MakeDirectory[A](path: Path, next: Either[Throwable, Unit] => Instruction[A])
       extends Instruction[A]

@@ -1,7 +1,7 @@
 package blinky
 
-import os.Path
 import blinky.run.Instruction._
+import os.Path
 
 package object run {
 
