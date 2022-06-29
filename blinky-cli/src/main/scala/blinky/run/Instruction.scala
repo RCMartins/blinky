@@ -97,10 +97,10 @@ object Instruction {
     if (cond) value else empty
 
   def printLine(line: String): PrintLine[Unit] =
-    PrintLine(line, succeed(()))
+    PrintLine(line, empty)
 
   def printErrorLine(line: String): PrintErrorLine[Unit] =
-    PrintErrorLine(line, succeed(()))
+    PrintErrorLine(line, empty)
 
   def runStream(
       op: String,
