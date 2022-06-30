@@ -7,7 +7,7 @@ class MutatorTest extends TestSpec {
   "Collections" should {
 
     "return the correct ListApply 'symbolsToMatch'" in {
-      Mutator.Collections.ListApply.symbolsToMatch mustEqual
+      mutators.Collections.ListApply.symbolsToMatch mustEqual
         Seq(
           "scala/collection/immutable/List.",
           "scala/package.List."
@@ -15,7 +15,7 @@ class MutatorTest extends TestSpec {
     }
 
     "return the correct SeqApply 'symbolsToMatch'" in {
-      Mutator.Collections.SeqApply.symbolsToMatch mustEqual
+      mutators.Collections.SeqApply.symbolsToMatch mustEqual
         Seq(
           "scala/collection/Seq.",
           "scala/collection/mutable/Seq.",
@@ -25,7 +25,7 @@ class MutatorTest extends TestSpec {
     }
 
     "return the correct SetApply 'symbolsToMatch'" in {
-      Mutator.Collections.SetApply.symbolsToMatch mustEqual
+      mutators.Collections.SetApply.symbolsToMatch mustEqual
         Seq(
           "scala/Predef.Set.",
           "scala/collection/mutable/Set.",
@@ -35,7 +35,7 @@ class MutatorTest extends TestSpec {
     }
 
     "return the correct Reverse 'symbolsToMatch'" in {
-      Mutator.Collections.ReverseSymbols mustEqual
+      mutators.Collections.ReverseSymbols mustEqual
         Seq(
           "scala/collection/SeqLike#reverse().",
           "scala/collection/immutable/List#reverse().",
