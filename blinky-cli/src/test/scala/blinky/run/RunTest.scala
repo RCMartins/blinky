@@ -86,7 +86,6 @@ object RunTest extends TestSpec {
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               Map.empty,
-              None,
               originalProjectPath,
               mockResult =
                 Right(Seq("src/main/scala/SomeFile.scala").mkString(System.lineSeparator())),
@@ -107,7 +106,6 @@ object RunTest extends TestSpec {
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               Map.empty,
-              None,
               originalProjectPath,
               mockResult =
                 Right(Seq("src/main/scala/SomeFile.scala").mkString(System.lineSeparator())),
@@ -131,7 +129,6 @@ object RunTest extends TestSpec {
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               Map.empty,
-              None,
               originalProjectPath,
               mockResult = Left(new Throwable("git command error message")),
               TestPrintLine(

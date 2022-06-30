@@ -25,7 +25,6 @@ object TestInstruction {
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
-      timeout: Option[Long],
       path: Path,
       mockResult: Either[Throwable, Unit],
       next: TestInstruction[A]
@@ -35,19 +34,18 @@ object TestInstruction {
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
-      timeout: Option[Long],
       path: Path,
       mockResult: Either[Throwable, String],
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
-  final case class TestRunResultSuccess[A](
+  final case class TestRunResultTimeout[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
-      timeout: Option[Long],
+      timeout: Long,
       path: Path,
-      mockResult: Boolean,
+      mockResult: Either[Throwable, TimeoutResult],
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
@@ -117,28 +115,26 @@ object TestInstruction {
         assert(line1)(equalTo(line2)) &&
         testInstruction(next1, next2)
       case (
-            RunStream(op1, args1, envArgs1, timeout1, path1, next1),
-            TestRunStream(op2, args2, envArgs2, timeout2, path2, mockResult, next2)
+            RunStream(op1, args1, envArgs1, path1, next1),
+            TestRunStream(op2, args2, envArgs2, path2, mockResult, next2)
           ) =>
         assert(op1)(equalTo(op2)) &&
         assert(args1)(equalTo(args2)) &&
         assert(envArgs1)(equalTo(envArgs2)) &&
-        assert(timeout1)(equalTo(timeout2)) &&
         assert(path1)(equalTo(path2)) &&
         testInstruction(next1(mockResult), next2)
       case (
-            RunResultEither(op1, args1, envArgs1, timeout1, path1, next1),
-            TestRunResultEither(op2, args2, envArgs2, timeout2, path2, mockResult, next2)
+            RunResultEither(op1, args1, envArgs1, path1, next1),
+            TestRunResultEither(op2, args2, envArgs2, path2, mockResult, next2)
           ) =>
         assert(op1)(equalTo(op2)) &&
         assert(args1)(equalTo(args2)) &&
         assert(envArgs1)(equalTo(envArgs2)) &&
-        assert(timeout1)(equalTo(timeout2)) &&
         assert(path1)(equalTo(path2)) &&
         testInstruction(next1(mockResult), next2)
       case (
-            RunResultSuccess(op1, args1, envArgs1, timeout1, path1, next1),
-            TestRunResultSuccess(op2, args2, envArgs2, timeout2, path2, mockResult, next2)
+            RunResultTimeout(op1, args1, envArgs1, timeout1, path1, next1),
+            TestRunResultTimeout(op2, args2, envArgs2, timeout2, path2, mockResult, next2)
           ) =>
         assert(op1)(equalTo(op2)) &&
         assert(args1)(equalTo(args2)) &&

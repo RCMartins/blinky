@@ -18,25 +18,23 @@ object Instruction {
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
-      timeout: Option[Long],
       path: Path,
       next: Either[Throwable, Unit] => Instruction[A]
   ) extends Instruction[A]
 
-  final case class RunResultSuccess[A](
+  final case class RunResultTimeout[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
-      timeout: Option[Long],
+      timeout: Long,
       path: Path,
-      next: Boolean => Instruction[A]
+      next: Either[Throwable, TimeoutResult] => Instruction[A]
   ) extends Instruction[A]
 
   final case class RunResultEither[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
-      timeout: Option[Long],
       path: Path,
       next: Either[Throwable, String] => Instruction[A]
   ) extends Instruction[A]
@@ -77,12 +75,6 @@ object Instruction {
       next: Either[Throwable, Unit] => Instruction[A]
   ) extends Instruction[A]
 
-  final case class Timeout[+A]( // TODO remove
-      runFunction: Instruction[Boolean],
-      millis: Long,
-      next: Option[Boolean] => Instruction[A]
-  ) extends Instruction[A]
-
   final case class LsFiles[+A](
       basePath: Path,
       next: Either[Throwable, Seq[String]] => Instruction[A]
@@ -106,48 +98,42 @@ object Instruction {
       op: String,
       args: Seq[String],
       envArgs: Map[String, String] = Map.empty,
-      timeout: Option[Long] = None,
       path: Path
   ): RunStream[Either[Throwable, Unit]] =
-    RunStream(op, args, envArgs, timeout, path, succeed(_: Either[Throwable, Unit]))
-
-  def runResultSuccess(
-      op: String,
-      args: Seq[String],
-      envArgs: Map[String, String] = Map.empty,
-      timeout: Option[Long] = None,
-      path: Path
-  ): RunResultSuccess[Boolean] =
-    RunResultSuccess(op, args, envArgs, timeout, path, succeed(_: Boolean))
+    RunStream(op, args, envArgs, path, succeed(_: Either[Throwable, Unit]))
 
   def runResultEither(
       op: String,
       args: Seq[String],
       envArgs: Map[String, String] = Map.empty,
-      timeout: Option[Long] = None,
       path: Path
   ): RunResultEither[Either[Throwable, String]] =
-    RunResultEither(op, args, envArgs, timeout, path, succeed(_: Either[Throwable, String]))
+    RunResultEither(op, args, envArgs, path, succeed(_: Either[Throwable, String]))
 
-  def runBashSuccess(
+  def runBashTimeout(
       arg: String,
-      envArgs: Map[String, String] = Map.empty,
-      timeout: Option[Long] = None,
+      envArgs: Map[String, String],
+      timeout: Long,
       path: Path
-  ): RunResultSuccess[Boolean] =
-    RunResultSuccess("bash", Seq("-c", arg), envArgs, timeout, path, succeed(_: Boolean))
+  ): RunResultTimeout[Either[Throwable, TimeoutResult]] =
+    RunResultTimeout(
+      "bash",
+      Seq("-c", arg),
+      envArgs,
+      timeout,
+      path,
+      succeed(_: Either[Throwable, TimeoutResult])
+    )
 
   def runBashEither(
       arg: String,
       envArgs: Map[String, String] = Map.empty,
-      timeout: Option[Long] = None,
       path: Path
   ): RunResultEither[Either[Throwable, String]] =
     RunResultEither(
       "bash",
       Seq("-c", arg),
       envArgs,
-      timeout,
       path,
       succeed(_: Either[Throwable, String])
     )
@@ -170,12 +156,6 @@ object Instruction {
       toPath: Path
   ): CopyRelativeFiles[Either[Throwable, Unit]] =
     CopyRelativeFiles(filesToCopy, fromPath, toPath, succeed(_: Either[Throwable, Unit]))
-
-  def runWithTimeout( // TODO remove
-      runFunction: Instruction[Boolean],
-      millis: Long
-  ): Timeout[Option[Boolean]] =
-    Timeout(runFunction, millis, succeed(_: Option[Boolean]))
 
   def lsFiles(basePath: Path): LsFiles[Either[Throwable, Seq[String]]] =
     LsFiles(basePath, succeed(_: Either[Throwable, Seq[String]]))

@@ -21,18 +21,24 @@ package object run {
           PrintLine(line, next.flatMap(f))
         case PrintErrorLine(line, next) =>
           PrintErrorLine(line, next.flatMap(f))
-        case RunStream(op, args, envArgs, timeout, path, next) =>
-          RunStream(op, args, envArgs, timeout, path, next(_: Either[Throwable, Unit]).flatMap(f))
-        case RunResultSuccess(op, args, envArgs, timeout, path, next) =>
-          RunResultSuccess(op, args, envArgs, timeout, path, next(_: Boolean).flatMap(f))
-        case RunResultEither(op, args, envArgs, timeout, path, next) =>
+        case RunStream(op, args, envArgs, path, next) =>
+          RunStream(op, args, envArgs, path, next(_: Either[Throwable, Unit]).flatMap(f))
+        case RunResultEither(op, args, envArgs, path, next) =>
           RunResultEither(
+            op,
+            args,
+            envArgs,
+            path,
+            next(_: Either[Throwable, String]).flatMap(f)
+          )
+        case RunResultTimeout(op, args, envArgs, timeout, path, next) =>
+          RunResultTimeout(
             op,
             args,
             envArgs,
             timeout,
             path,
-            next(_: Either[Throwable, String]).flatMap(f)
+            next(_: Either[Throwable, TimeoutResult]).flatMap(f)
           )
         case MakeTemporaryDirectory(next) =>
           MakeTemporaryDirectory(next(_: Either[Throwable, Path]).flatMap(f))
@@ -55,8 +61,6 @@ package object run {
             toPath,
             next(_: Either[Throwable, Unit]).flatMap(f)
           )
-        case Timeout(runFunction, millis, next) =>
-          Timeout(runFunction, millis, next(_: Option[Boolean]).flatMap(f))
         case LsFiles(basePath, next) =>
           LsFiles(basePath, next(_: Either[Throwable, Seq[String]]).flatMap(f))
       }

@@ -254,25 +254,23 @@ object TestMutationsBloop {
       else
         empty
 
-    val runBloop: Instruction[Boolean] =
+    val runBloopResult: Instruction[Either[Throwable, TimeoutResult]] =
       prints.flatMap(_ =>
-        runBashSuccess(
+        runBashTimeout(
           s"bloop test ${escapeString(options.testCommand)}",
           envArgs = Map(
             "BLINKY" -> "true",
             s"BLINKY_MUTATION_${mutant.id}" -> "1"
           ),
+          timeout = (originalTestTime * options.timeoutFactor + options.timeout.toMillis).toLong,
           path = projectPath
         )
       )
 
-    runWithTimeout(
-      runBloop,
-      (originalTestTime * options.timeoutFactor + options.timeout.toMillis).toLong
-    ).map {
-      case Some(true)  => RunResult.MutantSurvived
-      case Some(false) => RunResult.MutantKilled
-      case None        => RunResult.Timeout
+    runBloopResult.map {
+      case Right(TimeoutResult.Ok)      => RunResult.MutantSurvived
+      case Right(TimeoutResult.Timeout) => RunResult.Timeout
+      case Left(_)                      => RunResult.MutantKilled
     }
   }
 }

@@ -7,12 +7,12 @@ import os.Path
 object Setup {
 
   def setupCoursier(path: Path): Instruction[String] =
-    runResultSuccess("coursier", Seq("--help"), path = path).flatMap {
-      case true => succeed("coursier")
-      case false =>
-        runResultSuccess("cs", Seq("--help"), path = path).flatMap {
-          case true  => succeed("cs")
-          case false => copyExeFromResources("coursier", path).map(_ => "./coursier")
+    runResultEither("coursier", Seq("--help"), path = path).flatMap {
+      case Right(_) => succeed("coursier")
+      case _ =>
+        runResultEither("cs", Seq("--help"), path = path).flatMap {
+          case Right(_) => succeed("cs")
+          case _        => copyExeFromResources("coursier", path).map(_ => "./coursier")
         }
     }
 

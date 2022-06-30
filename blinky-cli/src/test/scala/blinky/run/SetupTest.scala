@@ -16,13 +16,12 @@ object SetupTest extends TestSpec {
         test("return the correct instruction when 'coursier' is available") {
           testInstruction(
             Setup.setupCoursier(path),
-            TestRunResultSuccess(
+            TestRunResultEither(
               "coursier",
               Seq("--help"),
               Map.empty,
-              None,
               path,
-              mockResult = true,
+              mockResult = Right(""),
               TestReturn("coursier")
             )
           )
@@ -30,20 +29,18 @@ object SetupTest extends TestSpec {
         test("return the correct instruction when 'cs' is available") {
           testInstruction(
             Setup.setupCoursier(path),
-            TestRunResultSuccess(
+            TestRunResultEither(
               "coursier",
               Seq("--help"),
               Map.empty,
-              None,
               path,
-              mockResult = false,
-              TestRunResultSuccess(
+              mockResult = Left(new Throwable()),
+              TestRunResultEither(
                 "cs",
                 Seq("--help"),
                 Map.empty,
-                None,
                 path,
-                mockResult = true,
+                mockResult = Right(""),
                 TestReturn("cs")
               )
             )
@@ -52,20 +49,18 @@ object SetupTest extends TestSpec {
         test("return the correct instruction when 'coursier and 'cs' is unavailable") {
           testInstruction(
             Setup.setupCoursier(path),
-            TestRunResultSuccess(
+            TestRunResultEither(
               "coursier",
               Seq("--help"),
               Map.empty,
-              None,
               path,
-              mockResult = false,
-              TestRunResultSuccess(
+              mockResult = Left(new Throwable()),
+              TestRunResultEither(
                 "cs",
                 Seq("--help"),
                 Map.empty,
-                None,
                 path,
-                mockResult = false,
+                mockResult = Left(new Throwable()),
                 TestCopyResource(
                   "/coursier",
                   path / "coursier",
@@ -74,7 +69,6 @@ object SetupTest extends TestSpec {
                     "chmod",
                     Seq("+x", "coursier"),
                     Map.empty,
-                    None,
                     path,
                     Right(()),
                     TestReturn("./coursier")
@@ -97,7 +91,6 @@ object SetupTest extends TestSpec {
                 "compile"
               ),
               Map("BLINKY" -> "true"),
-              None,
               path,
               Right(()),
               TestReturn(())
@@ -117,7 +110,6 @@ object SetupTest extends TestSpec {
                 "chmod",
                 Seq("+x", "scalafix"),
                 Map.empty,
-                None,
                 path,
                 Right(()),
                 TestReturn(())
