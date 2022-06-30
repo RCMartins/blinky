@@ -2,6 +2,7 @@
 rule = Blinky
 Blinky.filesToMutate = [all]
 Blinky.enabledMutators = [
+  { ArithmeticOperators = [CharPlusToMinus, CharMinusToPlus, CharMulToDiv, CharDivToMul] }
   { ConditionalExpressions = [AndToOr, OrToAnd, RemoveUnaryNot] }
   { LiteralStrings = [EmptyToMutated, EmptyInterToMutated, NonEmptyToMutated,
                       NonEmptyInterToMutated] }

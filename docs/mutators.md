@@ -45,7 +45,7 @@ group name: ArithmeticOperators
 
 name: IntPlusToMinus
 
-description: Changes the arithmetic operator `+` into `-` when operating on `Int` type.
+description: Changes the arithmetic operator `+` into `-` when operating on `Int` with `Int`.
 
 example:
 
@@ -54,25 +54,58 @@ example:
 + val value = list.size - 5
 ```
 
-(Note that it only applies to `Int` type)
+(Note that it only applies to `Int` with `Int`)
 
 #### Int - Minus into Plus
 
 name: IntMinusToPlus
 
-description: Changes the arithmetic operator `-` into `+` when operating on `Int` type.
+description: Changes the arithmetic operator `-` into `+` when operating on `Int` with `Int`.
 
 #### Int - Multiply into Divide
 
 name: IntMulToDiv
 
-description: Changes the arithmetic operator `*` into `/` when operating on `Int` type.
+description: Changes the arithmetic operator `*` into `/` when operating on `Int` with `Int`.
 
 #### Int - Divide into Multiply
 
 name: IntDivToMul
 
-description: Changes the arithmetic operator `/` into `*` when operating on `Int` type.
+description: Changes the arithmetic operator `/` into `*` when operating on `Int` with `Int`.
+
+#### Char - Plus into Minus
+
+name: CharPlusToMinus
+
+description: Changes the arithmetic operator `+` into `-` when operating on `Char` with `Int`.
+
+example:
+
+```diff
+- val value = 'J' + 5
++ val value = 'J' - 5
+```
+
+(Note that it only applies to `Char` with `Int`)
+
+#### Char - Minus into Plus
+
+name: CharMinusToPlus
+
+description: Changes the arithmetic operator `-` into `+` when operating on `Char` with `Int`.
+
+#### Char - Multiply into Divide
+
+name: CharMulToDiv
+
+description: Changes the arithmetic operator `*` into `/` when operating on `Char` with `Int`.
+
+#### Char - Divide into Multiply
+
+name: CharDivToMul
+
+description: Changes the arithmetic operator `/` into `*` when operating on `Char` with `Int`.
 
 ---
 
