@@ -186,4 +186,10 @@ object Instruction {
   ): CopyResource[Either[Throwable, Unit]] =
     CopyResource(resource, destinationPath, succeed(_: Either[Throwable, Unit]))
 
+  def writeFile(
+      path: Path,
+      content: String
+  ): WriteFile[Either[Throwable, Unit]] =
+    WriteFile(path, content, succeed(_: Either[Throwable, Unit]))
+
 }

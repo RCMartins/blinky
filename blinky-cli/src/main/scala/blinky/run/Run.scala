@@ -21,11 +21,11 @@ object Run {
     for {
       pwd <- CliModule.pwd
 
-      originalProjectRoot: Path = Path(pwd.path.toAbsolutePath)
-      originalProjectRelPath: RelPath =
+      originalProjectRoot = Path(pwd.path.toAbsolutePath)
+      originalProjectRelPath =
         Try(Path(config.projectPath.pathAsString).relativeTo(originalProjectRoot))
           .getOrElse(RelPath(config.projectPath.pathAsString))
-      originalProjectPath: Path = originalProjectRoot / originalProjectRelPath
+      originalProjectPath = originalProjectRoot / originalProjectRelPath
 
       instruction =
         for {
@@ -169,60 +169,68 @@ object Run {
               disabledMutators = config.mutators.disabled
             )
 
+            scalaFixConf: String =
+              SimpleBlinkyConfig.blinkyConfigEncoder
+                .write(blinkyConf)
+                .show
+                .trim
+
+            scalafixConfFile = cloneProjectTempFolder / defaultBlinkyConfFileName
+
             // Setup our .blinky.conf file to be used by Blinky rule
-            scalafixConfFile <- {
-              val scalaFixConf: String =
-                SimpleBlinkyConfig.blinkyConfigEncoder
-                  .write(blinkyConf)
-                  .show
-                  .trim
-
-              val confFile = cloneProjectTempFolder / defaultBlinkyConfFileName
-              WriteFile(
-                confFile,
+            runResult <-
+              writeFile(
+                scalafixConfFile,
                 s"""rules = $ruleName
-                   |Blinky $scalaFixConf""".stripMargin,
-                _ => succeed(confFile) // TODO
-              )
-            }
-
-            runResult <- runResultEither(
-              coursier,
-              Seq(
-                "fetch",
-                s"com.github.rcmartins:${ruleName.toLowerCase}_${BuildInfo.scalaMinorVersion}:${BuildInfo.version}",
-                "-p"
-              ),
-              Map("COURSIER_REPOSITORIES" -> "ivy2Local|sonatype:snapshots|sonatype:releases"),
-              path = projectRealPath
-            ).flatMap {
-              case Left(commandError) =>
-                ConsoleReporter
-                  .gitIssues(commandError)
-                  .map(_ => ExitCode.failure)
-              case Right(toolPath) =>
-                val params: Seq[String] =
-                  Seq(
-                    if (config.options.verbose) "--verbose" else "",
-                    if (config.filesToExclude.nonEmpty)
-                      s"--exclude=${config.filesToExclude}"
-                    else
-                      "",
-                    s"--tool-classpath=$toolPath",
-                    s"--files=$filesToMutateStr",
-                    s"--config=$scalafixConfFile",
-                    "--auto-classpath=target"
-                  ).filter(_.nonEmpty)
-                for {
-                  _ <- printLine(toolPath)
-                  _ <- runStream("./scalafix", params, path = projectRealPath)
-                  runResult <- TestMutationsBloop.run(
-                    projectRealPath,
-                    blinkyConf,
-                    config.options
-                  )
-                } yield runResult
-            }
+                   |Blinky $scalaFixConf""".stripMargin
+              ).flatMap {
+                case Left(error) =>
+                  printErrorLine(
+                    s"""Error creating temporary folder:
+                       |$error
+                       |""".stripMargin
+                  ).map(_ => ExitCode.failure)
+                case Right(_) =>
+                  runResultEither(
+                    coursier,
+                    Seq(
+                      "fetch",
+                      s"com.github.rcmartins:${ruleName.toLowerCase}_${BuildInfo.scalaMinorVersion}:${BuildInfo.version}",
+                      "-p"
+                    ),
+                    Map(
+                      "COURSIER_REPOSITORIES" -> "ivy2Local|sonatype:snapshots|sonatype:releases"
+                    ),
+                    path = projectRealPath
+                  ).flatMap {
+                    case Left(commandError) =>
+                      ConsoleReporter
+                        .gitIssues(commandError)
+                        .map(_ => ExitCode.failure)
+                    case Right(toolPath) =>
+                      val params: Seq[String] =
+                        Seq(
+                          if (config.options.verbose) "--verbose" else "",
+                          if (config.filesToExclude.nonEmpty)
+                            s"--exclude=${config.filesToExclude}"
+                          else
+                            "",
+                          s"--tool-classpath=$toolPath",
+                          s"--files=$filesToMutateStr",
+                          s"--config=$scalafixConfFile",
+                          "--auto-classpath=target"
+                        ).filter(_.nonEmpty)
+                      for {
+                        _ <- printLine(toolPath)
+                        _ <- runStream("./scalafix", params, path = projectRealPath)
+                        runResult <- TestMutationsBloop.run(
+                          projectRealPath,
+                          blinkyConf,
+                          config.options
+                        )
+                      } yield runResult
+                  }
+              }
           } yield runResult
       }
     } yield runResult

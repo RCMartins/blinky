@@ -1,7 +1,7 @@
 package blinky.run
 
 import blinky.BuildInfo
-import blinky.run.Instruction.{copyResource, runResultSuccess, runStream, succeed}
+import blinky.run.Instruction._
 import os.Path
 
 object Setup {
@@ -28,15 +28,40 @@ object Setup {
       ),
       envArgs = Map("BLINKY" -> "true"),
       path = path
-    ).map(_.toOption.get) // TODO
+    ).flatMap {
+      case Left(error) =>
+        printErrorLine(
+          s"""Error compiling with semanticdb enabled!
+             |$error
+             |""".stripMargin
+        )
+      case Right(()) =>
+        empty
+    }
 
   def setupScalafix(path: Path): Instruction[Unit] =
     copyExeFromResources("scalafix", path)
 
   private def copyExeFromResources(name: String, path: Path): Instruction[Unit] =
-    for {
-      _ <- copyResource(s"/$name", path / name)
-      result <- runStream("chmod", Seq("+x", name), path = path)
-    } yield result.toOption.get // TODO
+    copyResource(s"/$name", path / name)
+      .flatMap {
+        case Left(error) =>
+          printErrorLine(
+            s"""Error copying file from resources ($name to $path)
+               |$error
+               |""".stripMargin
+          )
+        case Right(()) =>
+          runStream("chmod", Seq("+x", name), path = path).flatMap {
+            case Left(error) =>
+              printErrorLine(
+                s"""Error setting file permissions to $path/$name
+                   |$error
+                   |""".stripMargin
+              )
+            case Right(()) =>
+              empty
+          }
+      }
 
 }
