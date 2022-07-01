@@ -8,8 +8,8 @@ jobs:
     name: Scalafmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: laughedelic/coursier-setup@v1
+      - uses: actions/checkout@v3
+      - uses: coursier/setup-action@v1
         with:
           jvm: adopt:8
           apps: sbt
@@ -18,10 +18,10 @@ jobs:
     name: Self Blinky core module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: laughedelic/coursier-setup@v1
+      - uses: coursier/setup-action@v1
         with:
           jvm: adopt:8
           apps: sbt bloop
@@ -31,10 +31,10 @@ jobs:
     name: Self Blinky cli module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: laughedelic/coursier-setup@v1
+      - uses: coursier/setup-action@v1
         with:
           jvm: adopt:8
           apps: sbt bloop
@@ -45,10 +45,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - timeout-minutes: 20
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: laughedelic/coursier-setup@v1
+      - uses: coursier/setup-action@v1
         with:
           jvm: adopt:8
           apps: sbt bloop
@@ -58,12 +58,11 @@ jobs:
   #  name: Community projects tests
   #  runs-on: ubuntu-latest
   #  steps:
-  #    - uses: actions/checkout@v2
-  #    - uses: olafurpg/setup-scala@v10
-  #    - uses: laughedelic/coursier-setup@v1
+  #    - uses: actions/checkout@v3
+  #    - uses: coursier/setup-action@v1
   #      with:
   #        jvm: adopt:8
-  #        apps: bloop
+  #        apps: sbt bloop
   #    - run: ./.github/scripts/setup.sh
   #    - run: sbt "runCommunityProjects spire"
   #scalaTests:
@@ -74,8 +73,11 @@ jobs:
   #      scalaVersion: [2.13.5]
   #    fail-fast: false
   #  steps:
-  #    - uses: actions/checkout@v2
-  #    - uses: olafurpg/setup-scala@v10
+  #    - uses: actions/checkout@v3
+  #    - uses: coursier/setup-action@v1
+  #      with:
+  #        jvm: adopt:8
+  #        apps: sbt bloop
   #    - run: sbt "++ $VERSION_TO_TEST!" core/test cli/test tests/test
   #      env:
   #        VERSION_TO_TEST: ${{ matrix.scalaVersion }}
