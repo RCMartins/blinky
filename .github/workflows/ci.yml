@@ -10,11 +10,8 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: coursier/setup-action@v1
-        with:
-          jvm: adopt:8
-          apps: sbt
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v10
       - run: |
           if [[ -n "$COVERALLS_REPO_TOKEN" ]]; then
             sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport \
