@@ -21,38 +21,31 @@ object TestInstruction {
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
-  final case class TestRunSync[A](
+  final case class TestRunStream[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
       path: Path,
+      mockResult: Either[Throwable, Unit],
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
-  final case class TestRunSyncEither[A](
+  final case class TestRunResultEither[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
       path: Path,
-      mockResult: Either[String, String],
+      mockResult: Either[Throwable, String],
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
-  final case class TestRunSyncSuccess[A](
+  final case class TestRunResultTimeout[A](
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
+      timeout: Long,
       path: Path,
-      mockResult: Boolean,
-      next: TestInstruction[A]
-  ) extends TestInstruction[A]
-
-  final case class TestRunAsyncEither[A](
-      op: String,
-      args: Seq[String],
-      envArgs: Map[String, String],
-      path: Path,
-      mockResult: Either[String, String],
+      mockResult: Either[Throwable, TimeoutResult],
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
@@ -75,6 +68,7 @@ object TestInstruction {
   final case class TestCopyResource[A](
       resource: String,
       destinationPath: Path,
+      mockResult: Either[Throwable, Unit],
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
@@ -104,9 +98,9 @@ object TestInstruction {
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
-  final case class TestLsFiles[+A](
+  final case class TestLsFiles[A](
       basePath: Path,
-      mockResult: Seq[String],
+      mockResult: Either[Throwable, Seq[String]],
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
@@ -121,17 +115,8 @@ object TestInstruction {
         assert(line1)(equalTo(line2)) &&
         testInstruction(next1, next2)
       case (
-            RunSync(op1, args1, envArgs1, path1, next1),
-            TestRunSync(op2, args2, envArgs2, path2, next2)
-          ) =>
-        assert(op1)(equalTo(op2)) &&
-        assert(args1)(equalTo(args2)) &&
-        assert(envArgs1)(equalTo(envArgs2)) &&
-        assert(path1)(equalTo(path2)) &&
-        testInstruction(next1, next2)
-      case (
-            RunSyncEither(op1, args1, envArgs1, path1, next1),
-            TestRunSyncEither(op2, args2, envArgs2, path2, mockResult, next2)
+            RunStream(op1, args1, envArgs1, path1, next1),
+            TestRunStream(op2, args2, envArgs2, path2, mockResult, next2)
           ) =>
         assert(op1)(equalTo(op2)) &&
         assert(args1)(equalTo(args2)) &&
@@ -139,21 +124,31 @@ object TestInstruction {
         assert(path1)(equalTo(path2)) &&
         testInstruction(next1(mockResult), next2)
       case (
-            RunSyncSuccess(op1, args1, envArgs1, path1, next1),
-            TestRunSyncSuccess(op2, args2, envArgs2, path2, mockResult, next2)
+            RunResultEither(op1, args1, envArgs1, path1, next1),
+            TestRunResultEither(op2, args2, envArgs2, path2, mockResult, next2)
           ) =>
         assert(op1)(equalTo(op2)) &&
         assert(args1)(equalTo(args2)) &&
         assert(envArgs1)(equalTo(envArgs2)) &&
+        assert(path1)(equalTo(path2)) &&
+        testInstruction(next1(mockResult), next2)
+      case (
+            RunResultTimeout(op1, args1, envArgs1, timeout1, path1, next1),
+            TestRunResultTimeout(op2, args2, envArgs2, timeout2, path2, mockResult, next2)
+          ) =>
+        assert(op1)(equalTo(op2)) &&
+        assert(args1)(equalTo(args2)) &&
+        assert(envArgs1)(equalTo(envArgs2)) &&
+        assert(timeout1)(equalTo(timeout2)) &&
         assert(path1)(equalTo(path2)) &&
         testInstruction(next1(mockResult), next2)
       case (
             CopyResource(resource1, destinationPath1, next1),
-            TestCopyResource(resource2, destinationPath2, next2)
+            TestCopyResource(resource2, destinationPath2, mockResult, next2)
           ) =>
         assert(resource1)(equalTo(resource2)) &&
         assert(destinationPath1)(equalTo(destinationPath2)) &&
-        testInstruction(next1, next2)
+        testInstruction(next1(mockResult), next2)
       case (
             CopyRelativeFiles(filesToCopy1, fromPath1, toPath1, next1),
             TestCopyRelativeFiles(filesToCopy2, fromPath2, toPath2, mockResult, next2)

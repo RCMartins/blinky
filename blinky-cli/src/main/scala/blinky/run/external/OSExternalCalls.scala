@@ -1,50 +1,61 @@
 package blinky.run.external
 
-import os.{Path, RelPath}
+import os.{Path, ProcessOutput, RelPath}
 
+import java.nio.file.{Files, Paths}
 import scala.util.{Failure, Success, Try}
 
 object OSExternalCalls extends ExternalCalls {
 
-  // TODO: all commands need an error side, Either or Option
-
-  def runSync(
+  def runStream(
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
       path: Path
-  ): Unit =
-    os.proc((op +: args).map(os.Shellable.StringShellable): _*)
-      .call(cwd = path, env = envArgs)
-  // TODO check exit code at least...
-
-  def runSyncEither(
-      op: String,
-      args: Seq[String],
-      envArgs: Map[String, String],
-      path: Path
-  ): Either[String, String] =
+  ): Either[Throwable, Unit] =
     Try(
       os.proc((op +: args).map(os.Shellable.StringShellable): _*)
-        .call(cwd = path, env = envArgs)
+        .call(
+          cwd = path,
+          stdout = ProcessOutput.Readlines(println),
+          stderr = ProcessOutput.Readlines(Console.err.println),
+          env = envArgs
+        )
     ) match {
-      case Failure(exception) =>
-        Left(exception.toString)
-      case Success(value) =>
-        Right(value.out.text().trim)
+      case Failure(exception) => Left(exception)
+      case Success(_)         => Right(())
     }
 
-  def makeTemporaryDirectory(): Path =
-    os.temp.dir()
+  def runResult(
+      op: String,
+      args: Seq[String],
+      envArgs: Map[String, String],
+      timeout: Option[Long],
+      path: Path
+  ): Either[Throwable, String] =
+    Try(
+      os.proc((op +: args).map(os.Shellable.StringShellable): _*)
+        .call(
+          cwd = path,
+          env = envArgs,
+          timeout = timeout.getOrElse(-1L)
+        )
+    ) match {
+      case Failure(exception) => Left(exception)
+      case Success(value)     => Right(value.out.text().trim)
+    }
 
-  def makeDirectory(path: Path): Unit =
-    os.makeDir(path)
+  def makeTemporaryDirectory(): Either[Throwable, Path] =
+    Try(os.temp.dir()).toEither
 
-  def copyInto(from: Path, to: Path): Unit =
-    os.copy.into(from, to)
+  def makeDirectory(path: Path): Either[Throwable, Unit] =
+    Try(os.makeDir(path)).toEither
 
-  def writeFile(filePath: Path, content: String): Unit =
-    os.write(filePath, content)
+  def copyInto(from: Path, to: Path): Either[Throwable, Unit] =
+    Try(os.copy.into(from, to)).toEither
+
+  def writeFile(filePath: Path, content: String): Either[Throwable, Unit] =
+    Try(os.write(filePath, content)).toEither
 
   def readFile(path: Path): Either[Throwable, String] =
     Try(os.read(path)).toEither
@@ -67,7 +78,18 @@ object OSExternalCalls extends ExternalCalls {
       }
     ).toEither
 
-  def listFiles(basePath: Path): Seq[String] =
-    Try(os.walk(basePath).map(_.toString)).getOrElse(Seq.empty)
+  def copyResource(
+      resource: String,
+      destinationPath: Path
+  ): Either[Throwable, Unit] =
+    Try(
+      Files.copy(
+        getClass.getResource(resource).openStream,
+        Paths.get(destinationPath.toString)
+      )
+    ).toEither.map(_ => ())
+
+  def listFiles(basePath: Path): Either[Throwable, Seq[String]] =
+    Try(os.walk(basePath).map(_.toString)).toEither
 
 }

@@ -1,4 +1,4 @@
-import os.Path
+import os.{Path, ProcessOutput}
 
 object RunCurrentVersion {
 
@@ -37,7 +37,11 @@ object RunCurrentVersion {
           extraParams.toSeq
 
       os.proc(("cs" +: allParams.filter(_.nonEmpty)).map(os.Shellable.StringShellable): _*)
-        .call(cwd = path)
+        .call(
+          cwd = path,
+          stdout = ProcessOutput.Readlines(println),
+          stderr = ProcessOutput.Readlines(Console.err.println)
+        )
     }
   }
 }

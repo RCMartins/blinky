@@ -53,14 +53,14 @@ object TestMutationsBloop {
           printLine("Try changing the mutation settings.").map(_ => ExitCode.success)
         else
           for {
-            _ <- runSync(
+            _ <- runStream(
               "sbt",
               Seq("bloopInstall"),
               envArgs = Map("BLINKY" -> "true"),
               path = projectPath
             )
             _ <- printLine("Running tests with original config")
-            compileResult <- runSyncEither(
+            compileResult <- runResultEither(
               "bloop",
               Seq("compile", escapeString(options.compileCommand)),
               envArgs = Map("BLINKY" -> "true"),
@@ -69,7 +69,7 @@ object TestMutationsBloop {
             res <- compileResult match {
               case Left(error) =>
                 val newIssueLink = "https://github.com/RCMartins/blinky/issues/new"
-                printErrorLine(error)
+                printErrorLine(error.toString)
                   .flatMap(_ =>
                     printErrorLine(
                       s"""There are compile errors after applying the Blinky rule.
@@ -159,12 +159,30 @@ object TestMutationsBloop {
 
       result <-
         ConsoleReporter.reportMutationResult(results, totalTime, numberOfMutants, options)
+      _ <- killBloopIfNecessary(projectPath, results)
     } yield
       if (result)
         ExitCode.success
       else
         ExitCode.failure
   }
+
+  private def killBloopIfNecessary(
+      projectPath: Path,
+      results: List[(Int, RunResult)]
+  ): Instruction[Unit] =
+    if (results.exists(_._2 == RunResult.Timeout))
+      runBashEither("bloop exit", path = projectPath).flatMap {
+        case Left(error) =>
+          printErrorLine(
+            s"""Failed to run 'bloop exit' after a mutation timeout.
+               |$error""".stripMargin
+          )
+        case Right(_) =>
+          succeed(())
+      }
+    else
+      succeed(())
 
   def runMutations(
       projectPath: Path,
@@ -199,8 +217,9 @@ object TestMutationsBloop {
       mutant: Mutant
   ): Instruction[(Int, RunResult)] = {
     val id = mutant.id
+    val time = System.currentTimeMillis()
+
     for {
-      time <- succeed(System.currentTimeMillis())
       testResult <- runInBloop(projectPath, options, originalTestTime, mutant)
 
       _ <- testResult match {
@@ -254,25 +273,23 @@ object TestMutationsBloop {
       else
         empty
 
-    val runBloop: Instruction[Boolean] =
+    val runBloopResult: Instruction[Either[Throwable, TimeoutResult]] =
       prints.flatMap(_ =>
-        runBashSuccess(
+        runBashTimeout(
           s"bloop test ${escapeString(options.testCommand)}",
           envArgs = Map(
             "BLINKY" -> "true",
             s"BLINKY_MUTATION_${mutant.id}" -> "1"
           ),
+          timeout = (originalTestTime * options.timeoutFactor + options.timeout.toMillis).toLong,
           path = projectPath
         )
       )
 
-    runWithTimeout(
-      runBloop,
-      (originalTestTime * options.timeoutFactor + options.timeout.toMillis).toLong
-    ).map {
-      case Some(true)  => RunResult.MutantSurvived
-      case Some(false) => RunResult.MutantKilled
-      case None        => RunResult.Timeout
+    runBloopResult.map {
+      case Right(TimeoutResult.Ok)      => RunResult.MutantSurvived
+      case Right(TimeoutResult.Timeout) => RunResult.Timeout
+      case Left(_)                      => RunResult.MutantKilled
     }
   }
 }

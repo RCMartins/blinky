@@ -113,9 +113,9 @@ object ConsoleReporterTest extends TestSpec {
       ),
       suite("gitIssues")(
         test("print the correct message used when the filesToMutate is empty") {
-          val gitError =
+          val gitError: String =
             "fatal: ambiguous argument 'master': unknown revision or path not in the working tree."
-          val Instruction.PrintLine(line, _) = ConsoleReporter.gitIssues(gitError)
+          val Instruction.PrintLine(line, _) = ConsoleReporter.gitIssues(new Throwable(gitError))
           assert(line)(equalTo {
             s"""${redText("GIT command error:")}
                |$gitError

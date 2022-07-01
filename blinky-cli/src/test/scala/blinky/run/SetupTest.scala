@@ -15,12 +15,12 @@ object SetupTest extends TestSpec {
         test("return the correct instruction when 'coursier' is available") {
           testInstruction(
             Setup.setupCoursier(path),
-            TestRunSyncSuccess(
+            TestRunResultEither(
               "coursier",
               Seq("--help"),
               Map.empty,
               path,
-              mockResult = true,
+              mockResult = Right(""),
               TestReturn("coursier")
             )
           )
@@ -28,18 +28,18 @@ object SetupTest extends TestSpec {
         test("return the correct instruction when 'cs' is available") {
           testInstruction(
             Setup.setupCoursier(path),
-            TestRunSyncSuccess(
+            TestRunResultEither(
               "coursier",
               Seq("--help"),
               Map.empty,
               path,
-              mockResult = false,
-              TestRunSyncSuccess(
+              mockResult = Left(new Throwable()),
+              TestRunResultEither(
                 "cs",
                 Seq("--help"),
                 Map.empty,
                 path,
-                mockResult = true,
+                mockResult = Right(""),
                 TestReturn("cs")
               )
             )
@@ -48,26 +48,28 @@ object SetupTest extends TestSpec {
         test("return the correct instruction when 'coursier and 'cs' is unavailable") {
           testInstruction(
             Setup.setupCoursier(path),
-            TestRunSyncSuccess(
+            TestRunResultEither(
               "coursier",
               Seq("--help"),
               Map.empty,
               path,
-              mockResult = false,
-              TestRunSyncSuccess(
+              mockResult = Left(new Throwable()),
+              TestRunResultEither(
                 "cs",
                 Seq("--help"),
                 Map.empty,
                 path,
-                mockResult = false,
+                mockResult = Left(new Throwable()),
                 TestCopyResource(
                   "/coursier",
                   path / "coursier",
-                  TestRunSync(
+                  Right(()),
+                  TestRunStream(
                     "chmod",
                     Seq("+x", "coursier"),
                     Map.empty,
                     path,
+                    Right(()),
                     TestReturn("./coursier")
                   )
                 )
@@ -80,7 +82,7 @@ object SetupTest extends TestSpec {
         test("return the correct instruction") {
           testInstruction(
             Setup.sbtCompileWithSemanticDB(path),
-            TestRunSync(
+            TestRunStream(
               "sbt",
               Seq(
                 "set Global / semanticdbEnabled := true",
@@ -89,6 +91,7 @@ object SetupTest extends TestSpec {
               ),
               Map("BLINKY" -> "true"),
               path,
+              Right(()),
               TestReturn(())
             )
           )
@@ -101,11 +104,13 @@ object SetupTest extends TestSpec {
             TestCopyResource(
               "/scalafix",
               path / "scalafix",
-              TestRunSync(
+              Right(()),
+              TestRunStream(
                 "chmod",
                 Seq("+x", "scalafix"),
                 Map.empty,
                 path,
+                Right(()),
                 TestReturn(())
               )
             )

@@ -36,7 +36,7 @@ object RunTest extends TestSpec {
             ),
             TestLsFiles(
               projectRealPath,
-              Seq("src/FileA.scala", "src/FileB.scala", "src/FileC.scala"),
+              Right(Seq("src/FileA.scala", "src/FileB.scala", "src/FileC.scala")),
               TestPrintLine(
                 s"--filesToMutate 'FileD.scala' does not exist.",
                 TestReturn(Left(ExitCode.failure))
@@ -52,7 +52,7 @@ object RunTest extends TestSpec {
             ),
             TestLsFiles(
               projectRealPath,
-              Seq("src/FileA.scala", "src/FileB.scala", "src/FileC.scala"),
+              Right(Seq("src/FileA.scala", "src/FileB.scala", "src/FileC.scala")),
               TestReturn(Right("src/FileA.scala"))
             )
           )
@@ -65,7 +65,7 @@ object RunTest extends TestSpec {
             ),
             TestLsFiles(
               projectRealPath,
-              Seq("src/FileA.scala", "src/foo/FileB.scala", "src/bar/FileB.scala"),
+              Right(Seq("src/FileA.scala", "src/foo/FileB.scala", "src/bar/FileB.scala")),
               TestPrintLine(
                 s"""--filesToMutate is ambiguous.
                    |Files ending with the same path:
@@ -81,7 +81,7 @@ object RunTest extends TestSpec {
         test("when both git and copy works") {
           testInstruction(
             Run.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
-            TestRunSyncEither(
+            TestRunResultEither(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               Map.empty,
@@ -101,7 +101,7 @@ object RunTest extends TestSpec {
         test("when git works but the copy fails") {
           testInstruction(
             Run.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
-            TestRunSyncEither(
+            TestRunResultEither(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               Map.empty,
@@ -124,12 +124,12 @@ object RunTest extends TestSpec {
         test("when git fails") {
           testInstruction(
             Run.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
-            TestRunSyncEither(
+            TestRunResultEither(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               Map.empty,
               originalProjectPath,
-              mockResult = Left("git command error message"),
+              mockResult = Left(new Throwable("git command error message")),
               TestPrintLine(
                 s"""${red("GIT command error:")}
                    |git command error message
