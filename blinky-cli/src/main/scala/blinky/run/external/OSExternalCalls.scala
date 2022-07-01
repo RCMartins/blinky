@@ -11,7 +11,6 @@ object OSExternalCalls extends ExternalCalls {
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
-      timeout: Option[Long],
       path: Path
   ): Either[Throwable, Unit] =
     Try(
@@ -20,8 +19,7 @@ object OSExternalCalls extends ExternalCalls {
           cwd = path,
           stdout = ProcessOutput.Readlines(println),
           stderr = ProcessOutput.Readlines(Console.err.println),
-          env = envArgs,
-          timeout = timeout.getOrElse(-1L)
+          env = envArgs
         )
     ) match {
       case Failure(exception) => Left(exception)

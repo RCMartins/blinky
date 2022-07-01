@@ -159,12 +159,30 @@ object TestMutationsBloop {
 
       result <-
         ConsoleReporter.reportMutationResult(results, totalTime, numberOfMutants, options)
+      _ <- killBloopIfNecessary(projectPath, results)
     } yield
       if (result)
         ExitCode.success
       else
         ExitCode.failure
   }
+
+  private def killBloopIfNecessary(
+      projectPath: Path,
+      results: List[(Int, RunResult)]
+  ): Instruction[Unit] =
+    if (results.exists(_._2 == RunResult.Timeout))
+      runBashEither("bloop exit", path = projectPath).flatMap {
+        case Left(error) =>
+          printErrorLine(
+            s"""Failed to run 'bloop exit' after a mutation timeout.
+               |$error""".stripMargin
+          )
+        case Right(_) =>
+          succeed(())
+      }
+    else
+      succeed(())
 
   def runMutations(
       projectPath: Path,
@@ -199,8 +217,9 @@ object TestMutationsBloop {
       mutant: Mutant
   ): Instruction[(Int, RunResult)] = {
     val id = mutant.id
+    val time = System.currentTimeMillis()
+
     for {
-      time <- succeed(System.currentTimeMillis())
       testResult <- runInBloop(projectPath, options, originalTestTime, mutant)
 
       _ <- testResult match {

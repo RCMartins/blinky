@@ -8,7 +8,6 @@ trait ExternalCalls {
       op: String,
       args: Seq[String],
       envArgs: Map[String, String],
-      timeout: Option[Long],
       path: Path
   ): Either[Throwable, Unit]
 

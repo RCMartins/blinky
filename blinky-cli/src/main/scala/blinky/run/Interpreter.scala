@@ -4,6 +4,7 @@ import blinky.cli.Cli.InterpreterEnvironment
 import blinky.run.Instruction._
 import blinky.run.external.ExternalCalls
 import blinky.run.modules.ExternalModule
+import os.{CommandResult, SubprocessException}
 import zio.URIO
 
 import scala.annotation.tailrec
@@ -41,14 +42,15 @@ object Interpreter {
           val result = externalCalls.makeDirectory(path)
           interpreterNext(next(result))
         case RunStream(op, args, envArgs, path, next) =>
-          val result = externalCalls.runStream(op, args, envArgs, None, path)
+          val result = externalCalls.runStream(op, args, envArgs, path)
           interpreterNext(next(result))
         case RunResultEither(op, args, envArgs, path, next) =>
           val result = externalCalls.runResult(op, args, envArgs, None, path)
           interpreterNext(next(result))
         case RunResultTimeout(op, args, envArgs, timeout, path, next) =>
+          val initialTime = System.currentTimeMillis()
           val result = externalCalls.runResult(op, args, envArgs, Some(timeout), path)
-          interpreterNext(next(resultTimeout(result)))
+          interpreterNext(next(resultTimeout(result, initialTime, timeout)))
         case CopyInto(from, to, next) =>
           val result = externalCalls.copyInto(from, to)
           interpreterNext(next(result))
@@ -75,13 +77,22 @@ object Interpreter {
     interpreterNext(initialProgram)
   }
 
-  private def resultTimeout(result: Either[Throwable, String]): Either[Throwable, TimeoutResult] =
+  private def resultTimeout(
+      result: Either[Throwable, String],
+      initialTime: Long,
+      timeout: Long
+  ): Either[Throwable, TimeoutResult] =
     result match {
       case Right(_) =>
         Right(TimeoutResult.Ok)
+      case Left(res @ SubprocessException(CommandResult(_, _))) =>
+        val elapsedTime = System.currentTimeMillis() - initialTime
+        if (elapsedTime >= timeout)
+          Right(TimeoutResult.Timeout)
+        else
+          Left(res)
       case Left(throwable) =>
-        println(throwable)
-        ???
+        Left(throwable)
     }
 
 }
