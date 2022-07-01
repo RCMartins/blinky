@@ -1,13 +1,12 @@
 package blinky.run
 
-import os.{Path, RelPath}
 import blinky.TestSpec
 import blinky.run.TestInstruction._
 import blinky.run.Utils.red
 import blinky.run.config.FileFilter
+import os.{Path, RelPath}
 import zio.ExitCode
 import zio.test._
-import zio.test.environment.TestEnvironment
 
 import java.io.IOException
 
@@ -17,7 +16,7 @@ object RunTest extends TestSpec {
   val originalProjectPath: Path = Path(getFilePath("some-project"))
   val projectRealPath: Path = Path(getFilePath(".")) / "some-temp-folder"
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing], TestSuccess] =
+  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("Run")(
       suite("processFilesToMutate")(
         test("when files filtering is SingleFileOrFolder") {

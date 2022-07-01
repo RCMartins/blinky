@@ -4,8 +4,7 @@ import blinky.cli.Cli.InterpreterEnvironment
 import blinky.run.Instruction._
 import blinky.run.external.ExternalCalls
 import blinky.run.modules.ExternalModule
-import zio.URIO
-import zio.duration.durationLong
+import zio.{URIO, ZIO, durationLong}
 
 import java.nio.file.{Files, Paths}
 import scala.annotation.tailrec
@@ -16,14 +15,14 @@ object Interpreter {
       initialProgram: Instruction[A]
   ): URIO[InterpreterEnvironment, A] =
     for {
-      externalCalls <- ExternalModule.external
+      externalCalls <- ZIO.service[ExternalModule].flatMap(_.external)
       result <- interpreterFully(externalCalls, initialProgram) match {
         case Left(Timeout(runFunction, millis, next)) =>
           interpreter(runFunction).disconnect.timeout(millis.millis).flatMap { instruction =>
             interpreter(next(instruction))
           }
         case Right(value) =>
-          URIO.succeed(value)
+          ZIO.succeed(value)
       }
     } yield result
 
