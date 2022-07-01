@@ -98,7 +98,7 @@ object TestInstruction {
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
-  final case class TestLsFiles[+A](
+  final case class TestLsFiles[A](
       basePath: Path,
       mockResult: Either[Throwable, Seq[String]],
       next: TestInstruction[A]

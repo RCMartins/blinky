@@ -75,7 +75,7 @@ object Instruction {
       next: Either[Throwable, Unit] => Instruction[A]
   ) extends Instruction[A]
 
-  final case class LsFiles[+A](
+  final case class LsFiles[A](
       basePath: Path,
       next: Either[Throwable, Seq[String]] => Instruction[A]
   ) extends Instruction[A]
