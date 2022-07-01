@@ -6,7 +6,7 @@ import blinky.run.Instruction._
 import blinky.run.config.{FileFilter, MutationsConfigValidated, SimpleBlinkyConfig}
 import blinky.run.modules.CliModule
 import blinky.v0.BlinkyConfig
-import zio.{ExitCode, RIO}
+import zio.{ExitCode, RIO, ZIO}
 
 import scala.util.Try
 
@@ -19,7 +19,7 @@ object Run {
 
   def run(config: MutationsConfigValidated): RIO[CliModule, Instruction[ExitCode]] =
     for {
-      pwd <- CliModule.pwd
+      pwd <- ZIO.service[CliModule].flatMap(_.pwd)
 
       originalProjectRoot = Path(pwd.path.toAbsolutePath)
       originalProjectRelPath =

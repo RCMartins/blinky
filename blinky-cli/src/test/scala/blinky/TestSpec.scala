@@ -1,9 +1,9 @@
 package blinky
 
 import zio.test.Assertion._
-import zio.test.{Assertion, DefaultRunnableSpec}
+import zio.test.{Assertion, ZIOSpecDefault}
 
-trait TestSpec extends DefaultRunnableSpec {
+trait TestSpec extends ZIOSpecDefault {
 
   @inline
   final val inWindows: Boolean =

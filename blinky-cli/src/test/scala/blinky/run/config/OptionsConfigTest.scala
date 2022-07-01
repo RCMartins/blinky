@@ -4,11 +4,10 @@ import blinky.TestSpec
 import metaconfig.{Conf, Configured}
 import zio.test.Assertion._
 import zio.test._
-import zio.test.environment.TestEnvironment
 
 object OptionsConfigTest extends TestSpec {
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing], TestSuccess] =
+  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("OptionsConfig")(
       test("Return error when duration config is not a string") {
         assert(OptionsConfig.durationDecoder.read(Conf.fromInt(50)))(

@@ -23,6 +23,8 @@ autolabeler:
     branch:
       - '/chore\/.+/'
       - '/update\/.+/'
+    title:
+      - '/updated? .+ to \d+\.\d[\w\.-]*/i'
   - label: 'bug'
     branch:
       - '/fix\/.+/'

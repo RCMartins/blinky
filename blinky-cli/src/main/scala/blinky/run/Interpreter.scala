@@ -5,7 +5,7 @@ import blinky.run.Instruction._
 import blinky.run.external.ExternalCalls
 import blinky.run.modules.ExternalModule
 import os.{CommandResult, SubprocessException}
-import zio.URIO
+import zio.{URIO, ZIO}
 
 import scala.annotation.tailrec
 
@@ -15,7 +15,7 @@ object Interpreter {
       initialProgram: Instruction[A]
   ): URIO[InterpreterEnvironment, A] =
     for {
-      externalCalls <- ExternalModule.external
+      externalCalls <- ZIO.service[ExternalModule].flatMap(_.external)
     } yield interpreterFully(externalCalls, initialProgram)
 
   private def interpreterFully[A](
