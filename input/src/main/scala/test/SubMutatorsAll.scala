@@ -11,10 +11,11 @@ Blinky.enabledMutators = [
   { ScalaTry = [GetOrElse, OrElse] }
   { Collections = [ListApply, SeqApply, SetApply] }
   { PartialFunctions = [RemoveOneCase] }
-  { ScalaStrings = [Concat, Trim, ToUpperCase, ToLowerCase] }
+  { ScalaStrings = [Concat, Trim, ToUpperCase, ToLowerCase, Capitalize, StripPrefix,
+                    StripSuffix, Map, FlatMap, DropWhile, TakeWhile] }
   { ControlFlow = [If] }
 ]
  */
 package test
 
-object SubMutators3 {}
+object SubMutatorsAll {}

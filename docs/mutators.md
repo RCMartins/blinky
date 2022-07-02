@@ -692,6 +692,97 @@ example:
 + val value = " foo "
 ```
 
+#### Capitalize
+
+name: Capitalize
+
+description: Removes the call to `capitalize` on strings.
+
+example:
+
+```diff
+- val value = "foo".capitalize
++ val value = "foo"
+```
+
+#### StripPrefix
+
+name: StripPrefix
+
+description: Removes the call to `stripPrefix` on strings.
+
+example:
+
+```diff
+- val value = "Foo".stripPrefix("F")
++ val value = "Foo"
+```
+
+#### StripSuffix
+
+name: StripSuffix
+
+description: Removes the call to `stripSuffix` on strings.
+
+example:
+
+```diff
+- val value = "Foo".stripSuffix("oo")
++ val value = "Foo"
+```
+
+#### DropWhile
+
+name: DropWhile
+
+description: Removes the call to `dropWhile` on strings.
+
+example:
+
+```diff
+- val value = "Foo123".dropWhile(char => char.isLetter)
++ val value = "Foo123"
+```
+
+#### TakeWhile
+
+name: TakeWhile
+
+description: Removes the call to `takeWhile` on strings.
+
+example:
+
+```diff
+- val value = "Foo123".takeWhile(char => char.isLetter)
++ val value = "Foo123"
+```
+
+#### Map
+
+name: Map
+
+description: Removes the call to `map(Char => Char)` on strings.
+
+example:
+
+```diff
+- val value = "Foo123".map(char => char.toUpper)
++ val value = "Foo123"
+```
+
+#### FlatMap
+
+name: FlatMap
+
+description: Removes the call to `flatMap(Char => String)` on strings.
+
+example:
+
+```diff
+- val value = "Foo123".flatMap(char => s"$char$char")
++ val value = "Foo123"
+```
+
 ---
 
 ### Control Flow
