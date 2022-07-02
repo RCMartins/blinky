@@ -13,4 +13,18 @@ object StringMutator {
 
   val string4 = if (???) string1 else string1.toLowerCase
   val string4b = if (???) string1 else string1.toLowerCase(Locale.ENGLISH)
+
+  val string5 = if (???) string1 else string1.capitalize
+
+  val string6 = if (???) string1 else string1.stripPrefix("F")
+  val string7 = if (???) string1 else string1.stripSuffix("oo")
+
+  val string8 = string1.map(char => char + 1) // should ignore
+  val string8b = if (???) string1 else string1.map(char => char.toUpper)
+
+  val string9 = if (???) string1 else string1.flatMap(char => s"$char$char")
+
+  val string10 = if (???) string1 else string1.dropWhile(char => char.isLetter)
+
+  val string11 = if (???) string1 else string1.takeWhile(char => char.isLetter)
 }

@@ -47,7 +47,7 @@ object ArithmeticOperators extends MutatorGroup {
 
   }
 
-  case class ArithmeticMutator(
+  private case class ArithmeticMutator(
       mutatorName: String,
       opName: String,
       symbolMatch: String,
