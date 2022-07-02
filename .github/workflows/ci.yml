@@ -10,10 +10,10 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     steps:
-      - name: Tests Coverage
       - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v10
-      - run: |
+      - name: Tests Coverage
+        uses: olafurpg/setup-scala@v10
+        run: |
           sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport \
             && sbt coverageAggregate
       - name: Coveralls
