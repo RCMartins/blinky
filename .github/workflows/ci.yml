@@ -12,12 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v10
-      - run: |
-          if [[ -n "$COVERALLS_REPO_TOKEN" ]]; then
-            sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport \
-              && sbt coverageAggregate coveralls;
-          else
-            sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport;
-          fi
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+      - name: Tests Coverage
+        run: |
+          sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport \
+            && sbt coverageAggregate
+      - name: Upload coverage reports to Codecov with GitHub Action
+        uses: codecov/codecov-action@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
