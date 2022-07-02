@@ -16,7 +16,7 @@ jobs:
         run: |
           sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport \
             && sbt coverageAggregate
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
+      - name: Upload coverage reports to Codecov with GitHub Action
+        uses: codecov/codecov-action@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
