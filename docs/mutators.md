@@ -546,13 +546,6 @@ example mutation 2:
 + val seq = Seq("a", "b")
 ```
 
-example mutation 3:
-
-```diff
-- val str = "tacocat".reverse
-+ val str = "tacocat"
-```
-
 ---
 
 ### Partial Functions
@@ -781,6 +774,19 @@ example:
 ```diff
 - val value = "Foo123".flatMap(char => s"$char$char")
 + val value = "Foo123"
+```
+
+#### Reverse
+
+name: Reverse
+
+description: Removes the call to `reverse` on Strings.
+
+example mutation:
+
+```diff
+- val str = "tacocat".reverse
++ val str = "tacocat"
 ```
 
 ---
