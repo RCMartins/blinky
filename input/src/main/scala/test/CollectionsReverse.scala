@@ -5,7 +5,7 @@ Blinky.enabledMutators = [Collections.Reverse]
  */
 package test
 
-object Collections2 {
+object CollectionsReverse {
   val col1 = List("a", "b").reverse
 
   val col2 = Seq(1, 2).reverse
@@ -14,5 +14,4 @@ object Collections2 {
 
   val col4 = Array(true, false).reverse
 
-  val col5 = "tacocat".reverse
 }

@@ -21,7 +21,8 @@ object ScalaStrings extends MutatorGroup {
       Mutators.Map,
       Mutators.FlatMap,
       Mutators.DropWhile,
-      Mutators.TakeWhile
+      Mutators.TakeWhile,
+      Mutators.Reverse
     )
 
   object Mutators {
@@ -90,6 +91,9 @@ object ScalaStrings extends MutatorGroup {
 
     val TakeWhile: SimpleMutator =
       StringMutatorApply("TakeWhile", "takeWhile", "scala/collection/StringOps#takeWhile().")
+
+    val Reverse: SimpleMutator =
+      StringMutatorSelect("Reverse", "reverse", "scala/collection/StringOps#reverse().")
 
   }
 
