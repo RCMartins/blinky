@@ -29,10 +29,14 @@ object StringMutator {
 
   val string9 = string1.flatMap(char => s"$char$char")
 
-  val string10 = string1.dropWhile(char => char.isLetter)
+  val string10 = string1.drop(2)
 
-  val string11 = string1.takeWhile(char => char.isLetter)
+  val string11 = string1.take(3)
 
-  val string12 = "tacocat".reverse
+  val string12 = string1.dropWhile(char => char.isLetter)
+
+  val string13 = string1.takeWhile(char => char.isLetter)
+
+  val string14 = "tacocat".reverse
 
 }

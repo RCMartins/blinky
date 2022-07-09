@@ -42,6 +42,18 @@ object Collections extends MutatorGroup {
     }
   }
 
+  class RemoveOpMutator(
+      mutatorName: String,
+      opName: String,
+      val symbolsToMatch: Seq[String]
+  ) extends SimpleMutator(mutatorName) {
+    override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+      case collection @ Term.Apply(Term.Select(term @ _, Term.Name(`opName`)), _)
+          if SymbolMatcher.exact(symbolsToMatch: _*).matches(collection.symbol) =>
+        default(term)
+    }
+  }
+
   val ListApply: RemoveApplyArgMutator =
     new RemoveApplyArgMutator(
       "ListApply",
@@ -98,12 +110,38 @@ object Collections extends MutatorGroup {
       }
     }
 
+  val Drop: RemoveOpMutator =
+    new RemoveOpMutator(
+      "Drop",
+      "drop",
+      Seq(
+        "scala/collection/StrictOptimizedLinearSeqOps#drop().",
+        "scala/collection/IterableOps#drop().",
+        "scala/collection/immutable/Vector#drop().",
+        "scala/collection/ArrayOps#drop()."
+      )
+    )
+
+  val Take: RemoveOpMutator =
+    new RemoveOpMutator(
+      "Take",
+      "take",
+      Seq(
+        "scala/collection/immutable/List#take().",
+        "scala/collection/IterableOps#take().",
+        "scala/collection/immutable/Vector#take().",
+        "scala/collection/ArrayOps#take()."
+      )
+    )
+
   override val getSubMutators: List[Mutator] =
     List(
       ListApply,
       SeqApply,
       SetApply,
-      Reverse
+      Reverse,
+      Drop,
+      Take
     )
 
 }

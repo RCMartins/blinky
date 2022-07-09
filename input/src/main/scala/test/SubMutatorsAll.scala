@@ -12,7 +12,7 @@ Blinky.enabledMutators = [
   { Collections = [ListApply, SeqApply, SetApply, Reverse] }
   { PartialFunctions = [RemoveOneCase] }
   { ScalaStrings = [Concat, Trim, ToUpperCase, ToLowerCase, Capitalize, StripPrefix,
-                    StripSuffix, Map, FlatMap, DropWhile, TakeWhile, Reverse] }
+                    StripSuffix, Map, FlatMap, Drop, Take, DropWhile, TakeWhile, Reverse] }
   { ControlFlow = [If] }
 ]
  */

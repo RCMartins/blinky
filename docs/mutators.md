@@ -546,6 +546,46 @@ example mutation 2:
 + val seq = Seq("a", "b")
 ```
 
+#### Drop
+
+name: Drop
+
+description: Removes the call to `drop` on `List`/`SeqLike`/`IndexedSeqOptimized`.
+
+example mutation 1:
+
+```diff
+- val list = List("a", "b", "c").drop(2)
++ val list = List("a", "b", "c")
+```
+
+example mutation 2:
+
+```diff
+- val seq = Seq("a", "b", "c").drop(2)
++ val seq = Seq("a", "b", "c")
+```
+
+#### Take
+
+name: Take
+
+description: Removes the call to `take` on `List`/`SeqLike`/`IndexedSeqOptimized`.
+
+example mutation 1:
+
+```diff
+- val list = List("a", "b", "c").take(2)
++ val list = List("a", "b", "c")
+```
+
+example mutation 2:
+
+```diff
+- val seq = Seq("a", "b", "c").take(2)
++ val seq = Seq("a", "b", "c")
+```
+
 ---
 
 ### Partial Functions
@@ -722,6 +762,32 @@ example:
 ```diff
 - val value = "Foo".stripSuffix("oo")
 + val value = "Foo"
+```
+
+#### Drop
+
+name: Drop
+
+description: Removes the call to `drop` on strings.
+
+example:
+
+```diff
+- val value = "Foo123".drop(3)
++ val value = "Foo123"
+```
+
+#### Take
+
+name: Take
+
+description: Removes the call to `take` on strings.
+
+example:
+
+```diff
+- val value = "Foo123".take(4)
++ val value = "Foo123"
 ```
 
 #### DropWhile
