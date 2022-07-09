@@ -24,10 +24,14 @@ object StringMutator {
 
   val string9 = if (???) string1 else string1.flatMap(char => s"$char$char")
 
-  val string10 = if (???) string1 else string1.dropWhile(char => char.isLetter)
+  val string10 = if (???) string1 else string1.drop(2)
 
-  val string11 = if (???) string1 else string1.takeWhile(char => char.isLetter)
+  val string11 = if (???) string1 else string1.take(3)
 
-  val string12 = if (???) "tacocat" else "tacocat".reverse
+  val string12 = if (???) string1 else string1.dropWhile(char => char.isLetter)
+
+  val string13 = if (???) string1 else string1.takeWhile(char => char.isLetter)
+
+  val string14 = if (???) "tacocat" else "tacocat".reverse
 
 }

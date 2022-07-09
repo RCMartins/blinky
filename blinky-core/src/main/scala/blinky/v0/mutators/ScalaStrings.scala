@@ -20,6 +20,8 @@ object ScalaStrings extends MutatorGroup {
       Mutators.StripSuffix,
       Mutators.Map,
       Mutators.FlatMap,
+      Mutators.Drop,
+      Mutators.Take,
       Mutators.DropWhile,
       Mutators.TakeWhile,
       Mutators.Reverse
@@ -85,6 +87,12 @@ object ScalaStrings extends MutatorGroup {
 
     val FlatMap: SimpleMutator =
       StringMutatorApply("FlatMap", "flatMap", "scala/collection/StringOps#flatMap(+1).")
+
+    val Drop: SimpleMutator =
+      StringMutatorApply("Drop", "drop", "scala/collection/StringOps#drop().")
+
+    val Take: SimpleMutator =
+      StringMutatorApply("Take", "take", "scala/collection/StringOps#take().")
 
     val DropWhile: SimpleMutator =
       StringMutatorApply("DropWhile", "dropWhile", "scala/collection/StringOps#dropWhile().")
