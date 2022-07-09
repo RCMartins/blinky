@@ -546,6 +546,32 @@ example mutation 2:
 + val seq = Seq("a", "b")
 ```
 
+#### Drop
+
+name: Drop
+
+description: Removes the call to `drop` on `List`/`SeqLike`/`IndexedSeqOptimized`.
+
+example:
+
+```diff
+- val value = "Foo123".drop(3)
++ val value = "Foo123"
+```
+
+#### Take
+
+name: Take
+
+description: Removes the call to `take` on `List`/`SeqLike`/`IndexedSeqOptimized`.
+
+example:
+
+```diff
+- val value = "Foo123".take(4)
++ val value = "Foo123"
+```
+
 ---
 
 ### Partial Functions
