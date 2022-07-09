@@ -27,4 +27,7 @@ object StringMutator {
   val string10 = if (???) string1 else string1.dropWhile(char => char.isLetter)
 
   val string11 = if (???) string1 else string1.takeWhile(char => char.isLetter)
+
+  val string12 = if (???) "tacocat" else "tacocat".reverse
+
 }

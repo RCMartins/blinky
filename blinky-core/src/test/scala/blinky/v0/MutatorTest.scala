@@ -42,8 +42,7 @@ class MutatorTest extends TestSpec {
           "scala/collection/IndexedSeqOptimized#reverse().",
           "scala/collection/SeqOps#reverse().",
           "scala/collection/IndexedSeqOps#reverse().",
-          "scala/collection/ArrayOps#reverse().",
-          "scala/collection/StringOps#reverse()."
+          "scala/collection/ArrayOps#reverse()."
         )
     }
 

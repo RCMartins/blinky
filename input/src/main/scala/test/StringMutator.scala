@@ -32,4 +32,7 @@ object StringMutator {
   val string10 = string1.dropWhile(char => char.isLetter)
 
   val string11 = string1.takeWhile(char => char.isLetter)
+
+  val string12 = "tacocat".reverse
+
 }
