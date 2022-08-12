@@ -56,10 +56,16 @@ object RunExamples {
     showIfError(
       os.proc("git", "config", "user.name", "Your Name").call(cwd = testDirectory)
     )
-    showIfError(
-      os.proc("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")
-        .call(cwd = testDirectory)
-    )
+    println(("defaultDirectory", defaultDirectory))
+//    showIfError(
+//      os.proc(
+//        "bash",
+//        "-c",
+//        s"""cp -nr ${defaultDirectory.toString.replace("\\", "/")}/* $testDirectory"""
+//      ).call(cwd = testDirectory)
+    os.copy(defaultDirectory, testDirectory, mergeFolders = true)
+//    )
+
     showIfError(
       os.proc("git", "add", ".").call(cwd = testDirectory)
     )
@@ -95,7 +101,7 @@ object RunExamples {
     val result: CommandResult =
       os
         .proc(
-          "cs",
+          "cs", // "C:\\Users\\Ricardo\\AppData\\Local\\Coursier\\data\\bin\\cs.bat",
           "launch",
           s"com.github.rcmartins:blinky-cli_2.13:$versionNumber",
           "--",

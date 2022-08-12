@@ -1,1 +1,2 @@
--Dsbt.server.forcestart=true
+
+-J-Xmx2G

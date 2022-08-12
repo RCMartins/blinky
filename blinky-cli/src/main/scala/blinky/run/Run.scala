@@ -223,7 +223,7 @@ object Run {
                       for {
                         _ <- printLine(toolPath)
                         _ <- runStream("./scalafix", params, path = projectRealPath)
-                        runResult <- TestMutationsBloop.run(
+                        runResult <- TestMutations.run(
                           projectRealPath,
                           blinkyConf,
                           config.options

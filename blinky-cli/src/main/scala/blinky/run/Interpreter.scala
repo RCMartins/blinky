@@ -83,15 +83,18 @@ object Interpreter {
       timeout: Long
   ): Either[Throwable, TimeoutResult] =
     result match {
-      case Right(_) =>
+      case Right(res) =>
+        println(s"ok: $res")
         Right(TimeoutResult.Ok)
       case Left(res @ SubprocessException(CommandResult(_, _))) =>
+        println("left")
         val elapsedTime = System.currentTimeMillis() - initialTime
         if (elapsedTime >= timeout)
           Right(TimeoutResult.Timeout)
         else
           Left(res)
       case Left(throwable) =>
+        println("throwable")
         Left(throwable)
     }
 

@@ -5,27 +5,24 @@ import blinky.run.Utils._
 import blinky.run.config.OptionsConfig
 import os.Path
 
-class TestMutationsBloop(projectPath: Path) extends TestMutationsRunner {
+class TestMutationsSBT(projectPath: Path) extends TestMutationsRunner {
+
+  private val extraSbtParams: String = "" // --client
 
   def initializeRunner(): Instruction[Unit] =
-    runStream(
-      "sbt",
-      Seq("bloopInstall"),
-      envArgs = Map("BLINKY" -> "true"),
-      path = projectPath
-    ).map(_ => ())
+    succeed(())
 
   def initialCompile(compileCommand: String): RunResultEither[Either[Throwable, String]] =
     runResultEither(
-      "bloop",
-      Seq("compile", escapeString(compileCommand)),
+      "sbt",
+      Seq(extraSbtParams, escapeString(compileCommand)).filter(_.nonEmpty),
       envArgs = Map("BLINKY" -> "true"),
       path = projectPath
     )
 
   def vanillaTestRun(testCommand: String): RunResultEither[Either[Throwable, String]] =
     runBashEither(
-      s"bloop test ${escapeString(testCommand)}",
+      s"sbt $extraSbtParams ${escapeString(testCommand)}",
       envArgs = Map("BLINKY" -> "true"),
       path = projectPath
     )
@@ -41,7 +38,7 @@ class TestMutationsBloop(projectPath: Path) extends TestMutationsRunner {
         for {
           _ <- printLine(
             s"> [BLINKY_MUTATION_${mutant.id}=1] " +
-              s"""bash -c "bloop test ${escapeString(options.testCommand)}""""
+              s"""bash -c "sbt $extraSbtParams ${escapeString(options.testCommand)}""""
           )
           _ <- printLine(
             prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true)
@@ -51,20 +48,21 @@ class TestMutationsBloop(projectPath: Path) extends TestMutationsRunner {
       else
         empty
 
-    val runBloopResult: Instruction[Either[Throwable, TimeoutResult]] =
+    val runResult: Instruction[Either[Throwable, TimeoutResult]] =
       prints.flatMap(_ =>
         runBashTimeout(
-          s"bloop test ${escapeString(options.testCommand)}",
-          envArgs = Map(
-            "BLINKY" -> "true",
-            s"BLINKY_MUTATION_${mutant.id}" -> "1"
-          ),
+          s"sbt -DBLINKY=true -DBLINKY_MUTATION_${mutant.id}=1 $extraSbtParams ${escapeString(options.testCommand)}",
+//          envArgs = Map(
+//            "BLINKY" -> "true",
+//            s"BLINKY_MUTATION_${mutant.id}" -> "1"
+//          ),
+          envArgs = Map.empty,
           timeout = (originalTestTime * options.timeoutFactor + options.timeout.toMillis).toLong,
           path = projectPath
         )
       )
 
-    runBloopResult.map {
+    runResult.map {
       case Right(TimeoutResult.Ok)      => RunResult.MutantSurvived
       case Right(TimeoutResult.Timeout) => RunResult.Timeout
       case Left(_)                      => RunResult.MutantKilled
@@ -72,17 +70,6 @@ class TestMutationsBloop(projectPath: Path) extends TestMutationsRunner {
   }
 
   def cleanRunnerAfter(projectPath: Path, results: List[(Int, RunResult)]): Instruction[Unit] =
-    if (results.exists(_._2 == RunResult.Timeout))
-      runBashEither("bloop exit", path = projectPath).flatMap {
-        case Left(error) =>
-          printErrorLine(
-            s"""Failed to run 'bloop exit' after a mutation timeout.
-               |$error""".stripMargin
-          )
-        case Right(_) =>
-          succeed(())
-      }
-    else
-      succeed(())
+    succeed(())
 
 }

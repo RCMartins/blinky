@@ -3,5 +3,6 @@ lazy val example =
     .in(file("."))
     .settings(
       scalaVersion := "2.12.11",
-      libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.12" % Test
+      libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.12" % Test,
+      Test / fork := true
     )
