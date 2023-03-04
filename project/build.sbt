@@ -5,5 +5,5 @@ lazy val preProcess =
       publish / skip := false,
       moduleName := "pre-process",
       libraryDependencies += "com.github.pathikrit" %% "better-files" % "3.9.1",
-      libraryDependencies += "com.lihaoyi"          %% "os-lib"       % "0.9.0"
+      libraryDependencies += "com.lihaoyi"          %% "os-lib"       % "0.8.1"
     )
