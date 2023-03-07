@@ -68,9 +68,9 @@ lazy val core =
       moduleName := "blinky",
       libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.9.2",
-      libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
+      libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.2",
       libraryDependencies += "com.lihaoyi"          %% "os-lib"        % "0.8.1",
-      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.13" % "test",
+      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.15" % "test",
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
       buildInfoSettings
@@ -108,13 +108,13 @@ lazy val cli =
     .settings(
       publish / skip := false,
       moduleName := "blinky-cli",
-      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.8.8",
+      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.9.0",
       libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.11",
       libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.11",
       libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.1.0",
-      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.0",
-      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.0" % "test",
-      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.0" % "test",
+      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.10",
+      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.10" % "test",
+      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.10" % "test",
       testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
       Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimumStmtTotal := 30,
@@ -129,7 +129,7 @@ lazy val tests =
     .settings(
       libraryDependencies += "ch.epfl.scala"             % "scalafix-testkit" %
         SBTDefaults.scalafixTestkitV(scalaVersion.value) % Test cross CrossVersion.full,
-      libraryDependencies += "org.scalatest"            %% "scalatest"        % "3.2.13" % Test,
+      libraryDependencies += "org.scalatest"            %% "scalatest"        % "3.2.15" % Test,
       scalafixTestkitOutputSourceDirectories :=
         (output / Compile / sourceDirectories).value,
       scalafixTestkitInputSourceDirectories :=
