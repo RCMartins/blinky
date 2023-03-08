@@ -126,13 +126,13 @@ object RunTest extends ZIOSpecDefault {
         test(
           "when copy result succeeds and filter is SingleFileOrFolder and there is only one folder"
         ) {
-          val singleFolder = projectRealPath.toString
+          val singleFolder = (projectRealPath / "src").toString
           testInstruction(
             Run.optimiseFilesToMutate(
               Seq(singleFolder),
               Right(()),
               projectRealPath,
-              FileFilter.SingleFileOrFolder(RelPath("/"))
+              FileFilter.SingleFileOrFolder(RelPath("/src"))
             ),
             TestIsFile(
               Path(singleFolder),
