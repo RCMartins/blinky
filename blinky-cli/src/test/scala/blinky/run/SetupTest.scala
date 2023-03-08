@@ -1,11 +1,11 @@
 package blinky.run
 
+import blinky.BuildInfo
 import blinky.run.TestInstruction._
-import blinky.{BuildInfo, TestSpec}
 import os.{Path, pwd}
 import zio.test._
 
-object SetupTest extends TestSpec {
+object SetupTest extends ZIOSpecDefault {
 
   private val path: Path = pwd
 
