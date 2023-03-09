@@ -132,7 +132,7 @@ object RunTest extends ZIOSpecDefault {
               Seq(singleFolder),
               Right(()),
               projectRealPath,
-              FileFilter.SingleFileOrFolder(RelPath("/src"))
+              FileFilter.SingleFileOrFolder(RelPath("src"))
             ),
             TestIsFile(
               Path(singleFolder),
