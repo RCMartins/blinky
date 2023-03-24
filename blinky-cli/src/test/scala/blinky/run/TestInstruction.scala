@@ -114,6 +114,9 @@ object TestInstruction {
       case (PrintLine(line1, next1), TestPrintLine(line2, next2)) =>
         assert(line1)(equalTo(line2)) &&
         testInstruction(next1, next2)
+      case (PrintErrorLine(line1, next1), TestPrintErrorLine(line2, next2)) =>
+        assert(line1)(equalTo(line2)) &&
+        testInstruction(next1, next2)
       case (
             RunStream(op1, args1, envArgs1, path1, next1),
             TestRunStream(op2, args2, envArgs2, path2, mockResult, next2)
@@ -163,10 +166,18 @@ object TestInstruction {
           ) =>
         assert(basePath1)(equalTo(basePath2)) &&
         testInstruction(next1(mockResult), next2)
+      case (
+            IsFile(path1, next1),
+            TestIsFile(path2, mockResult, next2),
+          ) =>
+        assert(path1)(equalTo(path2)) &&
+        testInstruction(next1(mockResult), next2)
       case (other1, other2) =>
         println(
-          s"""elem1: ${println(other1.getClass.getSimpleName)}
-             |elem2: ${println(other2.getClass.getSimpleName)}
+          s"""elem1 Class: ${other1.getClass.getSimpleName}
+             |elem2 Class: ${other2.getClass.getSimpleName}
+             |elem1: $other1
+             |elem2: $other2
              |""".stripMargin
         )
         ???
