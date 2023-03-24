@@ -1,9 +1,9 @@
 package blinky
 
+import zio.test.Assertion
 import zio.test.Assertion._
-import zio.test.{Assertion, ZIOSpecDefault}
 
-trait TestSpec extends ZIOSpecDefault {
+object TestSpec {
 
   @inline
   final val inWindows: Boolean =
@@ -20,7 +20,7 @@ trait TestSpec extends ZIOSpecDefault {
     else
       fileName => getClass.getResource(s"/$fileName").getPath
 
-  def equalSome[A, P](value: A): Assertion[Any] =
+  def equalSome[A](value: A): Assertion[Any] =
     equalTo(Some(value))
 
 }

@@ -1,6 +1,5 @@
 package blinky.run
 
-import blinky.TestSpec
 import blinky.run.ConsoleReporter._
 import blinky.run.Instruction.PrintLine
 import blinky.run.RunResult._
@@ -10,7 +9,7 @@ import zio.test._
 
 import scala.annotation.tailrec
 
-object ConsoleReporterTest extends TestSpec {
+object ConsoleReporterTest extends ZIOSpecDefault {
 
   val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("ConsoleReporter")(
