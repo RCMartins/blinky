@@ -2,7 +2,7 @@ package blinky.cli
 
 import better.files.File
 import blinky.BuildInfo.version
-import blinky.TestSpec
+import blinky.TestSpec._
 import blinky.run.config.FileFilter.{FileName, SingleFileOrFolder}
 import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
 import blinky.run.modules.{CliModule, ParserModule, TestModules}
@@ -17,9 +17,9 @@ import java.io.ByteArrayOutputStream
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 
-object CliTest extends TestSpec {
+object CliTest extends ZIOSpecDefault {
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
+  def spec: Spec[TestEnvironment, Any] =
     suite("Cli")(
       test("blinky --version should return the version number of blinky") {
         val (zioResult, parser) = parse("--version")()
