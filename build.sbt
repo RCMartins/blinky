@@ -1,5 +1,3 @@
-import SBTDefaults.scalafixTestkitV
-
 import java.nio.file.Path
 import sbt.Keys._
 import sbt.nio.file.FileAttributes
@@ -23,8 +21,7 @@ inThisBuild(
         url("https://github.com/rcmartins")
       )
     ),
-    scalaVersion := V.scala212,
-    // addCompilerPlugin(scalafixSemanticdb),
+    scalaVersion := V.scala213,
     addCompilerPlugin(
       "org.scalameta" % "semanticdb-scalac" % semanticdbScalac cross CrossVersion.full
     ),
@@ -35,7 +32,7 @@ inThisBuild(
         SBTDefaults.defaultScalacFlags212
     },
     scalacOptions -= (if (sys.env.contains("CI") && !sys.env.contains("BLINKY")) ""
-                      else "-Xfatal-warnings"),
+                      else "-Werror"),
     coverageEnabled := false,
     Test / fork := false,
     publish / skip := true
@@ -50,28 +47,33 @@ lazy val stableVersion = Def.setting {
   (ThisBuild / version).value.replaceAll("\\+.*", "")
 }
 
+lazy val buildInfoSettings: Seq[Def.Setting[_]] =
+  Seq(
+    buildInfoPackage := "blinky",
+    buildInfoKeys := Seq[BuildInfoKey](
+      version,
+      "stable" -> stableVersion.value,
+      scalaVersion,
+      "scalaMinorVersion" -> scalaVersion.value.take(4),
+      sbtVersion,
+      "semanticdbVersion" -> semanticdbScalac
+    )
+  )
+
 lazy val core =
   project
     .in(file("blinky-core"))
-    .enablePlugins(BuildInfoPlugin)
     .settings(
       publish / skip := false,
       moduleName := "blinky",
       libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
       libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.9.2",
-      libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.1",
-      libraryDependencies += "com.lihaoyi"          %% "ammonite-ops"  % "2.4.1",
-      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.10" % "test",
+      libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.2",
+      libraryDependencies += "com.lihaoyi"          %% "os-lib"        % "0.8.1",
+      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.15" % "test",
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
-      buildInfoPackage := "blinky",
-      buildInfoKeys := Seq[BuildInfoKey](
-        version,
-        "stable" -> stableVersion.value,
-        scalaVersion,
-        sbtVersion,
-        "semanticdbVersion" -> semanticdbScalac
-      )
+      buildInfoSettings
     )
 
 lazy val input =
@@ -102,30 +104,32 @@ lazy val output =
 lazy val cli =
   project
     .in(file("blinky-cli"))
+    .enablePlugins(BuildInfoPlugin)
     .settings(
       publish / skip := false,
       moduleName := "blinky-cli",
-      libraryDependencies += "com.geirsson"               %% "metaconfig-core"            % "0.10.0",
-      libraryDependencies += "com.geirsson"               %% "metaconfig-typesafe-config" % "0.10.0",
-      libraryDependencies += "com.github.scopt"           %% "scopt"                      % "4.0.1",
-      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens"                  % "1.7.5",
-      libraryDependencies += "dev.zio"                    %% "zio"                        % "1.0.12",
-      libraryDependencies += "dev.zio"                    %% "zio-test"                   % "1.0.12" % "test",
-      libraryDependencies += "dev.zio"                    %% "zio-test-sbt"               % "1.0.12" % "test",
-      testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
+      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.9.0",
+      libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.10.0",
+      libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.10.0",
+      libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.1.0",
+      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.10",
+      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.10" % "test",
+      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.10" % "test",
+      testFrameworks += TestFrameworks.ZIOTest,
       Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimumStmtTotal := 30,
       coverageFailOnMinimum := true
     )
+    .settings(buildInfoSettings)
     .dependsOn(core)
 
 lazy val tests =
   project
     .enablePlugins(ScalafixTestkitPlugin)
     .settings(
-      libraryDependencies += "ch.epfl.scala"  % "scalafix-testkit" %
-        scalafixTestkitV(scalaVersion.value)  % Test cross CrossVersion.full,
-      libraryDependencies += "org.scalatest" %% "scalatest"        % "3.2.10" % Test,
+      libraryDependencies += "ch.epfl.scala"             % "scalafix-testkit" %
+        SBTDefaults.scalafixTestkitV(scalaVersion.value) % Test cross CrossVersion.full,
+      libraryDependencies += "org.scalatest"            %% "scalatest"        % "3.2.15" % Test,
       scalafixTestkitOutputSourceDirectories :=
         (output / Compile / sourceDirectories).value,
       scalafixTestkitInputSourceDirectories :=
@@ -138,10 +142,11 @@ lazy val tests =
 lazy val docs =
   project
     .in(file("blinky-docs"))
-    .enablePlugins(MdocPlugin, DocusaurusPlugin)
+    .enablePlugins(BuildInfoPlugin, MdocPlugin, DocusaurusPlugin)
     .settings(
       mdoc := (Compile / run).evaluated
     )
+    .settings(buildInfoSettings)
     .dependsOn(core)
 
 lazy val runCurrent =
@@ -171,3 +176,6 @@ runCommunityProjects := {
   val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
   RunCommunityProjects.run(version.value, args)
 }
+
+Global / excludeLintKeys += core / buildInfoPackage
+Global / excludeLintKeys += core / buildInfoKeys

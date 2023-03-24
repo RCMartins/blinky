@@ -1,6 +1,6 @@
 package blinky.run.config
 
-import ammonite.ops.RelPath
+import os.RelPath
 
 sealed trait FileFilter
 

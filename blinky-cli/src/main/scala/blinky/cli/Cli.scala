@@ -6,20 +6,21 @@ import blinky.run._
 import blinky.run.config._
 import blinky.run.modules.{CliModule, ExternalModule, ParserModule}
 import scopt.OParser
-import zio.clock.Clock
-import zio.{ExitCode, URIO, ZEnv, ZIO}
+import zio.{ExitCode, URIO, ZIO, ZIOAppArgs, ZIOAppDefault}
 
-object Cli extends zio.App {
+object Cli extends ZIOAppDefault {
 
-  private type FullEnvironment = ParserModule with ExternalModule with CliModule with Clock
-
+  private type FullEnvironment = ParserModule with ExternalModule with CliModule
   private type ParserEnvironment = ParserModule with CliModule
+  type InterpreterEnvironment = ExternalModule
 
-  type InterpreterEnvironment = ExternalModule with Clock
-
-  override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
-    parseAndRun(args).provideLayer {
-      ParserModule.live ++ CliModule.live(File(".")) ++ ExternalModule.live ++ Clock.live
+  override def run: ZIO[ZIOAppArgs, Nothing, ExitCode] =
+    ZIO.service[ZIOAppArgs].map(_.getArgs.toList).flatMap { args =>
+      parseAndRun(args).provide(
+        ParserModule.layer,
+        CliModule.layer(File(".")),
+        ExternalModule.layer
+      )
     }
 
   private def parseAndRun(strArgs: List[String]): URIO[FullEnvironment, ExitCode] =
@@ -42,8 +43,8 @@ object Cli extends zio.App {
       strArgs: List[String]
   ): URIO[ParserEnvironment, Either[String, MutationsConfigValidated]] =
     for {
-      parser <- ParserModule.parser
-      pwd <- CliModule.pwd
+      parser <- ZIO.service[ParserModule].flatMap(_.parser)
+      pwd <- ZIO.service[CliModule].flatMap(_.pwd)
       args <- ZIO.succeed(OParser.parse(Parser.parser, strArgs, Args(), parser))
     } yield args match {
       case None =>

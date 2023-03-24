@@ -1,13 +1,11 @@
 package blinky.run
 
-import blinky.TestSpec
 import zio.test.Assertion._
 import zio.test._
-import zio.test.environment.TestEnvironment
 
-object UtilsTest extends TestSpec {
+object UtilsTest extends ZIOSpecDefault {
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing], TestSuccess] =
+  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("Utils")(
       test("red should return the terminal color code for red color") {
         assert(Utils.red("test line"))(equalTo("\u001B[31mtest line\u001B[0m"))
@@ -55,6 +53,11 @@ object UtilsTest extends TestSpec {
           )
 
         suite("prettyDiff")(
+          test("return an empty string when the input is invalid") {
+            val result =
+              Utils.prettyDiff("@@ -1,2 +3,4 -5,6 @@", "", "", color = true)
+            assert(result)(equalTo(""))
+          },
           test("return the raw 'git diff' output with line numbers (when color is on)") {
             val original =
               """@@ -3,7 +3,7 @@ package test

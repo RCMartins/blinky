@@ -150,7 +150,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
       case block @ Term.Block(stats) =>
         selectSmallerMutation(
           block,
-          Seq.empty, //TODO when the top stats are completely done we should update this
+          Seq.empty, // TODO when the top stats are completely done we should update this
           stats.flatMap(topTreeMutations)
         )
       case ifTerm @ Term.If(cond, thenPart, elsePart) =>
@@ -162,6 +162,24 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
           topTermMutations(cond, parensRequired = false) ++
             topTermMutations(thenPart, parensRequired = false) ++
             topTermMutations(elsePart, parensRequired = false)
+        )
+      case forYield @ Term.ForYield(enumsList, forTerm) =>
+        def topTermMutateEnumerator(enumerator: Enumerator): Seq[(Term, MutatedTerms)] = {
+          val term: Term =
+            enumerator match {
+              case Enumerator.CaseGenerator(_, term) => term
+              case Enumerator.Generator(_, term)     => term
+              case Enumerator.Guard(cond)            => cond
+              case Enumerator.Val(_, term)           => term
+            }
+          topTermMutations(term, parensRequired = false)
+        }
+
+        selectSmallerMutation(
+          forYield,
+          topMainTermMutations(forTerm).map(mutated => Term.ForYield(enumsList, mutated)),
+          enumsList.flatMap(topTermMutateEnumerator) ++
+            topTermMutations(forTerm, parensRequired = false)
         )
       case newTerm @ Term.New(init) =>
         selectSmallerMutation(
@@ -177,7 +195,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
             .map { case (mutated, index) =>
               Term.NewAnonymous(Template(early, inits.updated(index, mutated), self, stats))
             } ++
-            Seq.empty, //TODO when the top stats are completely done we should update this
+            Seq.empty, // TODO when the top stats are completely done we should update this
           inits
             .flatMap(_.argss.flatMap(_.flatMap(topTermMutations(_, parensRequired = false)))) ++
             stats.flatMap(topTreeMutations)

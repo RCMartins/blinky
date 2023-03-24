@@ -20,6 +20,7 @@ Because of several factors like time to run or importance we may want to enable/
 * [Scala Collections](#scala-collections)
 * [Partial Functions](#partial-functions)
 * [Scala Strings](#scala-strings)
+* [Control Flow](#control-flow)
 
 ### Literal Booleans
 
@@ -44,7 +45,7 @@ group name: ArithmeticOperators
 
 name: IntPlusToMinus
 
-description: Changes the arithmetic operator `+` into `-` when operating on `Int` type.
+description: Changes the arithmetic operator `+` into `-` when operating on `Int` with `Int`.
 
 example:
 
@@ -53,25 +54,58 @@ example:
 + val value = list.size - 5
 ```
 
-(Note that it only applies to `Int` type)
+(Note that it only applies to `Int` with `Int`)
 
 #### Int - Minus into Plus
 
 name: IntMinusToPlus
 
-description: Changes the arithmetic operator `-` into `+` when operating on `Int` type.
+description: Changes the arithmetic operator `-` into `+` when operating on `Int` with `Int`.
 
 #### Int - Multiply into Divide
 
 name: IntMulToDiv
 
-description: Changes the arithmetic operator `*` into `/` when operating on `Int` type.
+description: Changes the arithmetic operator `*` into `/` when operating on `Int` with `Int`.
 
 #### Int - Divide into Multiply
 
 name: IntDivToMul
 
-description: Changes the arithmetic operator `/` into `*` when operating on `Int` type.
+description: Changes the arithmetic operator `/` into `*` when operating on `Int` with `Int`.
+
+#### Char - Plus into Minus
+
+name: CharPlusToMinus
+
+description: Changes the arithmetic operator `+` into `-` when operating on `Char` with `Int`.
+
+example:
+
+```diff
+- val value = 'J' + 5
++ val value = 'J' - 5
+```
+
+(Note that it only applies to `Char` with `Int`)
+
+#### Char - Minus into Plus
+
+name: CharMinusToPlus
+
+description: Changes the arithmetic operator `-` into `+` when operating on `Char` with `Int`.
+
+#### Char - Multiply into Divide
+
+name: CharMulToDiv
+
+description: Changes the arithmetic operator `*` into `/` when operating on `Char` with `Int`.
+
+#### Char - Divide into Multiply
+
+name: CharDivToMul
+
+description: Changes the arithmetic operator `/` into `*` when operating on `Char` with `Int`.
 
 ---
 
@@ -512,11 +546,44 @@ example mutation 2:
 + val seq = Seq("a", "b")
 ```
 
-example mutation 3:
+#### Drop
+
+name: Drop
+
+description: Removes the call to `drop` on `List`/`SeqLike`/`IndexedSeqOptimized`.
+
+example mutation 1:
 
 ```diff
-- val str = "tacocat".reverse
-+ val str = "tacocat"
+- val list = List("a", "b", "c").drop(2)
++ val list = List("a", "b", "c")
+```
+
+example mutation 2:
+
+```diff
+- val seq = Seq("a", "b", "c").drop(2)
++ val seq = Seq("a", "b", "c")
+```
+
+#### Take
+
+name: Take
+
+description: Removes the call to `take` on `List`/`SeqLike`/`IndexedSeqOptimized`.
+
+example mutation 1:
+
+```diff
+- val list = List("a", "b", "c").take(2)
++ val list = List("a", "b", "c")
+```
+
+example mutation 2:
+
+```diff
+- val seq = Seq("a", "b", "c").take(2)
++ val seq = Seq("a", "b", "c")
 ```
 
 ---
@@ -656,6 +723,178 @@ example:
 ```diff
 - val value = " foo ".toLowerCase
 + val value = " foo "
+```
+
+#### Capitalize
+
+name: Capitalize
+
+description: Removes the call to `capitalize` on strings.
+
+example:
+
+```diff
+- val value = "foo".capitalize
++ val value = "foo"
+```
+
+#### StripPrefix
+
+name: StripPrefix
+
+description: Removes the call to `stripPrefix` on strings.
+
+example:
+
+```diff
+- val value = "Foo".stripPrefix("F")
++ val value = "Foo"
+```
+
+#### StripSuffix
+
+name: StripSuffix
+
+description: Removes the call to `stripSuffix` on strings.
+
+example:
+
+```diff
+- val value = "Foo".stripSuffix("oo")
++ val value = "Foo"
+```
+
+#### Drop
+
+name: Drop
+
+description: Removes the call to `drop` on strings.
+
+example:
+
+```diff
+- val value = "Foo123".drop(3)
++ val value = "Foo123"
+```
+
+#### Take
+
+name: Take
+
+description: Removes the call to `take` on strings.
+
+example:
+
+```diff
+- val value = "Foo123".take(4)
++ val value = "Foo123"
+```
+
+#### DropWhile
+
+name: DropWhile
+
+description: Removes the call to `dropWhile` on strings.
+
+example:
+
+```diff
+- val value = "Foo123".dropWhile(char => char.isLetter)
++ val value = "Foo123"
+```
+
+#### TakeWhile
+
+name: TakeWhile
+
+description: Removes the call to `takeWhile` on strings.
+
+example:
+
+```diff
+- val value = "Foo123".takeWhile(char => char.isLetter)
++ val value = "Foo123"
+```
+
+#### Map
+
+name: Map
+
+description: Removes the call to `map(Char => Char)` on strings.
+
+example:
+
+```diff
+- val value = "Foo123".map(char => char.toUpper)
++ val value = "Foo123"
+```
+
+#### FlatMap
+
+name: FlatMap
+
+description: Removes the call to `flatMap(Char => String)` on strings.
+
+example:
+
+```diff
+- val value = "Foo123".flatMap(char => s"$char$char")
++ val value = "Foo123"
+```
+
+#### Reverse
+
+name: Reverse
+
+description: Removes the call to `reverse` on Strings.
+
+example mutation:
+
+```diff
+- val str = "tacocat".reverse
++ val str = "tacocat"
+```
+
+---
+
+### Control Flow
+
+group name: ControlFlow
+
+#### If control flow
+
+name: If
+
+description: Changes the standard if control flow into two mutants.
+One that always go to the then part and another that always go to the else part.
+If the else part doesn't exist then it's replaced with the mutant `()`  
+
+example mutation 1:
+
+```diff
+- if (condition) somethingThen() else somethingElse()
++ somethingThen()
+```
+
+example mutation 2:
+
+```diff
+- if (condition) somethingThen() else somethingElse()
++ somethingElse()
+```
+
+example mutation 3:
+
+```diff
+- if (condition) somethingThen()
++ somethingThen()
+```
+
+example mutation 4:
+
+```diff
+- if (condition) somethingThen()
++ ()
 ```
 
 ---

@@ -1,18 +1,17 @@
-import ammonite.ops._
-import os.copy
+import os.{CommandResult, Path, ProcessOutput, copy}
 
 object RunExamples {
 
   def run(versionNumber: String, args: Array[String]): Unit = {
-    val basePath = pwd
+    val basePath = os.pwd
 
     val defaultDirectory = basePath / "ci-tests" / "examples" / "default"
-    val exampleDirectories = ls(basePath / "ci-tests" / "examples")
+    val exampleDirectories = os.list(basePath / "ci-tests" / "examples")
 
     val examplesToRun: Seq[Path] =
       exampleDirectories.filterNot(_.baseName == "default").filter { examplePath =>
         (args.isEmpty || args.contains(examplePath.baseName)) &&
-        !(exists ! (examplePath / "disabled"))
+        !os.exists(examplePath / "disabled")
       }
 
     if (examplesToRun.isEmpty) {
@@ -41,26 +40,38 @@ object RunExamples {
       defaultDirectory: Path,
       originalExamplePath: Path
   ): Path = {
-    val tempExamplePath: Path = tmp.dir()
+    val tempExamplePath: Path = os.temp.dir()
     copy.into(originalExamplePath, tempExamplePath)
     val testDirectory: Path = tempExamplePath / originalExamplePath.baseName
 
     def showIfError(result: CommandResult): Unit =
       if (result.exitCode != 0)
-        println(result.err.string)
+        println(result.err.text())
 
-    showIfError(%%("git", "init")(testDirectory))
-    showIfError(%%("git", "config", "--global", "user.email", "you@example.com")(testDirectory))
-    showIfError(%%("git", "config", "--global", "user.name", "Your Name")(testDirectory))
-    showIfError(%%("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")(testDirectory))
-    showIfError(%%("git", "add", ".")(testDirectory))
-    showIfError(%%("git", "commit", "-m", "first commit!")(testDirectory))
+    showIfError(os.proc("git", "init").call(cwd = testDirectory))
+    showIfError(
+      os.proc("git", "config", "user.email", "you@example.com")
+        .call(cwd = testDirectory)
+    )
+    showIfError(
+      os.proc("git", "config", "user.name", "Your Name").call(cwd = testDirectory)
+    )
+    showIfError(
+      os.proc("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")
+        .call(cwd = testDirectory)
+    )
+    showIfError(
+      os.proc("git", "add", ".").call(cwd = testDirectory)
+    )
+    showIfError(
+      os.proc("git", "commit", "-m", "first commit!").call(cwd = testDirectory)
+    )
 
     val startupScript = testDirectory / "startup.sh"
-    if (exists(startupScript)) {
+    if (os.exists(startupScript)) {
       println(s"Running $startupScript script...")
-      %("chmod", "+x", startupScript)(testDirectory)
-      %(startupScript)(testDirectory)
+      os.proc("chmod", "+x", startupScript).call(cwd = testDirectory)
+      os.proc(startupScript).call(cwd = testDirectory)
     }
 
     testDirectory
@@ -75,25 +86,35 @@ object RunExamples {
       preProcessDirectory(defaultDirectory, originalExamplePath)
 
     println("\n")
-    val msg = s"Testing $examplePath:"
+    val msg = s"Testing $examplePath"
     println("-" * msg.length)
     println(msg)
     println("-" * msg.length)
 
-    val result = %%(
-      "cs",
-      "launch",
-      s"com.github.rcmartins:blinky-cli_2.12:$versionNumber",
-      "--",
-      "--verbose=true"
-    )(examplePath)
-    println(result.out.string)
+    var outResultText: List[String] = Nil
+    val result: CommandResult =
+      os
+        .proc(
+          "cs",
+          "launch",
+          s"com.github.rcmartins:blinky-cli_2.13:$versionNumber",
+          "--",
+          "--verbose=true"
+        )
+        .call(
+          cwd = examplePath,
+          stdout = ProcessOutput.Readlines { text =>
+            outResultText = text :: outResultText
+            println(text)
+          },
+          stderr = ProcessOutput.Readlines(Console.err.println)
+        )
 
     val extraCheckText: String =
-      read(examplePath / "result.txt")
+      os.read(examplePath / "result.txt")
         .split("\n")
         .map { expectedResult =>
-          if (!result.out.string.contains(expectedResult))
+          if (!outResultText.exists(_.contains(expectedResult)))
             s"""${"-" * 10}
                |Example failed. Expected line does not appear:
                |$expectedResult

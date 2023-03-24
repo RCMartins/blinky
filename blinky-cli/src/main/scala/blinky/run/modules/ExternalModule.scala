@@ -1,21 +1,20 @@
 package blinky.run.modules
 
-import blinky.run.external.{AmmoniteExternalCalls, ExternalCalls}
+import blinky.run.external.{ExternalCalls, OSExternalCalls}
 import zio.{Layer, ZIO, ZLayer}
+
+trait ExternalModule {
+  def external: ZIO[Any, Nothing, ExternalCalls]
+}
 
 object ExternalModule {
 
-  trait Service {
-    def external: ZIO[Any, Nothing, ExternalCalls]
-  }
-
-  def external: ZIO[ExternalModule, Nothing, ExternalCalls] =
-    ZIO.accessM[ExternalModule](_.get.external)
-
-  val live: Layer[Nothing, ExternalModule] =
-    ZLayer.succeed(new Service {
-      override def external: ZIO[Any, Nothing, ExternalCalls] =
-        ZIO.succeed(AmmoniteExternalCalls)
-    })
+  val layer: Layer[Nothing, ExternalModule] =
+    ZLayer.succeed(
+      new ExternalModule {
+        override def external: ZIO[Any, Nothing, ExternalCalls] =
+          ZIO.succeed(OSExternalCalls)
+      }
+    )
 
 }

@@ -1,19 +1,17 @@
 package blinky.run
 
-import blinky.TestSpec
 import blinky.run.ConsoleReporter._
 import blinky.run.Instruction.PrintLine
 import blinky.run.RunResult._
 import blinky.run.config.OptionsConfig
 import zio.test.Assertion._
 import zio.test._
-import zio.test.environment.TestEnvironment
 
 import scala.annotation.tailrec
 
-object ConsoleReporterTest extends TestSpec {
+object ConsoleReporterTest extends ZIOSpecDefault {
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing], TestSuccess] =
+  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("ConsoleReporter")(
       test("print the mutation score") {
         val (result, out) =
@@ -25,19 +23,19 @@ object ConsoleReporterTest extends TestSpec {
           )
 
         assert(out)(equalTo {
-          """
-            |Mutation Results:
-            |Total mutants found: 10
-            |Total mutants tested: 3  (30%)
-            |
-            |Total Time (seconds): 1
-            |Average time each (seconds): 0.4
-            |
-            |Mutants Killed: \u001B[32m2\u001B[0m
-            |Mutants Not Killed: \u001B[31m1\u001B[0m
-            |Score: 66.6%
-            |
-            |""".stripMargin
+          s"""
+             |Mutation Results:
+             |Total mutants found: 10
+             |Total mutants tested: 3  (30%)
+             |
+             |Total Time (seconds): 1
+             |Average time each (seconds): 0.4
+             |
+             |Mutants Killed: ${greenText("2")}
+             |Mutants Not Killed: ${redText("1")}
+             |Score: 66.6%
+             |
+             |""".stripMargin
         }) &&
         assert(result)(equalTo(true))
       },
@@ -56,20 +54,20 @@ object ConsoleReporterTest extends TestSpec {
           )
 
         assert(out)(equalTo {
-          """
-            |Mutation Results:
-            |Total mutants found: 16
-            |Total mutants tested: 4  (25%)
-            |
-            |Total Time (seconds): 12
-            |Average time each (seconds): 3.1
-            |
-            |Mutants Killed: \u001B[32m2\u001B[0m
-            |Mutants Not Killed: \u001B[31m2\u001B[0m
-            |Score: 50.0%
-            |
-            |\u001B[32mMutation score is above minimum [50.0% >= 50.0%]\u001B[0m
-            |""".stripMargin
+          s"""
+             |Mutation Results:
+             |Total mutants found: 16
+             |Total mutants tested: 4  (25%)
+             |
+             |Total Time (seconds): 12
+             |Average time each (seconds): 3.1
+             |
+             |Mutants Killed: ${greenText("2")}
+             |Mutants Not Killed: ${redText("2")}
+             |Score: 50.0%
+             |
+             |${greenText("Mutation score is above minimum [50.0% >= 50.0%]")}
+             |""".stripMargin
         }) &&
         assert(result)(equalTo(true))
       },
@@ -83,20 +81,20 @@ object ConsoleReporterTest extends TestSpec {
           )
 
         assert(out)(equalTo {
-          """
-            |Mutation Results:
-            |Total mutants found: 34
-            |Total mutants tested: 3  (8%)
-            |
-            |Total Time (seconds): 12
-            |Average time each (seconds): 4.2
-            |
-            |Mutants Killed: \u001B[32m1\u001B[0m
-            |Mutants Not Killed: \u001B[31m2\u001B[0m
-            |Score: 33.3%
-            |
-            |\u001B[31mMutation score is below minimum [33.3% < 33.4%]\u001B[0m
-            |""".stripMargin
+          s"""
+             |Mutation Results:
+             |Total mutants found: 34
+             |Total mutants tested: 3  (8%)
+             |
+             |Total Time (seconds): 12
+             |Average time each (seconds): 4.2
+             |
+             |Mutants Killed: ${greenText("1")}
+             |Mutants Not Killed: ${redText("2")}
+             |Score: 33.3%
+             |
+             |${redText("Mutation score is below minimum [33.3% < 33.4%]")}
+             |""".stripMargin
         }) &&
         assert(result)(equalTo(false))
       },
@@ -104,7 +102,9 @@ object ConsoleReporterTest extends TestSpec {
         test("print the correct message used when the filesToMutate is empty") {
           val Instruction.PrintLine(line, _) = ConsoleReporter.filesToMutateIsEmpty
           assert(line)(equalTo {
-            s"""\u001B[32m0 files to mutate because no code change found due to --onlyMutateDiff flag.\u001B[0m
+            s"""${greenText(
+                "0 files to mutate because no code change found due to --onlyMutateDiff flag."
+              )}
                |If you want all files to be tested regardless use --onlyMutateDiff=false
                |""".stripMargin
           })
@@ -112,11 +112,11 @@ object ConsoleReporterTest extends TestSpec {
       ),
       suite("gitIssues")(
         test("print the correct message used when the filesToMutate is empty") {
-          val gitError =
+          val gitError: String =
             "fatal: ambiguous argument 'master': unknown revision or path not in the working tree."
-          val Instruction.PrintLine(line, _) = ConsoleReporter.gitIssues(gitError)
+          val Instruction.PrintLine(line, _) = ConsoleReporter.gitIssues(new Throwable(gitError))
           assert(line)(equalTo {
-            s"""\u001B[31mGIT command error:\u001B[0m
+            s"""${redText("GIT command error:")}
                |$gitError
                |""".stripMargin
           })
@@ -144,5 +144,9 @@ object ConsoleReporterTest extends TestSpec {
 
     getReturn(reportMutationResult(results, totalTime, numberOfMutants, options), "")
   }
+
+  private def redText(str: String): String = s"\u001B[31m" + str + "\u001B[0m"
+
+  private def greenText(str: String): String = s"\u001B[32m" + str + "\u001B[0m"
 
 }

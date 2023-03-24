@@ -4,10 +4,9 @@ import blinky.cli.Cli.InterpreterEnvironment
 import blinky.run.Instruction._
 import blinky.run.external.ExternalCalls
 import blinky.run.modules.ExternalModule
-import zio.URIO
-import zio.duration.durationLong
+import os.{CommandResult, SubprocessException}
+import zio.{URIO, ZIO}
 
-import java.nio.file.{Files, Paths}
 import scala.annotation.tailrec
 
 object Interpreter {
@@ -16,26 +15,18 @@ object Interpreter {
       initialProgram: Instruction[A]
   ): URIO[InterpreterEnvironment, A] =
     for {
-      externalCalls <- ExternalModule.external
-      result <- interpreterFully(externalCalls, initialProgram) match {
-        case Left(Timeout(runFunction, millis, next)) =>
-          interpreter(runFunction).disconnect.timeout(millis.millis).flatMap { instruction =>
-            interpreter(next(instruction))
-          }
-        case Right(value) =>
-          URIO.succeed(value)
-      }
-    } yield result
+      externalCalls <- ZIO.service[ExternalModule].flatMap(_.external)
+    } yield interpreterFully(externalCalls, initialProgram)
 
   private def interpreterFully[A](
       externalCalls: ExternalCalls,
       initialProgram: Instruction[A]
-  ): Either[Timeout[A], A] = {
+  ): A = {
     @tailrec
-    def interpreterNext(program: Instruction[A]): Either[Timeout[A], A] =
+    def interpreterNext(program: Instruction[A]): A =
       program match {
         case Return(value) =>
-          Right(value())
+          value()
         case Empty(next) =>
           interpreterNext(next)
         case PrintLine(line, next) =>
@@ -48,36 +39,27 @@ object Interpreter {
           val path = externalCalls.makeTemporaryDirectory()
           interpreterNext(next(path))
         case MakeDirectory(path, next) =>
-          externalCalls.makeDirectory(path)
-          interpreterNext(next)
-        case RunSync(op, args, envArgs, path, next) =>
-          externalCalls.runSync(op, args, envArgs, path)
-          interpreterNext(next)
-        case RunAsync(op, args, envArgs, path, next) =>
-          val result = externalCalls.runAsync(op, args, envArgs, path)
+          val result = externalCalls.makeDirectory(path)
           interpreterNext(next(result))
-        case RunAsyncSuccess(op, args, envArgs, path, next) =>
-          val result = externalCalls.runAsync(op, args, envArgs, path)
-          interpreterNext(next(result.isRight))
-        case RunAsyncEither(op, args, envArgs, path, next) =>
-          externalCalls.runAsync(op, args, envArgs, path) match {
-            case Left(value) =>
-              interpreterNext(next(Left(value)))
-            case Right(value) =>
-              interpreterNext(next(Right(value)))
-          }
+        case RunStream(op, args, envArgs, path, next) =>
+          val result = externalCalls.runStream(op, args, envArgs, path)
+          interpreterNext(next(result))
+        case RunResultEither(op, args, envArgs, path, next) =>
+          val result = externalCalls.runResult(op, args, envArgs, None, path)
+          interpreterNext(next(result))
+        case RunResultTimeout(op, args, envArgs, timeout, path, next) =>
+          val initialTime = System.currentTimeMillis()
+          val result = externalCalls.runResult(op, args, envArgs, Some(timeout), path)
+          interpreterNext(next(resultTimeout(result, initialTime, timeout)))
         case CopyInto(from, to, next) =>
-          externalCalls.copyInto(from, to)
-          interpreterNext(next)
+          val result = externalCalls.copyInto(from, to)
+          interpreterNext(next(result))
         case CopyResource(resource, destinationPath, next) =>
-          Files.copy(
-            getClass.getResource(resource).openStream,
-            Paths.get(destinationPath.toString)
-          )
-          interpreterNext(next)
+          val result = externalCalls.copyResource(resource, destinationPath)
+          interpreterNext(next(result))
         case WriteFile(path, content, next) =>
-          externalCalls.writeFile(path, content)
-          interpreterNext(next)
+          val result = externalCalls.writeFile(path, content)
+          interpreterNext(next(result))
         case ReadFile(path, next) =>
           val content = externalCalls.readFile(path)
           interpreterNext(next(content))
@@ -88,13 +70,29 @@ object Interpreter {
           val result = externalCalls.copyRelativeFiles(filesToCopy, fromPath, toPath)
           interpreterNext(next(result))
         case LsFiles(basePath, next) =>
-          val result = externalCalls.lsFiles(basePath)
+          val result = externalCalls.listFiles(basePath)
           interpreterNext(next(result))
-        case timeout @ Timeout(_, _, _) =>
-          Left(timeout)
       }
 
     interpreterNext(initialProgram)
   }
+
+  private def resultTimeout(
+      result: Either[Throwable, String],
+      initialTime: Long,
+      timeout: Long
+  ): Either[Throwable, TimeoutResult] =
+    result match {
+      case Right(_) =>
+        Right(TimeoutResult.Ok)
+      case Left(res @ SubprocessException(CommandResult(_, _))) =>
+        val elapsedTime = System.currentTimeMillis() - initialTime
+        if (elapsedTime >= timeout)
+          Right(TimeoutResult.Timeout)
+        else
+          Left(res)
+      case Left(throwable) =>
+        Left(throwable)
+    }
 
 }
