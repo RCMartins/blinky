@@ -5,7 +5,7 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
-val semanticdbScalac = "4.7.6"
+val semanticdbScalac = "4.7.7"
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -108,13 +108,13 @@ lazy val cli =
     .settings(
       publish / skip := false,
       moduleName := "blinky-cli",
-      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.9.0",
+      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.9.3",
       libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.11",
       libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.11",
       libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.1.0",
-      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.10",
-      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.10" % "test",
-      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.10" % "test",
+      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.13",
+      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.13" % "test",
+      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.13" % "test",
       testFrameworks += TestFrameworks.ZIOTest,
       Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimumStmtTotal := 30,
