@@ -1,11 +1,11 @@
 package blinky.run
 
-import os.{Path, RelPath}
 import blinky.BuildInfo
 import blinky.run.Instruction._
 import blinky.run.config.{FileFilter, MutationsConfigValidated, SimpleBlinkyConfig}
 import blinky.run.modules.CliModule
 import blinky.v0.BlinkyConfig
+import os.{Path, RelPath}
 import zio.{ExitCode, RIO, ZIO}
 
 import scala.util.Try
@@ -336,7 +336,7 @@ object Run {
             .map(_ => Left(ExitCode.failure))
         case Right(gitResult) =>
           val filesToCopy: Seq[RelPath] =
-            gitResult.split(System.lineSeparator()).map(RelPath(_)).toSeq
+            gitResult.split("\\r?\\n").map(RelPath(_)).toSeq
           for {
             copyResult <- copyRelativeFiles(
               filesToCopy,
