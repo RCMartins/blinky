@@ -3,8 +3,8 @@ package blinky.internal
 import better.files.File
 import blinky.v0.{BlinkyConfig, MutantRange}
 import metaconfig.Configured
-import play.api.libs.json.Json
 import scalafix.v1._
+import zio.json.EncoderOps
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.meta._
@@ -82,7 +82,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
     }
   }
 
-  def createMutant(
+  private def createMutant(
       original: Term,
       mutated: Term,
       needsParens: Boolean,
@@ -129,10 +129,11 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
         }
     }
 
-  def saveNewMutantsToFile(mutantsFound: Seq[Mutant]): Unit =
+  private def saveNewMutantsToFile(mutantsFound: Seq[Mutant]): Unit =
     if (mutantsFound.nonEmpty)
       mutantsOutputFileOpt.foreach { mutantsOutputFile =>
-        val jsonMutationReport = mutantsFound.map(Json.toJson(_)).map(_.toString)
+        val jsonMutationReport: Seq[String] =
+          mutantsFound.map(mutant => mutant.toMutantFile.toJson)
         mutantsOutputFile.appendLines(jsonMutationReport: _*)
       }
 

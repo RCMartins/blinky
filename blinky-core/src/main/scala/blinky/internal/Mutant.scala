@@ -1,7 +1,5 @@
 package blinky.internal
 
-import play.api.libs.json.{Json, OWrites}
-
 import scala.meta.Term
 
 case class Mutant(
@@ -11,16 +9,15 @@ case class Mutant(
     original: Term,
     mutated: Term,
     needsParens: Boolean
-)
+) {
 
-object Mutant {
-  implicit val jsonWrites: OWrites[Mutant] =
-    (mutant: Mutant) =>
-      Json.obj(
-        "id" -> mutant.id,
-        "diff" -> mutant.diff,
-        "fileName" -> mutant.fileName,
-        "original" -> mutant.original.syntax,
-        "mutated" -> syntaxParens(mutant.mutated, mutant.needsParens)
-      )
+  def toMutantFile: MutantFile =
+    MutantFile(
+      id = id,
+      diff = diff,
+      fileName = fileName,
+      original = original.syntax,
+      mutated = syntaxParens(mutated, needsParens)
+    )
+
 }
