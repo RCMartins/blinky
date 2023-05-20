@@ -70,6 +70,7 @@ lazy val core =
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.2",
       libraryDependencies += "com.lihaoyi"          %% "os-lib"        % "0.8.1",
       libraryDependencies += "dev.zio"              %% "zio-json"      % "0.4.2",
+      libraryDependencies += "dev.zio"              %% "zio"           % "2.0.13",
       libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.15" % "test",
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
@@ -79,13 +80,15 @@ lazy val core =
 lazy val input =
   project
     .settings(
-      scalacOptions := Seq.empty
+      scalacOptions := Seq.empty,
+      libraryDependencies += "dev.zio" %% "zio" % "2.0.13"
     )
 
 lazy val output =
   project
     .settings(
       scalacOptions := Seq.empty,
+      libraryDependencies += "dev.zio" %% "zio" % "2.0.13",
       Compile / sourceGenerators += Def.task {
         val sourcesFolder = file((Compile / scalaSource).value.toString + "-output")
         val generatedFolder = (Compile / sourceManaged).value
@@ -95,7 +98,7 @@ lazy val output =
             file("output/.blinky-cache"),
             FileInfo.full
           ) { files =>
-            files.flatMap(PreProcess.preProcessOutputFiles(_, generatedFolder))
+            files.flatMap(PreProcess.preProcessOutputFiles(sourcesFolder, _, generatedFolder))
           }
         cachedFunc(Set(sourcesFolder, file("project/PreProcess.scala"))).toSeq
       }.taskValue
