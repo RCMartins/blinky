@@ -54,7 +54,7 @@ object Collections extends MutatorGroup {
     }
   }
 
-  private val ListApply: RemoveApplyArgMutator =
+  val ListApply: RemoveApplyArgMutator =
     new RemoveApplyArgMutator(
       "ListApply",
       "List",
@@ -65,7 +65,7 @@ object Collections extends MutatorGroup {
       minimum = 1
     )
 
-  private val SeqApply: RemoveApplyArgMutator =
+  val SeqApply: RemoveApplyArgMutator =
     new RemoveApplyArgMutator(
       "SeqApply",
       "Seq",
@@ -78,7 +78,7 @@ object Collections extends MutatorGroup {
       minimum = 1
     )
 
-  private val SetApply: RemoveApplyArgMutator =
+  val SetApply: RemoveApplyArgMutator =
     new RemoveApplyArgMutator(
       "SetApply",
       "Set",
@@ -91,7 +91,7 @@ object Collections extends MutatorGroup {
       minimum = 2
     )
 
-  private val ReverseSymbols: Seq[String] =
+  val ReverseSymbols: Seq[String] =
     Seq(
       "scala/collection/SeqLike#reverse().",
       "scala/collection/immutable/List#reverse().",
