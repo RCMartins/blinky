@@ -1,4 +1,4 @@
-package test
+package test.general
 
 object GeneralSyntax4 {
   case class Foo(value1: Int, value2: Int)(value3: Int, value4: Int)
