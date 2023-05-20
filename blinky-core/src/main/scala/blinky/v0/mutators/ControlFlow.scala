@@ -14,7 +14,7 @@ object ControlFlow extends MutatorGroup {
       IfMutator
     )
 
-  object IfMutator extends SimpleMutator("If") {
+  private object IfMutator extends SimpleMutator("If") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case Term.If(_, thenTerm, elseTerm) =>
         default(thenTerm, elseTerm)

@@ -21,7 +21,7 @@ object ArithmeticOperators extends MutatorGroup {
       CharMutators.CharDivToMul
     )
 
-  object IntMutators {
+  private object IntMutators {
 
     val IntPlusToMinus: SimpleMutator =
       ArithmeticMutator("IntPlusToMinus", "+", "scala/Int#`+`(+4).", "-")
@@ -34,7 +34,7 @@ object ArithmeticOperators extends MutatorGroup {
 
   }
 
-  object CharMutators {
+  private object CharMutators {
 
     val CharPlusToMinus: SimpleMutator =
       ArithmeticMutator("CharPlusToMinus", "+", "scala/Char#`+`(+4).", "-")

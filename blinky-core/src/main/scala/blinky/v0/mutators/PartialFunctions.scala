@@ -17,7 +17,7 @@ object PartialFunctions extends MutatorGroup {
       RemoveOneAlternative
     )
 
-  object RemoveOneCase extends SimpleMutator("RemoveOneCase") {
+  private object RemoveOneCase extends SimpleMutator("RemoveOneCase") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case Term.PartialFunction(cases) if cases.lengthCompare(2) >= 0 =>
         @tailrec
@@ -37,7 +37,7 @@ object PartialFunctions extends MutatorGroup {
     }
   }
 
-  object RemoveOneAlternative extends SimpleMutator("RemoveOneAlternative") {
+  private object RemoveOneAlternative extends SimpleMutator("RemoveOneAlternative") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case Term.PartialFunction(cases) =>
         def findAlternatives(mainPat: Pat): List[Pat] =
