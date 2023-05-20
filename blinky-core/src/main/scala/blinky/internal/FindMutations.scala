@@ -6,7 +6,7 @@ import scalafix.v1.SemanticDocument
 import scala.meta._
 
 class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocument) {
-  def findAllMutations(
+  private def findAllMutations(
       term: Term
   ): (Seq[Term], Boolean, Boolean) = {
     val replaces = activeMutators.flatMap(_.getMutator(doc).lift(term))
@@ -21,17 +21,22 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
         topTermMutations(right, parensRequired = false)
       case Defn.Var(_, _, _, right) =>
         topTermMutations(right, parensRequired = false)
+      case Defn.Def(_, _, _, paramsListList, _, body) =>
+        paramsListList.flatMap(
+          _.flatMap(param => topTermMutations(param.default, parensRequired = false))
+        ) ++
+          topTermMutations(body, parensRequired = false)
       case other =>
         other.children.flatMap(topTreeMutations)
     }
 
-  def topTermMutations(
-      term: Option[Term],
+  private def topTermMutations(
+      termOpt: Option[Term],
       parensRequired: Boolean
   ): Seq[(Term, MutatedTerms)] =
-    term.map(topTermMutations(_, parensRequired)).getOrElse(Seq.empty)
+    termOpt.map(topTermMutations(_, parensRequired)).getOrElse(Seq.empty)
 
-  def topTermMutations(
+  private def topTermMutations(
       term: Term,
       parensRequired: Boolean,
       overrideOriginal: Option[Term] = None
@@ -48,10 +53,10 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
         Some(other)
     }.flatten
 
-  def topMainTermMutations(term: Term): Seq[Term] =
+  private def topMainTermMutations(term: Term): Seq[Term] =
     termMutations(term, mainTermsOnly = true).flatMap { case (_, mutations) => mutations.mutated }
 
-  def termMutations(mainTerm: Term, mainTermsOnly: Boolean): Seq[(Term, MutatedTerms)] = {
+  private def termMutations(mainTerm: Term, mainTermsOnly: Boolean): Seq[(Term, MutatedTerms)] = {
     def selectSmallerMutation(
         term: Term,
         subMutationsWithMain: => Seq[Term],
