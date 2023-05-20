@@ -11,4 +11,7 @@ object JavaAnnotations {
   @deprecated("Use newClass instead", "1.2.3")
   class SomeClass
 
+  @deprecated("Use newCaseClass instead", "1.2.3")
+  case class CaseClass()
+
 }
