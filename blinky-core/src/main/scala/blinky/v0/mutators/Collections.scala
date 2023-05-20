@@ -25,7 +25,7 @@ object Collections extends MutatorGroup {
         removeOneArg(before :+ term, others, before ++ others :: result)
     }
 
-   class RemoveApplyArgMutator(
+  class RemoveApplyArgMutator(
       mutatorName: String,
       collectionName: String,
       val symbolsToMatch: Seq[String],
