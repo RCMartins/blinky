@@ -29,6 +29,9 @@ class Footer extends React.Component {
             <a href={this.docUrl('mutators.html', null)}>
               Mutators
             </a>
+            <a href={this.docUrl('maintenance.html', null)}>
+              Project Maintenance
+            </a>
           </div>
           <div>
             <h5>More</h5>

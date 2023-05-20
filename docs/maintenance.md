@@ -1,3 +1,9 @@
+---
+id: maintenance
+title: Project Maintenance
+sidebar_label: Project Maintenance
+---
+
 To debug an arbitrary expression, run on an ammonite with `amm --thin` command
 ```scala
 import $ivy.`org.scalameta::scalameta:4.7.7`, scala.meta._
