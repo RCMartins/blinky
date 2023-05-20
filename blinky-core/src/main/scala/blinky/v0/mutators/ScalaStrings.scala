@@ -27,7 +27,7 @@ object ScalaStrings extends MutatorGroup {
       Mutators.Reverse
     )
 
-  object Mutators {
+  private object Mutators {
 
     object Concat extends SimpleMutator("Concat") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {

@@ -12,7 +12,7 @@ object ConditionalExpressions extends MutatorGroup {
   override val getSubMutators: List[Mutator] =
     List(AndToOr, OrToAnd, RemoveUnaryNot)
 
-  object AndToOr extends SimpleMutator("AndToOr") {
+  private object AndToOr extends SimpleMutator("AndToOr") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case and @ Term.ApplyInfix(left, Term.Name("&&"), targs, right)
           if SymbolMatcher.exact("scala/Boolean#`&&`().").matches(and.symbol) =>
@@ -20,7 +20,7 @@ object ConditionalExpressions extends MutatorGroup {
     }
   }
 
-  object OrToAnd extends SimpleMutator("OrToAnd") {
+  private object OrToAnd extends SimpleMutator("OrToAnd") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case or @ Term.ApplyInfix(left, Term.Name("||"), targs, right)
           if SymbolMatcher.exact("scala/Boolean#`||`().").matches(or.symbol) =>
@@ -28,7 +28,7 @@ object ConditionalExpressions extends MutatorGroup {
     }
   }
 
-  object RemoveUnaryNot extends SimpleMutator("RemoveUnaryNot") {
+  private object RemoveUnaryNot extends SimpleMutator("RemoveUnaryNot") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case boolNeg @ Term.ApplyUnary(Term.Name("!"), arg)
           if SymbolMatcher.exact("scala/Boolean#`unary_!`().").matches(boolNeg.symbol) =>

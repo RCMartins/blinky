@@ -15,7 +15,7 @@ object ScalaTry extends MutatorGroup {
       OrElse
     )
 
-  object GetOrElse extends SimpleMutator("GetOrElse") {
+  private object GetOrElse extends SimpleMutator("GetOrElse") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case getOrElse @ Term.Apply(Term.Select(termName, Term.Name("getOrElse")), List(arg))
           if SymbolMatcher.exact("scala/util/Try#getOrElse().").matches(getOrElse.symbol) =>
@@ -23,7 +23,7 @@ object ScalaTry extends MutatorGroup {
     }
   }
 
-  object OrElse extends SimpleMutator("OrElse") {
+  private object OrElse extends SimpleMutator("OrElse") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case orElse @ Term.Apply(Term.Select(termName, Term.Name("orElse")), List(arg))
           if SymbolMatcher.exact("scala/util/Try#orElse().").matches(orElse.symbol) =>

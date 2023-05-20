@@ -586,6 +586,26 @@ example mutation 2:
 + val seq = Seq("a", "b", "c")
 ```
 
+#### ReduceOption
+
+name: ReduceOption
+
+description: Replaces the call to `reduceOption` on `List`/`SeqLike`/`IndexedSeqOptimized` with `None`.
+
+example mutation 1:
+
+```diff
+- val list = List(1, 2, 3).reduceOption((a, b) => a + b)
++ val list = None
+```
+
+example mutation 2:
+
+```diff
+- val seq = Seq[Int]().reduceOption((a, b) => a + b)
++ val seq = None
+```
+
 ---
 
 ### Partial Functions

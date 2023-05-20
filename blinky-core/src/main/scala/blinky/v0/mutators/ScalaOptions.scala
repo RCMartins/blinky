@@ -24,7 +24,7 @@ object ScalaOptions extends MutatorGroup {
       Contains
     )
 
-  object GetOrElse extends SimpleMutator("GetOrElse") {
+  private object GetOrElse extends SimpleMutator("GetOrElse") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case getOrElse @ Term.Apply(Term.Select(termName, Term.Name("getOrElse")), List(arg))
           if SymbolMatcher.exact("scala/Option#getOrElse().").matches(getOrElse.symbol) =>
@@ -32,7 +32,7 @@ object ScalaOptions extends MutatorGroup {
     }
   }
 
-  object Exists extends SimpleMutator("Exists") {
+  private object Exists extends SimpleMutator("Exists") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case exists @ Term.Apply(Term.Select(termName, Term.Name("exists")), args)
           if SymbolMatcher.exact("scala/Option#exists().").matches(exists.symbol) =>
@@ -40,7 +40,7 @@ object ScalaOptions extends MutatorGroup {
     }
   }
 
-  object Forall extends SimpleMutator("Forall") {
+  private object Forall extends SimpleMutator("Forall") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case forall @ Term.Apply(Term.Select(termName, Term.Name("forall")), args)
           if SymbolMatcher.exact("scala/Option#forall().").matches(forall.symbol) =>
@@ -48,7 +48,7 @@ object ScalaOptions extends MutatorGroup {
     }
   }
 
-  object IsEmpty extends SimpleMutator("IsEmpty") {
+  private object IsEmpty extends SimpleMutator("IsEmpty") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case isEmpty @ Term.Select(termName, Term.Name("isEmpty"))
           if SymbolMatcher.exact("scala/Option#isEmpty().").matches(isEmpty.symbol) =>
@@ -56,7 +56,7 @@ object ScalaOptions extends MutatorGroup {
     }
   }
 
-  object NonEmpty extends SimpleMutator("NonEmpty") {
+  private object NonEmpty extends SimpleMutator("NonEmpty") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case nonEmpty @ Term.Select(termName, Term.Name("nonEmpty" | "isDefined"))
           if SymbolMatcher
@@ -66,7 +66,7 @@ object ScalaOptions extends MutatorGroup {
     }
   }
 
-  object Fold extends SimpleMutator("Fold") {
+  private object Fold extends SimpleMutator("Fold") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case fold @ Term.Apply(Term.Apply(Term.Select(_, Term.Name("fold")), List(argDefault)), _)
           if SymbolMatcher.exact("scala/Option#fold().").matches(fold.symbol) =>
@@ -74,7 +74,7 @@ object ScalaOptions extends MutatorGroup {
     }
   }
 
-  object OrElse extends SimpleMutator("OrElse") {
+  private object OrElse extends SimpleMutator("OrElse") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case orElse @ Term.Apply(Term.Select(termName, Term.Name("orElse")), List(arg))
           if SymbolMatcher.exact("scala/Option#orElse().").matches(orElse.symbol) =>
@@ -82,7 +82,7 @@ object ScalaOptions extends MutatorGroup {
     }
   }
 
-  object OrNull extends SimpleMutator("OrNull") {
+  private object OrNull extends SimpleMutator("OrNull") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case orNull @ Term.Select(_, Term.Name("orNull"))
           if SymbolMatcher.exact("scala/Option#orNull().").matches(orNull.symbol) =>
@@ -90,7 +90,7 @@ object ScalaOptions extends MutatorGroup {
     }
   }
 
-  object Filter extends SimpleMutator("Filter") {
+  private object Filter extends SimpleMutator("Filter") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case filter @ Term.Apply(Term.Select(termName, Term.Name("filter")), args)
           if SymbolMatcher.exact("scala/Option#filter().").matches(filter.symbol) =>
@@ -98,7 +98,7 @@ object ScalaOptions extends MutatorGroup {
     }
   }
 
-  object FilterNot extends SimpleMutator("FilterNot") {
+  private object FilterNot extends SimpleMutator("FilterNot") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case filterNot @ Term.Apply(Term.Select(termName, Term.Name("filterNot")), args)
           if SymbolMatcher.exact("scala/Option#filterNot().").matches(filterNot.symbol) =>
@@ -106,7 +106,7 @@ object ScalaOptions extends MutatorGroup {
     }
   }
 
-  object Contains extends SimpleMutator("Contains") {
+  private object Contains extends SimpleMutator("Contains") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case contains @ Term.Apply(Term.Select(_, Term.Name("contains")), _)
           if SymbolMatcher.exact("scala/Option#contains().").matches(contains.symbol) =>
