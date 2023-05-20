@@ -21,6 +21,7 @@ Because of several factors like time to run or importance we may want to enable/
 * [Partial Functions](#partial-functions)
 * [Scala Strings](#scala-strings)
 * [Control Flow](#control-flow)
+* [ZIO](#ZIO)
 
 ### Literal Booleans
 
@@ -915,6 +916,66 @@ example mutation 4:
 ```diff
 - if (condition) somethingThen()
 + ()
+```
+
+---
+
+### ZIO
+
+group name: ZIO
+
+#### When
+
+name: When
+
+description: Changes the `when` call into three mutants.
+
+example mutation 1:
+
+```diff
+- ZIO.succeed("abc").when(true)
++ ZIO.succeed("abc").unless(true)
+```
+
+example mutation 2:
+
+```diff
+- ZIO.succeed("abc").when(true)
++ ZIO.succeed("abc").asSome
+```
+
+example mutation 3:
+
+```diff
+- ZIO.succeed("abc").when(true)
++ ZIO.succeed("abc").as(None)
+```
+
+#### Unless
+
+name: Unless
+
+description: Changes the `unless` call into three mutants.
+
+example mutation 1:
+
+```diff
+- ZIO.succeed("abc").unless(true)
++ ZIO.succeed("abc").when(true)
+```
+
+example mutation 2:
+
+```diff
+- ZIO.succeed("abc").unless(true)
++ ZIO.succeed("abc").asSome
+```
+
+example mutation 3:
+
+```diff
+- ZIO.succeed("abc").unless(true)
++ ZIO.succeed("abc").as(None)
 ```
 
 ---

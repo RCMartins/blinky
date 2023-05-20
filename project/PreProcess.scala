@@ -6,15 +6,17 @@ import better.files._
 object PreProcess {
 
   def preProcessOutputFiles(
+      jBaseInputFolder: JFile,
       jInputFile: JFile,
       jOutputFolder: JFile
   ): Seq[JFile] = {
-    val file = File(jInputFile.toPath)
-    val outputFolder = File(jOutputFolder.toPath)
-    file.listRecursively
+    val baseInputFolder: File = File(jBaseInputFolder.toPath)
+    val inputFile: File = File(jInputFile.toPath)
+    val outputFolder: File = File(jOutputFolder.toPath)
+    inputFile.listRecursively
       .filter(_.isRegularFile)
       .map { outFile =>
-        val processedFile = outputFolder / "test" / outFile.name
+        val processedFile = outputFolder / baseInputFolder.relativize(outFile).toString
         processedFile.parent.createDirectories()
         preProcess(outFile, processedFile)
         processedFile
