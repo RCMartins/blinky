@@ -3,7 +3,7 @@ rule = Blinky
 Blinky.filesToMutate = [all]
 Blinky.enabledMutators = [ArithmeticOperators, LiteralBooleans, Collections]
  */
-package test
+package test.general
 
 object GeneralSyntax3 {
   class Foo(value: Boolean)

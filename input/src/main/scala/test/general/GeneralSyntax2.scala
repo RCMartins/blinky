@@ -3,7 +3,7 @@ rule = Blinky
 Blinky.filesToMutate = [all]
 Blinky.enabledMutators = [ArithmeticOperators, LiteralBooleans]
  */
-package test
+package test.general
 
 object GeneralSyntax2 {
   def str1: String = (1 + 2) + ""
