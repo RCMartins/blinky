@@ -28,9 +28,14 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
           topTermMutations(body, parensRequired = false)
       case Defn.Object(_, _, template) =>
         template.stats.flatMap(topTreeMutations)
+      case Defn.Trait(_, _, _, constructor, template) =>
+        topTreeMutations(constructor) ++
+          template.stats.flatMap(topTreeMutations)
       case Defn.Class(_, _, _, constructor, template) =>
         topTreeMutations(constructor) ++
           template.stats.flatMap(topTreeMutations)
+      case Defn.Type(_, _, _, _) =>
+        Seq.empty
       case Ctor.Primary(_, _, paramss) =>
         paramss.flatMap(_.flatMap(param => topTermMutations(param.default, parensRequired = false)))
       case other =>
