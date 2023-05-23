@@ -57,6 +57,10 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
       // Disable rules on Term.Placeholder until we can handle this case properly
       case (original, _) if original.collect { case Term.Placeholder() => }.nonEmpty =>
         None
+      // Because of a bug in scalameta this expression can not be mutated safely
+      // https://github.com/scalameta/scalameta/issues/3128
+      case (original, _) if original.collect { case Term.If(_, _, Lit.Unit()) => }.nonEmpty =>
+        None
       case (original, mutatedTerms) if parensRequired && original == term =>
         Some((original, mutatedTerms.copy(needsParens = true)))
       case (original, mutatedTerms) if original == term && overrideOriginal.nonEmpty =>
@@ -240,12 +244,12 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
     }
   }
 
-  def listTermsMutateMain(originalList: List[Term]): List[List[Term]] =
+  private def listTermsMutateMain(originalList: List[Term]): List[List[Term]] =
     originalList.zipWithIndex
       .flatMap { case (term, index) => topMainTermMutations(term).map((_, index)) }
       .map { case (mutated, index) => originalList.updated(index, mutated) }
 
-  def initMutateMain(init: Init): List[Init] =
+  private def initMutateMain(init: Init): List[Init] =
     init.argss
       .map(_.zipWithIndex)
       .zipWithIndex
