@@ -1,22 +1,22 @@
 package blinky.run
 
-import blinky.TestSpec
+import blinky.TestSpec._
 import blinky.run.TestInstruction._
 import blinky.run.Utils.red
 import blinky.run.config.FileFilter
 import os.{Path, RelPath}
-import zio.ExitCode
 import zio.test._
+import zio.{ExitCode, Scope}
 
 import java.io.IOException
 
-object RunTest extends TestSpec {
+object RunTest extends ZIOSpecDefault {
 
   val originalProjectRoot: Path = Path(getFilePath("."))
   val originalProjectPath: Path = Path(getFilePath("some-project"))
   val projectRealPath: Path = Path(getFilePath(".")) / "some-temp-folder"
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
+  def spec: Spec[TestEnvironment with Scope, Any] =
     suite("Run")(
       suite("processFilesToMutate")(
         test("when files filtering is SingleFileOrFolder") {
@@ -73,6 +73,71 @@ object RunTest extends TestSpec {
                    |src/bar/FileB.scala""".stripMargin,
                 TestReturn(Left(ExitCode.failure))
               )
+            )
+          )
+        },
+        test("when lists files command fails") {
+          testInstruction(
+            Run.processFilesToMutate(
+              projectRealPath,
+              FileFilter.FileName("FileB.scala")
+            ),
+            TestLsFiles(
+              projectRealPath,
+              Left(new Throwable("ls-files command error message")),
+              TestPrintErrorLine(
+                s"""Failed to list files in $projectRealPath
+                   |java.lang.Throwable: ls-files command error message
+                   |""".stripMargin,
+                TestReturn(Left(ExitCode.failure))
+              )
+            )
+          )
+        }
+      ),
+      suite("optimiseFilesToMutate")(
+        test("when copy result fails") {
+          testInstruction(
+            Run.optimiseFilesToMutate(
+              Seq.empty,
+              Left(ExitCode.failure),
+              projectRealPath,
+              FileFilter.FileName("Any")
+            ),
+            TestReturn(Left(ExitCode.failure))
+          )
+        },
+        test("when copy result succeeds and filter is FileName and there is only one file") {
+          val singleFile = (projectRealPath / "FileA.scala").toString
+          testInstruction(
+            Run.optimiseFilesToMutate(
+              Seq(singleFile),
+              Right(()),
+              projectRealPath,
+              FileFilter.FileName("FileA.scala")
+            ),
+            TestIsFile(
+              Path(singleFile),
+              mockResult = true,
+              TestReturn(Right((singleFile, Seq(singleFile))))
+            )
+          )
+        },
+        test(
+          "when copy result succeeds and filter is SingleFileOrFolder and there is only one folder"
+        ) {
+          val singleFolder = (projectRealPath / "src").toString
+          testInstruction(
+            Run.optimiseFilesToMutate(
+              Seq(singleFolder),
+              Right(()),
+              projectRealPath,
+              FileFilter.SingleFileOrFolder(RelPath("src"))
+            ),
+            TestIsFile(
+              Path(singleFolder),
+              mockResult = true,
+              TestReturn(Right((singleFolder, Seq(singleFolder))))
             )
           )
         }

@@ -5,7 +5,7 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
-val semanticdbScalac = "4.5.9"
+val semanticdbScalac = "4.7.7"
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -67,9 +67,10 @@ lazy val core =
       publish / skip := false,
       moduleName := "blinky",
       libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
-      libraryDependencies += "com.typesafe.play"    %% "play-json"     % "2.9.2",
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.2",
       libraryDependencies += "com.lihaoyi"          %% "os-lib"        % "0.8.1",
+      libraryDependencies += "dev.zio"              %% "zio-json"      % "0.4.2",
+      libraryDependencies += "dev.zio"              %% "zio"           % "2.0.13",
       libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.15" % "test",
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
@@ -79,13 +80,15 @@ lazy val core =
 lazy val input =
   project
     .settings(
-      scalacOptions := Seq.empty
+      scalacOptions := Seq.empty,
+      libraryDependencies += "dev.zio" %% "zio" % "2.0.13"
     )
 
 lazy val output =
   project
     .settings(
       scalacOptions := Seq.empty,
+      libraryDependencies += "dev.zio" %% "zio" % "2.0.13",
       Compile / sourceGenerators += Def.task {
         val sourcesFolder = file((Compile / scalaSource).value.toString + "-output")
         val generatedFolder = (Compile / sourceManaged).value
@@ -95,7 +98,7 @@ lazy val output =
             file("output/.blinky-cache"),
             FileInfo.full
           ) { files =>
-            files.flatMap(PreProcess.preProcessOutputFiles(_, generatedFolder))
+            files.flatMap(PreProcess.preProcessOutputFiles(sourcesFolder, _, generatedFolder))
           }
         cachedFunc(Set(sourcesFolder, file("project/PreProcess.scala"))).toSeq
       }.taskValue
@@ -108,14 +111,14 @@ lazy val cli =
     .settings(
       publish / skip := false,
       moduleName := "blinky-cli",
-      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.9.0",
+      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.9.3",
       libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.11",
       libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.11",
       libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.1.0",
-      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.10",
-      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.10" % "test",
-      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.10" % "test",
-      testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
+      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.13",
+      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.13" % "test",
+      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.13" % "test",
+      testFrameworks += TestFrameworks.ZIOTest,
       Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimumStmtTotal := 30,
       coverageFailOnMinimum := true

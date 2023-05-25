@@ -1,4 +1,4 @@
-package test
+package test.general
 
 object GeneralSyntax2 {
   def str1: String = (if (???) 1 - 2 else 1 + 2) + ""

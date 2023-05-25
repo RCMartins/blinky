@@ -42,7 +42,7 @@ object Collections extends MutatorGroup {
     }
   }
 
-  class RemoveOpMutator(
+  private class RemoveOpMutator(
       mutatorName: String,
       opName: String,
       val symbolsToMatch: Seq[String]
@@ -101,7 +101,7 @@ object Collections extends MutatorGroup {
       "scala/collection/ArrayOps#reverse()."
     )
 
-  val Reverse: SimpleMutator =
+  private val Reverse: SimpleMutator =
     new SimpleMutator("Reverse") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
         case reverse @ Term.Select(term, Term.Name("reverse"))
@@ -110,7 +110,7 @@ object Collections extends MutatorGroup {
       }
     }
 
-  val Drop: RemoveOpMutator =
+  private val Drop: RemoveOpMutator =
     new RemoveOpMutator(
       "Drop",
       "drop",
@@ -122,7 +122,7 @@ object Collections extends MutatorGroup {
       )
     )
 
-  val Take: RemoveOpMutator =
+  private val Take: RemoveOpMutator =
     new RemoveOpMutator(
       "Take",
       "take",
@@ -134,6 +134,17 @@ object Collections extends MutatorGroup {
       )
     )
 
+  private val ReduceOption: SimpleMutator =
+    new SimpleMutator("ReduceOption") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case reduceOption @ Term.Apply(Term.Select(_, Term.Name("reduceOption")), _)
+            if SymbolMatcher
+              .exact("scala/collection/IterableOnceOps#reduceOption().")
+              .matches(reduceOption.symbol) =>
+          default(Term.Name("None"))
+      }
+    }
+
   override val getSubMutators: List[Mutator] =
     List(
       ListApply,
@@ -141,7 +152,8 @@ object Collections extends MutatorGroup {
       SetApply,
       Reverse,
       Drop,
-      Take
+      Take,
+      ReduceOption
     )
 
 }

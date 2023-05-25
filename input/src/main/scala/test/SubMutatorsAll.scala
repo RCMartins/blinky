@@ -9,11 +9,12 @@ Blinky.enabledMutators = [
   { ScalaOptions = [GetOrElse, Exists, Forall, IsEmpty, NonEmpty, Fold,
                     OrElse, OrNull, Filter, FilterNot, Contains] }
   { ScalaTry = [GetOrElse, OrElse] }
-  { Collections = [ListApply, SeqApply, SetApply, Reverse] }
+  { Collections = [ListApply, SeqApply, SetApply, Reverse, Drop, Take, ReduceOption] }
   { PartialFunctions = [RemoveOneCase] }
   { ScalaStrings = [Concat, Trim, ToUpperCase, ToLowerCase, Capitalize, StripPrefix,
                     StripSuffix, Map, FlatMap, Drop, Take, DropWhile, TakeWhile, Reverse] }
   { ControlFlow = [If] }
+  { ZIO = [When, Unless] }
 ]
  */
 package test

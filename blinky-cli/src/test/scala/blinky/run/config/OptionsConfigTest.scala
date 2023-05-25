@@ -1,11 +1,10 @@
 package blinky.run.config
 
-import blinky.TestSpec
 import metaconfig.{Conf, Configured}
 import zio.test.Assertion._
 import zio.test._
 
-object OptionsConfigTest extends TestSpec {
+object OptionsConfigTest extends ZIOSpecDefault {
 
   val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("OptionsConfig")(

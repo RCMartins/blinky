@@ -1,4 +1,4 @@
-package test
+package test.general
 
 object GeneralSyntax1 {
   case class Foo(bool: Boolean = if (???) false else true)

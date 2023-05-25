@@ -6,7 +6,7 @@ import scalafix.v1.SemanticDocument
 import scala.meta._
 
 class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocument) {
-  def findAllMutations(
+  private def findAllMutations(
       term: Term
   ): (Seq[Term], Boolean, Boolean) = {
     val replaces = activeMutators.flatMap(_.getMutator(doc).lift(term))
@@ -21,17 +21,34 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
         topTermMutations(right, parensRequired = false)
       case Defn.Var(_, _, _, right) =>
         topTermMutations(right, parensRequired = false)
+      case Defn.Def(_, _, _, paramsListList, _, body) =>
+        paramsListList.flatMap(
+          _.flatMap(param => topTermMutations(param.default, parensRequired = false))
+        ) ++
+          topTermMutations(body, parensRequired = false)
+      case Defn.Object(_, _, template) =>
+        template.stats.flatMap(topTreeMutations)
+      case Defn.Trait(_, _, _, constructor, template) =>
+        topTreeMutations(constructor) ++
+          template.stats.flatMap(topTreeMutations)
+      case Defn.Class(_, _, _, constructor, template) =>
+        topTreeMutations(constructor) ++
+          template.stats.flatMap(topTreeMutations)
+      case Defn.Type(_, _, _, _) =>
+        Seq.empty
+      case Ctor.Primary(_, _, paramss) =>
+        paramss.flatMap(_.flatMap(param => topTermMutations(param.default, parensRequired = false)))
       case other =>
         other.children.flatMap(topTreeMutations)
     }
 
-  def topTermMutations(
-      term: Option[Term],
+  private def topTermMutations(
+      termOpt: Option[Term],
       parensRequired: Boolean
   ): Seq[(Term, MutatedTerms)] =
-    term.map(topTermMutations(_, parensRequired)).getOrElse(Seq.empty)
+    termOpt.map(topTermMutations(_, parensRequired)).getOrElse(Seq.empty)
 
-  def topTermMutations(
+  private def topTermMutations(
       term: Term,
       parensRequired: Boolean,
       overrideOriginal: Option[Term] = None
@@ -39,6 +56,10 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
     termMutations(term, mainTermsOnly = false).collect {
       // Disable rules on Term.Placeholder until we can handle this case properly
       case (original, _) if original.collect { case Term.Placeholder() => }.nonEmpty =>
+        None
+      // Because of a bug in scalameta this expression can not be mutated safely
+      // https://github.com/scalameta/scalameta/issues/3128
+      case (original, _) if original.collect { case Term.If(_, _, Lit.Unit()) => }.nonEmpty =>
         None
       case (original, mutatedTerms) if parensRequired && original == term =>
         Some((original, mutatedTerms.copy(needsParens = true)))
@@ -48,10 +69,10 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
         Some(other)
     }.flatten
 
-  def topMainTermMutations(term: Term): Seq[Term] =
+  private def topMainTermMutations(term: Term): Seq[Term] =
     termMutations(term, mainTermsOnly = true).flatMap { case (_, mutations) => mutations.mutated }
 
-  def termMutations(mainTerm: Term, mainTermsOnly: Boolean): Seq[(Term, MutatedTerms)] = {
+  private def termMutations(mainTerm: Term, mainTermsOnly: Boolean): Seq[(Term, MutatedTerms)] = {
     def selectSmallerMutation(
         term: Term,
         subMutationsWithMain: => Seq[Term],
@@ -141,6 +162,12 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
           topMainTermMutations(body).map(mutated => Term.Function(params, mutated)),
           topTermMutations(body, parensRequired = false)
         )
+      case function @ Term.AnonymousFunction(term) =>
+        selectSmallerMutation(
+          function,
+          topMainTermMutations(term).map(mutated => Term.AnonymousFunction(mutated)),
+          topTermMutations(term, parensRequired = false)
+        )
       case assign @ Term.Assign(name, exp) =>
         selectSmallerMutation(
           assign,
@@ -217,12 +244,12 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
     }
   }
 
-  def listTermsMutateMain(originalList: List[Term]): List[List[Term]] =
+  private def listTermsMutateMain(originalList: List[Term]): List[List[Term]] =
     originalList.zipWithIndex
       .flatMap { case (term, index) => topMainTermMutations(term).map((_, index)) }
       .map { case (mutated, index) => originalList.updated(index, mutated) }
 
-  def initMutateMain(init: Init): List[Init] =
+  private def initMutateMain(init: Init): List[Init] =
     init.argss
       .map(_.zipWithIndex)
       .zipWithIndex

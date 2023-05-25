@@ -1,10 +1,9 @@
 package blinky.run
 
-import blinky.TestSpec
 import zio.test.Assertion._
 import zio.test._
 
-object UtilsTest extends TestSpec {
+object UtilsTest extends ZIOSpecDefault {
 
   val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("Utils")(

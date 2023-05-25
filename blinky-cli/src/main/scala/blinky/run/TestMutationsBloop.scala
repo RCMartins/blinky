@@ -1,12 +1,13 @@
 package blinky.run
 
-import os.Path
+import blinky.internal.MutantFile
 import blinky.run.Instruction._
 import blinky.run.Utils._
 import blinky.run.config.OptionsConfig
 import blinky.v0.BlinkyConfig
-import play.api.libs.json.Json
+import os.Path
 import zio.ExitCode
+import zio.json.DecoderOps
 
 import scala.util.Random
 
@@ -18,26 +19,38 @@ object TestMutationsBloop {
   ): Instruction[ExitCode] = {
 
     for {
-      mutationReport <- readFile(Path(blinkyConfig.mutantsOutputFile))
-        .flatMap {
+      mutationReport <-
+        readFile(Path(blinkyConfig.mutantsOutputFile)).flatMap {
           case Left(_) =>
             printErrorLine(
               s"""Blinky failed to load mutants file:
                  |${blinkyConfig.mutantsOutputFile}
                  |""".stripMargin
-            ).map(_ => List.empty[Mutant])
+            ).map(_ => List.empty[MutantFile])
           case Right(fileData) =>
-            succeed(
+            val (mutantsParsed, errors) =
               fileData
                 .split("\n")
                 .filter(_.nonEmpty)
-                .map(Json.parse(_).as[Mutant])
+                .map(_.fromJson[MutantFile])
                 .toList
-                .filter { mutant =>
-                  val (numerator, denominator) = options.multiRun
-                  (mutant.id % denominator) == (numerator - 1)
-                }
-            )
+                .partition(_.isRight)
+            if (errors.nonEmpty)
+              printErrorLine(
+                s"""Blinky failed to parse mutants file:
+                   |${blinkyConfig.mutantsOutputFile}
+                   |${errors.mkString("\n")}
+                   |""".stripMargin
+              ).map(_ => List.empty[MutantFile])
+            else
+              succeed(
+                mutantsParsed
+                  .collect { case Right(mutant) => mutant }
+                  .filter { mutant =>
+                    val (numerator, denominator) = options.multiRun
+                    (mutant.id % denominator) == (numerator - 1)
+                  }
+              )
         }
 
       testCommand = options.testCommand
@@ -138,7 +151,7 @@ object TestMutationsBloop {
       options: OptionsConfig,
       originalTestTime: Long,
       numberOfMutants: Int,
-      mutationReport: List[Mutant]
+      mutationReport: List[MutantFile]
   ): Instruction[ExitCode] = {
     val mutationsToTest =
       if (
@@ -188,10 +201,10 @@ object TestMutationsBloop {
       projectPath: Path,
       options: OptionsConfig,
       originalTestTime: Long,
-      initialMutants: List[Mutant],
+      initialMutants: List[MutantFile],
       initialTime: Long
   ): Instruction[List[(Int, RunResult)]] = {
-    def loop(mutants: List[Mutant]): Instruction[List[(Int, RunResult)]] =
+    def loop(mutants: List[MutantFile]): Instruction[List[(Int, RunResult)]] =
       mutants match {
         case Nil =>
           succeed(Nil)
@@ -214,7 +227,7 @@ object TestMutationsBloop {
       projectPath: Path,
       options: OptionsConfig,
       originalTestTime: Long,
-      mutant: Mutant
+      mutant: MutantFile
   ): Instruction[(Int, RunResult)] = {
     val id = mutant.id
     val time = System.currentTimeMillis()
@@ -256,7 +269,7 @@ object TestMutationsBloop {
       projectPath: Path,
       options: OptionsConfig,
       originalTestTime: Long,
-      mutant: Mutant
+      mutant: MutantFile
   ): Instruction[RunResult] = {
     val prints =
       if (options.verbose)

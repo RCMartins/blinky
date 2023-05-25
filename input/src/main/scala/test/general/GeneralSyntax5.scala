@@ -3,7 +3,7 @@ rule = Blinky
 Blinky.filesToMutate = [all]
 Blinky.enabledMutators = [ArithmeticOperators, LiteralBooleans]
  */
-package test
+package test.general
 
 object GeneralSyntax5 {
   val if1 = (if (true) 1 + 7 else 2 * 5) + 10

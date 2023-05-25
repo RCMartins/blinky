@@ -23,7 +23,6 @@ trait Mutator {
 }
 
 object Mutator {
-  abstract class NonGroupedMutator(override val name: String) extends Mutator
 
   type MutationResult = PartialFunction[Term, ReplaceType]
 
@@ -37,7 +36,8 @@ object Mutator {
       mutators.Collections,
       mutators.PartialFunctions,
       mutators.ScalaStrings,
-      mutators.ControlFlow
+      mutators.ControlFlow,
+      mutators.ZIO,
     )
 
   val all: Map[String, Mutator] =
@@ -52,7 +52,9 @@ object Mutator {
       case (name, mutation) if name.startsWith(str + ".") => mutation
     }.toList
 
-  object LiteralBooleans extends NonGroupedMutator("LiteralBooleans") {
+  private abstract class NonGroupedMutator(override val name: String) extends Mutator
+
+  private object LiteralBooleans extends NonGroupedMutator("LiteralBooleans") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case Lit.Boolean(value) =>
         default(Lit.Boolean(!value))

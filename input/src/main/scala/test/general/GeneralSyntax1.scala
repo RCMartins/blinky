@@ -3,7 +3,7 @@ rule = Blinky
 Blinky.filesToMutate = [all]
 Blinky.enabledMutators = [LiteralBooleans]
  */
-package test
+package test.general
 
 object GeneralSyntax1 {
   case class Foo(bool: Boolean = true)
