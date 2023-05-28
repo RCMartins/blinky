@@ -4,6 +4,9 @@ lazy val preProcess =
     .settings(
       publish / skip := false,
       moduleName := "pre-process",
-      libraryDependencies += "com.github.pathikrit" %% "better-files" % "3.9.2",
-      libraryDependencies += "com.lihaoyi"          %% "os-lib"       % "0.8.1"
+      libraryDependencies ++=
+        Seq(
+          "com.github.pathikrit" %% "better-files" % "3.9.2",
+          "com.lihaoyi"          %% "os-lib"       % "0.8.1"
+        ),
     )

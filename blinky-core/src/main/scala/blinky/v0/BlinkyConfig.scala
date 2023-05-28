@@ -1,8 +1,5 @@
 package blinky.v0
 
-import metaconfig.generic.Surface
-import metaconfig.{ConfDecoder, generic}
-
 import scala.collection.immutable.Seq
 
 case class BlinkyConfig(

@@ -60,18 +60,24 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] =
     )
   )
 
+val zioVersion = "2.0.13"
+val zioConfigVersion = "4.0.0-RC16"
+
 lazy val core =
   project
     .in(file("blinky-core"))
     .settings(
       publish / skip := false,
       moduleName := "blinky",
-      libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
-      libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.2",
-      libraryDependencies += "com.lihaoyi"          %% "os-lib"        % "0.8.1",
-      libraryDependencies += "dev.zio"              %% "zio-json"      % "0.5.0",
-      libraryDependencies += "dev.zio"              %% "zio"           % "2.0.13",
-      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.15" % "test",
+      libraryDependencies ++=
+        Seq(
+          "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
+          "com.github.pathikrit" %% "better-files"  % "3.9.2",
+          "com.lihaoyi"          %% "os-lib"        % "0.8.1",
+          "dev.zio"              %% "zio-json"      % "0.5.0",
+          "dev.zio"              %% "zio"           % zioVersion,
+          "org.scalatest"        %% "scalatest"     % "3.2.15" % "test",
+        ),
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
       buildInfoSettings
@@ -81,14 +87,20 @@ lazy val input =
   project
     .settings(
       scalacOptions := Seq.empty,
-      libraryDependencies += "dev.zio" %% "zio" % "2.0.13"
+      libraryDependencies ++=
+        Seq(
+          "dev.zio" %% "zio" % zioVersion
+        ),
     )
 
 lazy val output =
   project
     .settings(
       scalacOptions := Seq.empty,
-      libraryDependencies += "dev.zio" %% "zio" % "2.0.13",
+      libraryDependencies ++=
+        Seq(
+          "dev.zio" %% "zio" % zioVersion
+        ),
       Compile / sourceGenerators += Def.task {
         val sourcesFolder = file((Compile / scalaSource).value.toString + "-output")
         val generatedFolder = (Compile / sourceManaged).value
@@ -111,13 +123,17 @@ lazy val cli =
     .settings(
       publish / skip := false,
       moduleName := "blinky-cli",
-      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.9.4",
-      libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.11",
-      libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.11",
-      libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.1.0",
-      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.13",
-      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.13" % "test",
-      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.13" % "test",
+      libraryDependencies ++=
+        Seq(
+          "com.softwaremill.quicklens" %% "quicklens"           % "1.9.4",
+          "com.github.scopt"           %% "scopt"               % "4.1.0",
+          "dev.zio"                    %% "zio"                 % zioVersion,
+          "dev.zio"                    %% "zio-config"          % zioConfigVersion,
+          "dev.zio"                    %% "zio-config-magnolia" % zioConfigVersion,
+          "dev.zio"                    %% "zio-config-typesafe" % zioConfigVersion,
+          "dev.zio"                    %% "zio-test"            % zioVersion % "test",
+          "dev.zio"                    %% "zio-test-sbt"        % zioVersion % "test",
+        ),
       testFrameworks += TestFrameworks.ZIOTest,
       Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimumStmtTotal := 30,

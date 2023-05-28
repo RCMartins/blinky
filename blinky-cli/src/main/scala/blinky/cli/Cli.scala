@@ -15,7 +15,7 @@ object Cli extends ZIOAppDefault {
   type InterpreterEnvironment = ExternalModule
 
   override def run: ZIO[ZIOAppArgs, Nothing, ExitCode] =
-    ZIO.service[ZIOAppArgs].map(_.getArgs.toList).flatMap { args =>
+    ZIO.serviceWith[ZIOAppArgs](_.getArgs.toList).flatMap { args =>
       parseAndRun(args).provide(
         ParserModule.layer,
         CliModule.layer(File(".")),
@@ -43,40 +43,50 @@ object Cli extends ZIOAppDefault {
       strArgs: List[String]
   ): URIO[ParserEnvironment, Either[String, MutationsConfigValidated]] =
     for {
-      parser <- ZIO.service[ParserModule].flatMap(_.parser)
-      pwd <- ZIO.service[CliModule].flatMap(_.pwd)
+      parser <- ZIO.serviceWithZIO[ParserModule](_.parser)
+      pwd <- ZIO.serviceWithZIO[CliModule](_.pwd)
       args <- ZIO.succeed(OParser.parse(Parser.parser, strArgs, Args(), parser))
-    } yield args match {
-      case None =>
-        Left("")
-      case Some(Args(mainConfFile, overrides)) =>
-        val confFileResult: Either[String, File] =
-          mainConfFile match {
-            case Some(confFileStr) =>
-              val confFile = File(pwd.path.resolve(confFileStr))
-              if (!confFile.exists)
-                Left(s"""<blinkyConfFile> '$confFile' does not exist.
-                        |blinky --help for usage.""".stripMargin)
-              else
-                Right(confFile)
-            case None =>
-              val confFile = pwd / ".blinky.conf"
-              if (!confFile.exists)
-                Left(s"""Default '$confFile' does not exist.
-                        |blinky --help for usage.""".stripMargin)
-              else
-                Right(confFile)
-          }
-
-        confFileResult.flatMap { confFile =>
-          MutationsConfig.read(confFile.contentAsString) match {
-            case Left(confError) =>
-              Left(confError.msg)
-            case Right(initialMutationsConf) =>
-              val config = overrides.foldLeft(initialMutationsConf)((conf, over) => over(conf))
-              MutationsConfigValidated.validate(config)(pwd)
-          }
+      result <-
+        args match {
+          case None =>
+            ZIO.succeed(Left(""))
+          case Some(Args(mainConfFileOpt, overrides)) =>
+            for {
+              confFileStrOpt <-
+                ZIO
+                  .attemptBlockingIO(
+                    mainConfFileOpt.map(confFileStr => File(pwd.path.resolve(confFileStr)))
+                  )
+                  .option
+              confFileResult =
+                confFileStrOpt.flatten match {
+                  case Some(confFile) =>
+                    if (!confFile.exists)
+                      Left(s"""<blinkyConfFile> '$confFile' does not exist.
+                              |blinky --help for usage.""".stripMargin)
+                    else
+                      Right(confFile)
+                  case None =>
+                    val confFile = pwd / ".blinky.conf"
+                    if (!confFile.exists)
+                      Left(s"""Default '$confFile' does not exist.
+                              |blinky --help for usage.""".stripMargin)
+                    else
+                      Right(confFile)
+                }
+              result <-
+                confFileResult.map { confFile =>
+                  MutationsConfig.read(confFile.contentAsString).flatMap { initialMutationsConf =>
+                    val config =
+                      overrides.foldLeft(initialMutationsConf)((conf, over) => over(conf))
+                    MutationsConfigValidated.validate(config)(pwd)
+                  }
+                } match {
+                  case Left(errorMsg) => ZIO.succeed(Left(errorMsg))
+                  case Right(value)   => value.mapError(_.getMessage).either
+                }
+            } yield result
         }
-    }
+    } yield result
 
 }
