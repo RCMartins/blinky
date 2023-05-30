@@ -19,62 +19,57 @@ object Run {
 
   def run(config: MutationsConfigValidated): RIO[CliModule, Instruction[ExitCode]] =
     for {
-      pwd <- ZIO.service[CliModule].flatMap(_.pwd)
+      pwd <- ZIO.serviceWithZIO[CliModule](_.pwd)
 
       originalProjectRoot = Path(pwd.path.toAbsolutePath)
       originalProjectRelPath =
         Try(Path(config.projectPath.pathAsString).relativeTo(originalProjectRoot))
           .getOrElse(RelPath(config.projectPath.pathAsString))
       originalProjectPath = originalProjectRoot / originalProjectRelPath
-
-      instruction =
+    } yield makeTemporaryFolder.flatMap {
+      case Left(error) =>
+        printErrorLine(
+          s"""Error creating temporary folder:
+             |$error
+             |""".stripMargin
+        ).map(_ => ExitCode.failure)
+      case Right(cloneProjectTempFolder) =>
         for {
-          runResult <- makeTemporaryFolder.flatMap {
-            case Left(error) =>
-              printErrorLine(
-                s"""Error creating temporary folder:
-                   |$error
-                   |""".stripMargin
-              ).map(_ => ExitCode.failure)
-            case Right(cloneProjectTempFolder) =>
-              for {
-                _ <-
-                  if (config.options.verbose)
-                    printLine(s"Temporary project folder: $cloneProjectTempFolder")
-                  else
-                    empty
-                runResult <-
-                  runResultEither(
-                    "git",
-                    Seq("rev-parse", "--show-toplevel"),
-                    path = originalProjectRoot
-                  ).flatMap {
-                    case Left(commandError) =>
-                      ConsoleReporter
-                        .gitIssues(commandError)
-                        .map(_ => ExitCode.failure)
-                    case Right(gitRevParse) =>
-                      val gitFolder: Path = Path(gitRevParse)
-                      val cloneProjectBaseFolder: Path = cloneProjectTempFolder / gitFolder.baseName
-                      val projectRealRelPath: RelPath = originalProjectPath.relativeTo(gitFolder)
-                      val projectRealPath: Path = cloneProjectBaseFolder / projectRealRelPath
+          _ <-
+            if (config.options.verbose)
+              printLine(s"Temporary project folder: $cloneProjectTempFolder")
+            else
+              empty
+          runResult <-
+            runResultEither(
+              "git",
+              Seq("rev-parse", "--show-toplevel"),
+              path = originalProjectRoot
+            ).flatMap {
+              case Left(commandError) =>
+                ConsoleReporter
+                  .gitIssues(commandError)
+                  .map(_ => ExitCode.failure)
+              case Right(gitRevParse) =>
+                val gitFolder: Path = Path(gitRevParse)
+                val cloneProjectBaseFolder: Path = cloneProjectTempFolder / gitFolder.baseName
+                val projectRealRelPath: RelPath = originalProjectPath.relativeTo(gitFolder)
+                val projectRealPath: Path = cloneProjectBaseFolder / projectRealRelPath
 
-                      runGitProject(
-                        config,
-                        gitFolder,
-                        originalProjectRoot,
-                        originalProjectPath,
-                        cloneProjectTempFolder,
-                        cloneProjectBaseFolder,
-                        projectRealPath
-                      )
-                  }
-              } yield runResult
-          }
+                runGitProject(
+                  config,
+                  gitFolder,
+                  originalProjectRoot,
+                  originalProjectPath,
+                  cloneProjectTempFolder,
+                  cloneProjectBaseFolder,
+                  projectRealPath
+                )
+            }
         } yield runResult
-    } yield instruction
+    }
 
-  private def runGitProject(
+  private[run] def runGitProject(
       config: MutationsConfigValidated,
       gitFolder: Path,
       originalProjectRoot: Path,
@@ -163,7 +158,7 @@ object Run {
             // Setup BlinkyConfig object
             blinkyConf: BlinkyConfig = BlinkyConfig(
               mutantsOutputFile = (projectRealPath / mutantsOutputFileName).toString,
-              filesToMutate = filesToMutateSeq,
+              filesToMutate = filesToMutateSeq.map((_, Seq.empty)),
               specificMutants = config.options.mutant,
               enabledMutators = config.mutators.enabled,
               disabledMutators = config.mutators.disabled
@@ -235,7 +230,7 @@ object Run {
       }
     } yield runResult
 
-  private def filterFiles(
+  private[run] def filterFiles(
       files: Seq[String],
       fileName: String
   ): Instruction[Either[ExitCode, String]] = {
@@ -256,7 +251,7 @@ object Run {
     }
   }
 
-  def processFilesToMutate(
+  private[run] def processFilesToMutate(
       projectRealPath: Path,
       filesToMutate: FileFilter
   ): Instruction[Either[ExitCode, String]] =
@@ -276,7 +271,7 @@ object Run {
         }
     }
 
-  def optimiseFilesToMutate(
+  private[run] def optimiseFilesToMutate(
       base: Seq[String],
       copyResult: Either[ExitCode, Unit],
       projectRealPath: Path,
@@ -317,7 +312,7 @@ object Run {
         } yield result
     }
 
-  def copyFilesToTempFolder(
+  private[run] def copyFilesToTempFolder(
       originalProjectRoot: Path,
       originalProjectPath: Path,
       projectRealPath: Path

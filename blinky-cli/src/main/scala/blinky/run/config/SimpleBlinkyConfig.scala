@@ -24,6 +24,12 @@ object SimpleBlinkyConfig {
     (value: Mutator) => Conf.Str(value.name)
   implicit val mutatorsEncoder: ConfEncoder[Mutators] =
     (value: Mutators) => ConfEncoder[List[Mutator]].write(value.mutations)
+  implicit val filesToMutateEncoder: ConfEncoder[(String, Seq[Range])] = { case (path, rangeSeq) =>
+    val rangeStr =
+      if (rangeSeq.isEmpty) ""
+      else rangeSeq.map(range => s"${range.start}-${range.end}").mkString(",", ",", "")
+    Conf.Str(path + rangeStr)
+  }
   implicit val blinkyConfigEncoder: ConfEncoder[BlinkyConfig] =
     generic.deriveEncoder[BlinkyConfig]
 }
