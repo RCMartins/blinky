@@ -180,5 +180,7 @@ runCommunityProjects := {
   RunCommunityProjects.run(version.value, args)
 }
 
+addCommandAlias("test", "tests/test;core/test;cli/test")
+
 Global / excludeLintKeys += core / buildInfoPackage
 Global / excludeLintKeys += core / buildInfoKeys
