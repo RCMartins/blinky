@@ -69,6 +69,7 @@ object SBTDefaults {
       "-Ywarn-macros:after"
     )
 
+  // check latest https://mvnrepository.com/artifact/ch.epfl.scala/scalafix-testkit
   lazy val scalafixTestkitV: Map[String, String] =
     Map(
       // 2.12.x:
@@ -78,6 +79,9 @@ object SBTDefaults {
       "2.12.13" -> "0.9.26",
       "2.12.14" -> "0.9.30",
       "2.12.15" -> "0.9.34",
+      "2.12.16" -> "0.10.1",
+      "2.12.17" -> "0.10.4",
+      "2.12.18" -> "0.11.0",
       // 2.13.x:
       "2.13.2" -> "0.9.17",
       "2.13.3" -> "0.9.23",
@@ -87,7 +91,8 @@ object SBTDefaults {
       "2.13.7" -> "0.9.33",
       "2.13.8" -> "0.9.34",
       "2.13.9" -> "0.10.3",
-      "2.13.10" -> "0.10.4"
+      "2.13.10" -> "0.10.4",
+      "2.13.11" -> "0.11.0",
     )
 
 }
