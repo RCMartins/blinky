@@ -47,7 +47,9 @@ object PartialFunctions extends MutatorGroup {
             case Pat.Extract.After_4_6_0(term, pats) =>
               pats.zipWithIndex
                 .flatMap { case (pat, index) => findAlternatives(pat).map((_, index)) }
-                .map { case (mutated, index) => Pat.Extract.After_4_6_0(term, pats.updated(index, mutated)) }
+                .map { case (mutated, index) =>
+                  Pat.Extract.After_4_6_0(term, pats.updated(index, mutated))
+                }
             case Pat.Alternative(pat1, pat2) =>
               findAlternatives(pat1) ++ findAlternatives(pat2)
             case pat =>
