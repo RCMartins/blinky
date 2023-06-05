@@ -16,7 +16,7 @@ object ControlFlow extends MutatorGroup {
 
   private object IfMutator extends SimpleMutator("If") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-      case Term.If(_, thenTerm, elseTerm) =>
+      case Term.If.After_4_4_0(_, thenTerm, elseTerm, _) =>
         default(thenTerm, elseTerm)
     }
   }
