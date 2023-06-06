@@ -69,8 +69,8 @@ lazy val core =
       libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.2",
       libraryDependencies += "com.lihaoyi"          %% "os-lib"        % "0.8.1",
-      libraryDependencies += "dev.zio"              %% "zio-json"      % "0.4.2",
-      libraryDependencies += "dev.zio"              %% "zio"           % "2.0.13",
+      libraryDependencies += "dev.zio"              %% "zio-json"      % "0.5.0",
+      libraryDependencies += "dev.zio"              %% "zio"           % "2.0.14",
       libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.15" % "test",
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
@@ -81,14 +81,14 @@ lazy val input =
   project
     .settings(
       scalacOptions := Seq.empty,
-      libraryDependencies += "dev.zio" %% "zio" % "2.0.13"
+      libraryDependencies += "dev.zio" %% "zio" % "2.0.14"
     )
 
 lazy val output =
   project
     .settings(
       scalacOptions := Seq.empty,
-      libraryDependencies += "dev.zio" %% "zio" % "2.0.13",
+      libraryDependencies += "dev.zio" %% "zio" % "2.0.14",
       Compile / sourceGenerators += Def.task {
         val sourcesFolder = file((Compile / scalaSource).value.toString + "-output")
         val generatedFolder = (Compile / sourceManaged).value
@@ -111,13 +111,13 @@ lazy val cli =
     .settings(
       publish / skip := false,
       moduleName := "blinky-cli",
-      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.9.3",
+      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.9.4",
       libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.11",
       libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.11",
       libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.1.0",
-      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.13",
-      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.13" % "test",
-      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.13" % "test",
+      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.14",
+      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.14" % "test",
+      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.14" % "test",
       testFrameworks += TestFrameworks.ZIOTest,
       Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimumStmtTotal := 30,
