@@ -158,7 +158,7 @@ object Run {
           for {
             coursier <- Setup.setupCoursier(projectRealPath)
             _ <- Setup.sbtCompileWithSemanticDB(projectRealPath)
-            _ <- Setup.setupScalafix(projectRealPath)
+//            _ <- Setup.setupScalafix(projectRealPath)
 
             // Setup BlinkyConfig object
             blinkyConf: BlinkyConfig = BlinkyConfig(
@@ -210,6 +210,9 @@ object Run {
                     case Right(toolPath) =>
                       val params: Seq[String] =
                         Seq(
+                          "launch",
+                          "scalafix",
+                          "--",
                           if (config.options.verbose) "--verbose" else "",
                           if (config.filesToExclude.nonEmpty)
                             s"--exclude=${config.filesToExclude}"
@@ -222,7 +225,7 @@ object Run {
                         ).filter(_.nonEmpty)
                       for {
                         _ <- printLine(toolPath)
-                        _ <- runStream("./scalafix", params, path = projectRealPath)
+                        _ <- runStream(coursier, params, path = projectRealPath)
                         runResult <- TestMutationsBloop.run(
                           projectRealPath,
                           blinkyConf,

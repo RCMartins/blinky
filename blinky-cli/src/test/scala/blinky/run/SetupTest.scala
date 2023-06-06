@@ -97,26 +97,26 @@ object SetupTest extends ZIOSpecDefault {
           )
         }
       ),
-      suite("setupScalafix")(
-        test("return the correct instruction") {
-          testInstruction(
-            Setup.setupScalafix(path),
-            TestCopyResource(
-              "/scalafix",
-              path / "scalafix",
-              Right(()),
-              TestRunStream(
-                "chmod",
-                Seq("+x", "scalafix"),
-                Map.empty,
-                path,
-                Right(()),
-                TestReturn(())
-              )
-            )
-          )
-        }
-      )
+//      suite("setupScalafix")(
+//        test("return the correct instruction") {
+//          testInstruction(
+//            Setup.setupScalafix(path),
+//            TestCopyResource(
+//              "/scalafix",
+//              path / "scalafix",
+//              Right(()),
+//              TestRunStream(
+//                "chmod",
+//                Seq("+x", "scalafix"),
+//                Map.empty,
+//                path,
+//                Right(()),
+//                TestReturn(())
+//              )
+//            )
+//          )
+//        }
+//      )
     )
 
 }
