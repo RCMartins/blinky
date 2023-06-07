@@ -5,7 +5,7 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
-val semanticdbScalac = "4.7.7"
+val semanticdbScalac = "4.7.8"
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -179,6 +179,8 @@ runCommunityProjects := {
   val args: Array[String] = spaceDelimited("<arg>").parsed.toArray
   RunCommunityProjects.run(version.value, args)
 }
+
+addCommandAlias("test", "tests/test;core/test;cli/test")
 
 Global / excludeLintKeys += core / buildInfoPackage
 Global / excludeLintKeys += core / buildInfoKeys

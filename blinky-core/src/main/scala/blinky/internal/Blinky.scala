@@ -35,7 +35,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
       .map(new Blinky(_))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
-    val VirtualFile(fileName, _) = doc.input
+    val VirtualFile(fileName, fileText) = doc.input
 
     if (!fileShouldBeMutated(fileName))
       Patch.empty
@@ -56,7 +56,11 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
                 (0, result)
             }
 
-          (Patch.replaceTree(original, syntaxParens(mutatedStr, needsParens)), mutantSeq)
+          val actualNeedsParens: Boolean =
+            needsParens &&
+              !(Try(fileText.charAt(original.pos.start - 1)).toOption.contains('(') &&
+                Try(fileText.charAt(original.pos.end)).toOption.contains(')'))
+          (Patch.replaceTree(original, syntaxParens(mutatedStr, actualNeedsParens)), mutantSeq)
         }
 
       val (finalPatch, mutantsFound): (Seq[Patch], Seq[Seq[Mutant]]) =
