@@ -158,7 +158,6 @@ object Run {
           for {
             coursier <- Setup.setupCoursier(projectRealPath)
             _ <- Setup.sbtCompileWithSemanticDB(projectRealPath)
-//            _ <- Setup.setupScalafix(projectRealPath)
 
             // Setup BlinkyConfig object
             blinkyConf: BlinkyConfig = BlinkyConfig(
