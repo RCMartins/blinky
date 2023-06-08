@@ -607,6 +607,33 @@ example mutation 2:
 + val seq = None
 ```
 
+#### Prepend
+
+name: Prepend
+
+description: Removes the call to `prepend` on `List`/`SeqOps`/`ArrayOps` and also `::` on `List`.
+
+example mutation 1:
+
+```diff
+- val list = "a" :: List("b", "c")
++ val list = List("b", "c")
+```
+
+example mutation 2:
+
+```diff
+- val list = List("b", "c").prepended("a")
++ val list = List("b", "c")
+```
+
+example mutation 3:
+
+```diff
+- val seq = Seq("b", "c").prepended("a")
++ val seq = Seq("b", "c")
+```
+
 ---
 
 ### Partial Functions
