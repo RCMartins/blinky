@@ -9,6 +9,7 @@ object CollectionsPrepend {
   val seq2 = if (???) scala.Seq(1) else scala.Seq(1).prepended(2)
   val seq3 = if (???) scala.collection.mutable.Seq(1) else scala.collection.mutable.Seq(1).prepended(2)
   val seq4 = if (???) scala.collection.immutable.Seq(1) else scala.collection.immutable.Seq(1).prepended(2)
+  val seq5 = if (???) scala.collection.immutable.ArraySeq(1) else scala.collection.immutable.ArraySeq(1).prepended(2)
 
   val vec = if (???) Vector(1) else Vector(1).prepended(2)
 

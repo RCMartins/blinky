@@ -164,6 +164,7 @@ object Collections extends MutatorGroup {
                 "scala/collection/immutable/List#prepended().",
                 "scala/collection/SeqOps#prepended().",
                 "scala/collection/immutable/Vector#prepended().",
+                "scala/collection/immutable/ArraySeq#prepended().",
                 "scala/collection/ArrayOps#prepended().",
               )
               .matches(seqPrepend.symbol) =>

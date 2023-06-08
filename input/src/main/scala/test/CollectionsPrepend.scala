@@ -14,6 +14,7 @@ object CollectionsPrepend {
   val seq2 = scala.Seq(1).prepended(2)
   val seq3 = scala.collection.mutable.Seq(1).prepended(2)
   val seq4 = scala.collection.immutable.Seq(1).prepended(2)
+  val seq5 = scala.collection.immutable.ArraySeq(1).prepended(2)
 
   val vec = Vector(1).prepended(2)
 
