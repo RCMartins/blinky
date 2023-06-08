@@ -145,6 +145,33 @@ object Collections extends MutatorGroup {
       }
     }
 
+  private val Prepend: SimpleMutator =
+    new SimpleMutator("Prepend") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case listPrepend @ Term.ApplyInfix.After_4_6_0(
+              _,
+              Term.Name("::"),
+              _,
+              Term.ArgClause(List(arg), _)
+            )
+            if SymbolMatcher
+              .exact("scala/collection/immutable/List#`::`().")
+              .matches(listPrepend.symbol) =>
+          default(arg)
+        case seqPrepend @ Term.Apply.After_4_6_0(Term.Select(term, Term.Name("prepended")), _)
+            if SymbolMatcher
+              .exact(
+                "scala/collection/immutable/List#prepended().",
+                "scala/collection/SeqOps#prepended().",
+                "scala/collection/immutable/Vector#prepended().",
+                "scala/collection/immutable/ArraySeq#prepended().",
+                "scala/collection/ArrayOps#prepended().",
+              )
+              .matches(seqPrepend.symbol) =>
+          default(term)
+      }
+    }
+
   override val getSubMutators: List[Mutator] =
     List(
       ListApply,
@@ -153,7 +180,8 @@ object Collections extends MutatorGroup {
       Reverse,
       Drop,
       Take,
-      ReduceOption
+      ReduceOption,
+      Prepend,
     )
 
 }
