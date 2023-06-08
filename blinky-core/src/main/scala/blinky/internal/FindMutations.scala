@@ -199,23 +199,19 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
             topTermMutations(thenPart, parensRequired = false) ++
             topTermMutations(elsePart, parensRequired = false)
         )
-      case forYield @ Term.ForYield(enumsList, forTerm) =>
-        def topTermMutateEnumerator(enumerator: Enumerator): Seq[(Term, MutatedTerms)] = {
-          val term: Term =
-            enumerator match {
-              case Enumerator.CaseGenerator(_, term) => term
-              case Enumerator.Generator(_, term)     => term
-              case Enumerator.Guard(cond)            => cond
-              case Enumerator.Val(_, term)           => term
-            }
-          topTermMutations(term, parensRequired = false)
-        }
-
+      case forTerm @ Term.For(enumsList, bodyTerm) =>
+        selectSmallerMutation(
+          forTerm,
+          topMainTermMutations(bodyTerm).map(mutated => Term.For(enumsList, mutated)),
+          enumsList.flatMap(topTermMutateEnumerator) ++
+            topTermMutations(bodyTerm, parensRequired = false)
+        )
+      case forYield @ Term.ForYield(enumsList, bodyTerm) =>
         selectSmallerMutation(
           forYield,
-          topMainTermMutations(forTerm).map(mutated => Term.ForYield(enumsList, mutated)),
+          topMainTermMutations(bodyTerm).map(mutated => Term.ForYield(enumsList, mutated)),
           enumsList.flatMap(topTermMutateEnumerator) ++
-            topTermMutations(forTerm, parensRequired = false)
+            topTermMutations(bodyTerm, parensRequired = false)
         )
       case newTerm @ Term.New(init) =>
         selectSmallerMutation(
@@ -256,6 +252,14 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
         Seq((mainTerm, findAllMutations(other)._1.toMutated(needsParens = false)))
     }
   }
+
+  private def topTermMutateEnumerator(enumerator: Enumerator): Seq[(Term, MutatedTerms)] =
+    enumerator match {
+      case Enumerator.CaseGenerator(_, term) => topTermMutations(term, parensRequired = false)
+      case Enumerator.Generator(_, term)     => topTermMutations(term, parensRequired = false)
+      case Enumerator.Guard(term)            => topTermMutations(term, parensRequired = true)
+      case Enumerator.Val(_, term)           => topTermMutations(term, parensRequired = false)
+    }
 
   private def listTermsMutateMain(originalList: List[Term]): List[List[Term]] =
     originalList.zipWithIndex
