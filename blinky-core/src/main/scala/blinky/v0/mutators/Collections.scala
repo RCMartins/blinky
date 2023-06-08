@@ -162,7 +162,9 @@ object Collections extends MutatorGroup {
             if SymbolMatcher
               .exact(
                 "scala/collection/immutable/List#prepended().",
-                "scala/collection/SeqOps#prepended()."
+                "scala/collection/SeqOps#prepended().",
+                "scala/collection/immutable/Vector#prepended().",
+                "scala/collection/ArrayOps#prepended().",
               )
               .matches(seqPrepend.symbol) =>
           default(term)
