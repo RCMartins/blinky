@@ -21,7 +21,7 @@ Because of several factors like time to run or importance we may want to enable/
 * [Partial Functions](#partial-functions)
 * [Scala Strings](#scala-strings)
 * [Control Flow](#control-flow)
-* [ZIO](#ZIO)
+* [ZIO](#zio)
 
 ### Literal Booleans
 
