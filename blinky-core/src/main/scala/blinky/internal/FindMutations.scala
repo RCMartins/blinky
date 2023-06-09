@@ -63,11 +63,6 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
       // Disable rules on Term.Placeholder until we can handle this case properly
       case (original, _) if original.collect { case Term.Placeholder() => }.nonEmpty =>
         None
-      // Because of a bug in scalameta this expression can not be mutated safely
-      // https://github.com/scalameta/scalameta/issues/3128
-      case (original, _) if original.collect { case Term.If.After_4_4_0(_, _, Lit.Unit(), _) =>
-          }.nonEmpty =>
-        None
       case (original, mutatedTerms) if parensRequired && original == term =>
         Some((original, mutatedTerms.copy(needsParens = true)))
       case (original, mutatedTerms) if original == term && overrideOriginal.nonEmpty =>
