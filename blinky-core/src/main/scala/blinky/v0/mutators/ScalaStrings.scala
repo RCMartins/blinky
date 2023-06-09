@@ -31,10 +31,10 @@ object ScalaStrings extends MutatorGroup {
 
     object Concat extends SimpleMutator("Concat") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-        case concat @ Term.ApplyInfix(_, Term.Name("+"), _, _)
+        case concat @ Term.ApplyInfix.After_4_6_0(_, Term.Name("+"), _, _)
             if SymbolMatcher.exact("java/lang/String#`+`().").matches(concat.symbol) =>
           fullReplace(Lit.String("mutated!"), Lit.String(""))
-        case concat @ Term.Apply(Term.Select(_, Term.Name("concat")), _)
+        case concat @ Term.Apply.After_4_6_0(Term.Select(_, Term.Name("concat")), _)
             if SymbolMatcher.exact("java/lang/String#concat().").matches(concat.symbol) =>
           fullReplace(Lit.String("mutated!"), Lit.String(""))
       }
@@ -47,7 +47,10 @@ object ScalaStrings extends MutatorGroup {
               .exact("java/lang/String#toUpperCase(+1).")
               .matches(toUpperCase.symbol) =>
           default(term)
-        case toUpperCase @ Term.Apply(Term.Select(term @ _, Term.Name("toUpperCase")), _)
+        case toUpperCase @ Term.Apply.After_4_6_0(
+              Term.Select(term @ _, Term.Name("toUpperCase")),
+              _
+            )
             if SymbolMatcher
               .exact("java/lang/String#toUpperCase().")
               .matches(toUpperCase.symbol) =>
@@ -62,7 +65,10 @@ object ScalaStrings extends MutatorGroup {
               .exact("java/lang/String#toLowerCase(+1).")
               .matches(toLowerCase.symbol) =>
           default(term)
-        case toLowerCase @ Term.Apply(Term.Select(term @ _, Term.Name("toLowerCase")), _)
+        case toLowerCase @ Term.Apply.After_4_6_0(
+              Term.Select(term @ _, Term.Name("toLowerCase")),
+              _
+            )
             if SymbolMatcher
               .exact("java/lang/String#toLowerCase().")
               .matches(toLowerCase.symbol) =>
@@ -123,7 +129,7 @@ object ScalaStrings extends MutatorGroup {
       symbolMatch: String
   ) extends SimpleMutator(mutatorName) {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-      case op @ Term.Apply(Term.Select(term @ _, Term.Name(`opName`)), _)
+      case op @ Term.Apply.After_4_6_0(Term.Select(term @ _, Term.Name(`opName`)), _)
           if SymbolMatcher.exact(symbolMatch).matches(op.symbol) =>
         default(term)
     }

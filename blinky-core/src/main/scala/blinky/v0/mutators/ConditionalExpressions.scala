@@ -14,7 +14,7 @@ object ConditionalExpressions extends MutatorGroup {
 
   private object AndToOr extends SimpleMutator("AndToOr") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-      case and @ Term.ApplyInfix(left, Term.Name("&&"), targs, right)
+      case and @ Term.ApplyInfix.After_4_6_0(left, Term.Name("&&"), targs, right)
           if SymbolMatcher.exact("scala/Boolean#`&&`().").matches(and.symbol) =>
         default(Term.ApplyInfix(left, Term.Name("||"), targs, right))
     }
@@ -22,7 +22,7 @@ object ConditionalExpressions extends MutatorGroup {
 
   private object OrToAnd extends SimpleMutator("OrToAnd") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-      case or @ Term.ApplyInfix(left, Term.Name("||"), targs, right)
+      case or @ Term.ApplyInfix.After_4_6_0(left, Term.Name("||"), targs, right)
           if SymbolMatcher.exact("scala/Boolean#`||`().").matches(or.symbol) =>
         default(Term.ApplyInfix(left, Term.Name("&&"), targs, right))
     }
