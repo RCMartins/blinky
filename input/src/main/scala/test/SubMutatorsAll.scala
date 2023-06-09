@@ -10,7 +10,7 @@ Blinky.enabledMutators = [
                     OrElse, OrNull, Filter, FilterNot, Contains] }
   { ScalaTry = [GetOrElse, OrElse] }
   { Collections = [ListApply, SeqApply, SetApply, Reverse, Drop, Take, ReduceOption, Prepend] }
-  { PartialFunctions = [RemoveOneCase] }
+  { PartialFunctions = [RemoveOneCase, RemoveOneAlternative] }
   { ScalaStrings = [Concat, Trim, ToUpperCase, ToLowerCase, Capitalize, StripPrefix,
                     StripSuffix, Map, FlatMap, Drop, Take, DropWhile, TakeWhile, Reverse] }
   { ControlFlow = [If] }

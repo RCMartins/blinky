@@ -4,7 +4,7 @@ import scala.meta.Term
 
 sealed trait ReplaceType {
 
-  def terms: List[Term]
+  def terms: Seq[Term]
 
   def fullReplace: Boolean
 
@@ -14,17 +14,17 @@ sealed trait ReplaceType {
 
 object ReplaceType {
 
-  case class Standard(terms: List[Term]) extends ReplaceType {
+  case class Standard(terms: Seq[Term]) extends ReplaceType {
     val fullReplace: Boolean = false
     val needsParens: Boolean = false
   }
 
-  case class FullReplace(terms: List[Term]) extends ReplaceType {
+  case class FullReplace(terms: Seq[Term]) extends ReplaceType {
     val fullReplace: Boolean = true
     val needsParens: Boolean = false
   }
 
-  case class NeedsParens(terms: List[Term]) extends ReplaceType {
+  case class NeedsParens(terms: Seq[Term]) extends ReplaceType {
     val fullReplace: Boolean = false
     val needsParens: Boolean = true
   }

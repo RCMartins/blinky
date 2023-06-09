@@ -645,7 +645,7 @@ group name: PartialFunctions
 name: RemoveOneCase
 
 description: Changes partial function applications, 
-creating mutations where one of the cases is missing.
+creating mutations where one of the cases is unreachable.
 
 example mutation 1:
 
@@ -653,6 +653,7 @@ example mutation 1:
   // strList: List[String]
   strList.collect {
 -   case "foo" => "foobar"
++   case "foo" if false => "foobar"
     case "bar" => "barfoo"
   }
 ```
@@ -664,6 +665,7 @@ example mutation 2:
   strList.collect {
     case "foo" => "foobar"
 -   case "bar" => "barfoo"
++   case "bar" if false => "barfoo"
   }
 ```
 

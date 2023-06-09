@@ -6,7 +6,7 @@ import blinky.v0.{Mutator, MutatorGroup}
 import scalafix.v1.SemanticDocument
 
 import scala.annotation.tailrec
-import scala.meta.{Case, Pat, Term}
+import scala.meta.{Case, Lit, Pat, Term}
 
 object PartialFunctions extends MutatorGroup {
   override val groupName: String = "PartialFunctions"
@@ -20,20 +20,13 @@ object PartialFunctions extends MutatorGroup {
   private object RemoveOneCase extends SimpleMutator("RemoveOneCase") {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
       case Term.PartialFunction(cases) if cases.lengthCompare(2) >= 0 =>
-        @tailrec
-        def removeOneCase(
-            before: List[Case],
-            terms: List[Case],
-            result: List[List[Case]]
-        ): List[List[Case]] =
-          terms match {
-            case Nil =>
-              result
-            case caseTerm :: others =>
-              removeOneCase(before :+ caseTerm, others, (before ++ others) :: result)
+        val indexedCases = cases.toIndexedSeq
+        NeedsParens(
+          indexedCases.indices.map { index =>
+            val caseUpdated: Case = indexedCases(index).copy(cond = Some(Lit.Boolean(false)))
+            Term.PartialFunction(indexedCases.patch(index, Seq(caseUpdated), 1).toList)
           }
-
-        NeedsParens(removeOneCase(Nil, cases, Nil).reverse.map(Term.PartialFunction(_)))
+        )
     }
   }
 
