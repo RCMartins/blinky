@@ -86,7 +86,6 @@ jobs:
       - run: |
           sbt mdoc 2>&1 | tee output.txt
           if grep -q 'warning' output.txt; then
-            echo "mdoc warnings found:"
-            grep 'warning' output.txt
+            echo "mdoc warnings found!"
             exit 1
           fi
