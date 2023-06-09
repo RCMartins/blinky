@@ -147,9 +147,10 @@ lazy val docs =
     .in(file("blinky-docs"))
     .enablePlugins(BuildInfoPlugin, MdocPlugin, DocusaurusPlugin)
     .settings(
-      mdoc := (Compile / run).evaluated
+      mdoc := (Compile / run).evaluated,
+      mdocExtraArguments := Seq("--check-link-hygiene"),
+      buildInfoSettings,
     )
-    .settings(buildInfoSettings)
     .dependsOn(core)
 
 lazy val runCurrent =
