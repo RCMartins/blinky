@@ -2,22 +2,36 @@ import os.{Path, ProcessOutput}
 
 object RunCommunityProjects {
 
-  private case class Project(url: String, folderName: String, blinkyConf: String)
+  private case class Project(
+      url: String,
+      folderName: String,
+      blinkyConf: String,
+      hash: Option[String],
+      extraCommands: Path => Unit = _ => ()
+  )
 
-  private def defaultBlinkyConf(projectName: String): String =
+  private def blinkyConf(projectName: String, filesToMutate: String): String =
     s"""projectPath = "."
        |projectName = "$projectName"
-       |filesToMutate = "core/src/main"
+       |filesToMutate = "$filesToMutate"
        |""".stripMargin
 
-  private val pluginsText = """addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.13")"""
+//  private val sbtBloopVersion = "1.5.6-213-2e0eb7f1-SNAPSHOT"
+//  private val sbtBloopVersion = "1.5.6-63-b0854615"
+  private val sbtBloopVersion = "1.5.6"
+//  private val sbtBloopVersion = "1.4.3"
+
+  private val pluginsText = s"""addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "$sbtBloopVersion")"""
 
   private val projects: Map[String, Project] =
     Map(
       "spire" -> Project(
         "https://github.com/typelevel/spire.git",
         "spire",
-        defaultBlinkyConf("testsJVM")
+        blinkyConf("testsJVM", "core/src/main"),
+//        Some("c13c708cb6e8a42935a8a1543ad0d29a6b2d0fb0"),
+        // Some("0318050dbe81642528c0dbb2e59fd6c6d361ae18"),
+        None,
       )
     )
 
@@ -36,6 +50,9 @@ object RunCommunityProjects {
     val tempPath: Path = os.temp.dir()
     os.proc("git", "clone", project.url).call(cwd = tempPath)
     val projectPath = tempPath / project.folderName
+
+    project.extraCommands(projectPath)
+    project.hash.foreach(hash => os.proc("git", "checkout", hash).call(cwd = projectPath))
 
     os.write(projectPath / ".blinky.conf", project.blinkyConf)
 
