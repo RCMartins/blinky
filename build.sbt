@@ -148,7 +148,6 @@ lazy val docs =
     .enablePlugins(BuildInfoPlugin, MdocPlugin, DocusaurusPlugin)
     .settings(
       mdoc := (Compile / run).evaluated,
-      mdocExtraArguments := Seq("--check-link-hygiene"),
       buildInfoSettings,
     )
     .dependsOn(core)
