@@ -32,13 +32,13 @@ object Collections extends MutatorGroup {
       minimum: Int
   ) extends SimpleMutator(mutatorName) {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-      case collection @ Term.Apply(
+      case collection @ Term.Apply.After_4_6_0(
             select @ (Term.Name(`collectionName`) | Term.Select(_, Term.Name(`collectionName`))),
             args
           )
           if args.lengthCompare(minimum) >= 0 && args.lengthCompare(MaxSize) <= 0 &&
             SymbolMatcher.exact(symbolsToMatch: _*).matches(collection.symbol) =>
-        default(removeOneArg(Nil, args, Nil).reverse.map(Term.Apply(select, _)): _*)
+        default(removeOneArg(Nil, args, Nil).reverse.map(Term.Apply.After_4_6_0(select, _)): _*)
     }
   }
 
@@ -48,7 +48,7 @@ object Collections extends MutatorGroup {
       val symbolsToMatch: Seq[String]
   ) extends SimpleMutator(mutatorName) {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-      case collection @ Term.Apply(Term.Select(term @ _, Term.Name(`opName`)), _)
+      case collection @ Term.Apply.After_4_6_0(Term.Select(term @ _, Term.Name(`opName`)), _)
           if SymbolMatcher.exact(symbolsToMatch: _*).matches(collection.symbol) =>
         default(term)
     }
@@ -137,11 +137,38 @@ object Collections extends MutatorGroup {
   private val ReduceOption: SimpleMutator =
     new SimpleMutator("ReduceOption") {
       override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-        case reduceOption @ Term.Apply(Term.Select(_, Term.Name("reduceOption")), _)
+        case reduceOption @ Term.Apply.After_4_6_0(Term.Select(_, Term.Name("reduceOption")), _)
             if SymbolMatcher
               .exact("scala/collection/IterableOnceOps#reduceOption().")
               .matches(reduceOption.symbol) =>
           default(Term.Name("None"))
+      }
+    }
+
+  private val Prepend: SimpleMutator =
+    new SimpleMutator("Prepend") {
+      override def getMutator(implicit doc: SemanticDocument): MutationResult = {
+        case listPrepend @ Term.ApplyInfix.After_4_6_0(
+              _,
+              Term.Name("::"),
+              _,
+              Term.ArgClause(List(arg), _)
+            )
+            if SymbolMatcher
+              .exact("scala/collection/immutable/List#`::`().")
+              .matches(listPrepend.symbol) =>
+          default(arg)
+        case seqPrepend @ Term.Apply.After_4_6_0(Term.Select(term, Term.Name("prepended")), _)
+            if SymbolMatcher
+              .exact(
+                "scala/collection/immutable/List#prepended().",
+                "scala/collection/SeqOps#prepended().",
+                "scala/collection/immutable/Vector#prepended().",
+                "scala/collection/immutable/ArraySeq#prepended().",
+                "scala/collection/ArrayOps#prepended().",
+              )
+              .matches(seqPrepend.symbol) =>
+          default(term)
       }
     }
 
@@ -153,7 +180,8 @@ object Collections extends MutatorGroup {
       Reverse,
       Drop,
       Take,
-      ReduceOption
+      ReduceOption,
+      Prepend,
     )
 
 }

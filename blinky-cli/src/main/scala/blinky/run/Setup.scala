@@ -39,9 +39,6 @@ object Setup {
         empty
     }
 
-  def setupScalafix(path: Path): Instruction[Unit] =
-    copyExeFromResources("scalafix", path)
-
   private def copyExeFromResources(name: String, path: Path): Instruction[Unit] =
     copyResource(s"/$name", path / name)
       .flatMap {

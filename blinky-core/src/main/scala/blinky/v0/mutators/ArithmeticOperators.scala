@@ -54,7 +54,7 @@ object ArithmeticOperators extends MutatorGroup {
       newOpName: String
   ) extends SimpleMutator(mutatorName) {
     override def getMutator(implicit doc: SemanticDocument): MutationResult = {
-      case op @ Term.ApplyInfix(left, Term.Name(`opName`), targs, right)
+      case op @ Term.ApplyInfix.After_4_6_0(left, Term.Name(`opName`), targs, right)
           if SymbolMatcher.exact(symbolMatch).matches(op.symbol) =>
         default(Term.ApplyInfix(left, Term.Name(newOpName), targs, right))
     }
