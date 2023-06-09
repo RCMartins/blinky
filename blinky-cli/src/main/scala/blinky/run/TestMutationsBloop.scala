@@ -12,6 +12,10 @@ import zio.json.DecoderOps
 import scala.util.Random
 
 object TestMutationsBloop {
+
+  private val defaultEnvArgs: Map[String, String] =
+    Map("BLINKY" -> "true", "BLOOP_TRACING" -> "false")
+
   def run(
       projectPath: Path,
       blinkyConfig: BlinkyConfig,
@@ -69,14 +73,14 @@ object TestMutationsBloop {
             _ <- runStream(
               "sbt",
               Seq("bloopInstall"),
-              envArgs = Map("BLINKY" -> "true"),
+              envArgs = defaultEnvArgs,
               path = projectPath
             )
             _ <- printLine("Running tests with original config")
             compileResult <- runResultEither(
               "bloop",
               Seq("compile", escapeString(options.compileCommand)),
-              envArgs = Map("BLINKY" -> "true"),
+              envArgs = defaultEnvArgs,
               path = projectPath
             )
             res <- compileResult match {
@@ -98,7 +102,7 @@ object TestMutationsBloop {
                   originalTestInitialTime <- succeed(System.currentTimeMillis())
                   vanillaTestResult <- runBashEither(
                     s"bloop test ${escapeString(testCommand)}",
-                    envArgs = Map("BLINKY" -> "true"),
+                    envArgs = defaultEnvArgs,
                     path = projectPath
                   )
 
@@ -290,10 +294,7 @@ object TestMutationsBloop {
       prints.flatMap(_ =>
         runBashTimeout(
           s"bloop test ${escapeString(options.testCommand)}",
-          envArgs = Map(
-            "BLINKY" -> "true",
-            s"BLINKY_MUTATION_${mutant.id}" -> "1"
-          ),
+          envArgs = defaultEnvArgs + (s"BLINKY_MUTATION_${mutant.id}" -> "1"),
           timeout = (originalTestTime * options.timeoutFactor + options.timeout.toMillis).toLong,
           path = projectPath
         )
