@@ -6,6 +6,8 @@ import os.Path
 
 object Setup {
 
+  val defaultEnvArgs: Map[String, String] = Map("BLINKY" -> "true")
+
   def setupCoursier(path: Path): Instruction[String] =
     runResultEither("coursier", Seq("--help"), path = path).flatMap {
       case Right(_) => succeed("coursier")
@@ -26,7 +28,7 @@ object Setup {
         s"""set Global / semanticdbVersion := "${BuildInfo.semanticdbVersion}"""",
         "compile"
       ),
-      envArgs = Map("BLINKY" -> "true"),
+      envArgs = defaultEnvArgs,
       path = path
     ).flatMap {
       case Left(error) =>

@@ -12,7 +12,7 @@ class TestMutationsBloop(projectPath: Path) extends TestMutationsRunner {
     runStream(
       "sbt",
       Seq("bloopInstall"),
-      envArgs = Map("BLINKY" -> "true"),
+      envArgs = defaultEnvArgs,
       path = projectPath
     ).map(_ => ())
 
@@ -20,14 +20,14 @@ class TestMutationsBloop(projectPath: Path) extends TestMutationsRunner {
     runResultEither(
       "bloop",
       Seq("compile", escapeString(compileCommand)),
-      envArgs = Map("BLINKY" -> "true"),
+      envArgs = defaultEnvArgs,
       path = projectPath
     )
 
   def vanillaTestRun(testCommand: String): RunResultEither[Either[Throwable, String]] =
     runBashEither(
       s"bloop test ${escapeString(testCommand)}",
-      envArgs = Map("BLINKY" -> "true"),
+      envArgs = defaultEnvArgs,
       path = projectPath
     )
 

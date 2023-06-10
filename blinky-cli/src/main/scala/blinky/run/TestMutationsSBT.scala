@@ -2,6 +2,7 @@ package blinky.run
 
 import blinky.internal.MutantFile
 import blinky.run.Instruction._
+import blinky.run.Setup.defaultEnvArgs
 import blinky.run.Utils._
 import blinky.run.config.OptionsConfig
 import os.Path
@@ -17,14 +18,14 @@ class TestMutationsSBT(projectPath: Path) extends TestMutationsRunner {
     runResultEither(
       "sbt",
       Seq(extraSbtParams, escapeString(compileCommand)).filter(_.nonEmpty),
-      envArgs = Map("BLINKY" -> "true"),
+      envArgs = defaultEnvArgs,
       path = projectPath
     )
 
   def vanillaTestRun(testCommand: String): RunResultEither[Either[Throwable, String]] =
     runBashEither(
       s"sbt $extraSbtParams ${escapeString(testCommand)}",
-      envArgs = Map("BLINKY" -> "true"),
+      envArgs = defaultEnvArgs,
       path = projectPath
     )
 
@@ -53,10 +54,7 @@ class TestMutationsSBT(projectPath: Path) extends TestMutationsRunner {
       prints.flatMap(_ =>
         runBashTimeout(
           s"sbt $extraSbtParams ${escapeString(options.testCommand)}",
-          envArgs = Map(
-            "BLINKY" -> "true",
-            s"BLINKY_MUTATION_${mutant.id}" -> "1"
-          ),
+          envArgs = defaultEnvArgs + (s"BLINKY_MUTATION_${mutant.id}" -> "1"),
           timeout = (originalTestTime * options.timeoutFactor + options.timeout.toMillis).toLong,
           path = projectPath
         )
