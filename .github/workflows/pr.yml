@@ -78,3 +78,14 @@ jobs:
   #    - run: sbt "++ $VERSION_TO_TEST!" core/test cli/test tests/test
   #      env:
   #        VERSION_TO_TEST: ${{ matrix.scalaVersion }}
+  mdoc-test:
+    name: Run mdoc and check for warnings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          sbt mdoc 2>&1 | tee output.txt
+          if grep -q 'warning' output.txt; then
+            echo "mdoc warnings found!"
+            exit 1
+          fi

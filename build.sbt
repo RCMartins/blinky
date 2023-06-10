@@ -70,7 +70,7 @@ lazy val core =
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.2",
       libraryDependencies += "com.lihaoyi"          %% "os-lib"        % "0.8.1",
       libraryDependencies += "dev.zio"              %% "zio-json"      % "0.5.0",
-      libraryDependencies += "dev.zio"              %% "zio"           % "2.0.14",
+      libraryDependencies += "dev.zio"              %% "zio"           % "2.0.15",
       libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.15" % "test",
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
@@ -81,14 +81,14 @@ lazy val input =
   project
     .settings(
       scalacOptions := Seq.empty,
-      libraryDependencies += "dev.zio" %% "zio" % "2.0.14"
+      libraryDependencies += "dev.zio" %% "zio" % "2.0.15"
     )
 
 lazy val output =
   project
     .settings(
       scalacOptions := Seq.empty,
-      libraryDependencies += "dev.zio" %% "zio" % "2.0.14",
+      libraryDependencies += "dev.zio" %% "zio" % "2.0.15",
       Compile / sourceGenerators += Def.task {
         val sourcesFolder = file((Compile / scalaSource).value.toString + "-output")
         val generatedFolder = (Compile / sourceManaged).value
@@ -115,9 +115,9 @@ lazy val cli =
       libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.11",
       libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.11",
       libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.1.0",
-      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.14",
-      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.14" % "test",
-      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.14" % "test",
+      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.15",
+      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.15" % "test",
+      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.15" % "test",
       testFrameworks += TestFrameworks.ZIOTest,
       Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimumStmtTotal := 30,
@@ -147,9 +147,9 @@ lazy val docs =
     .in(file("blinky-docs"))
     .enablePlugins(BuildInfoPlugin, MdocPlugin, DocusaurusPlugin)
     .settings(
-      mdoc := (Compile / run).evaluated
+      mdoc := (Compile / run).evaluated,
+      buildInfoSettings,
     )
-    .settings(buildInfoSettings)
     .dependsOn(core)
 
 lazy val runCurrent =

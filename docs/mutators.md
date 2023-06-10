@@ -21,7 +21,7 @@ Because of several factors like time to run or importance we may want to enable/
 * [Partial Functions](#partial-functions)
 * [Scala Strings](#scala-strings)
 * [Control Flow](#control-flow)
-* [ZIO](#ZIO)
+* [ZIO](#zio)
 
 ### Literal Booleans
 
@@ -645,7 +645,7 @@ group name: PartialFunctions
 name: RemoveOneCase
 
 description: Changes partial function applications, 
-creating mutations where one of the cases is missing.
+creating mutations where one of the cases is unreachable.
 
 example mutation 1:
 
@@ -653,6 +653,7 @@ example mutation 1:
   // strList: List[String]
   strList.collect {
 -   case "foo" => "foobar"
++   case "foo" if false => "foobar"
     case "bar" => "barfoo"
   }
 ```
@@ -664,6 +665,7 @@ example mutation 2:
   strList.collect {
     case "foo" => "foobar"
 -   case "bar" => "barfoo"
++   case "bar" if false => "barfoo"
   }
 ```
 
