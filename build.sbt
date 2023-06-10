@@ -87,7 +87,7 @@ lazy val input =
 lazy val output =
   project
     .settings(
-      scalacOptions := Seq.empty,
+      scalacOptions := Seq("-Wconf:cat=other-match-analysis:s"),
       libraryDependencies += "dev.zio" %% "zio" % "2.0.15",
       Compile / sourceGenerators += Def.task {
         val sourcesFolder = file((Compile / scalaSource).value.toString + "-output")

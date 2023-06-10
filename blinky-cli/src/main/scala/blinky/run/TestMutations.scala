@@ -17,7 +17,7 @@ object TestMutations {
       projectPath: Path,
       blinkyConfig: BlinkyConfig,
       options: OptionsConfig
-  ): Instruction[ExitCode] = {
+  ): Instruction[ExitCode] =
     for {
       mutationReport <- readFile(Path(blinkyConfig.mutantsOutputFile)).flatMap {
         case Left(_) =>
@@ -92,11 +92,11 @@ object TestMutations {
                     case Right(result) =>
                       for {
                         _ <- printLine(green("Original tests passed..."))
-                        _ <- conditional(options.verbose)(printLine(result))
+                        _ <- when(options.verbose)(printLine(result))
                         originalTestTime <- succeed(
                           System.currentTimeMillis() - originalTestInitialTime
                         )
-                        _ <- conditional(options.verbose)(
+                        _ <- when(options.verbose)(
                           printLine(green("time: " + originalTestTime))
                         )
                         res <-
@@ -122,9 +122,8 @@ object TestMutations {
             }
           } yield res
     } yield testResult
-  }
 
-  def runMutationsSetup(
+  private def runMutationsSetup(
       runner: TestMutationsRunner,
       projectPath: Path,
       options: OptionsConfig,
@@ -166,7 +165,7 @@ object TestMutations {
         ExitCode.failure
   }
 
-  def runMutations(
+  private def runMutations(
       runner: TestMutationsRunner,
       projectPath: Path,
       options: OptionsConfig,
@@ -193,7 +192,7 @@ object TestMutations {
     loop(initialMutants)
   }
 
-  def runMutant(
+  private def runMutant(
       runner: TestMutationsRunner,
       projectPath: Path,
       options: OptionsConfig,
@@ -205,11 +204,10 @@ object TestMutations {
 
     for {
       testResult <- runner.runMutant(projectPath, options, originalTestTime, mutant)
-
       _ <- testResult match {
         case RunResult.MutantSurvived =>
           printLine(red(s"Mutant #$id was not killed!")).flatMap(_ =>
-            if (!options.verbose)
+            when(!options.verbose)(
               printLine(
                 prettyDiff(
                   mutant.diff,
@@ -218,21 +216,17 @@ object TestMutations {
                   color = true
                 )
               )
-            else
-              empty
+            )
           )
         case RunResult.MutantKilled =>
           printLine(green(s"Mutant #$id was killed."))
         case RunResult.Timeout =>
           printLine(green(s"Mutant #$id timeout."))
       }
-
       _ <-
-        if (options.verbose)
+        when(options.verbose)(
           printLine(s"time: ${System.currentTimeMillis() - time}").flatMap(_ => printLine("-" * 40))
-        else
-          empty
-
+        )
     } yield id -> testResult
   }
 

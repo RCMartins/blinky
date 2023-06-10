@@ -12,7 +12,7 @@ class TestMutationsSBT(projectPath: Path) extends TestMutationsRunner {
   private val extraSbtParams: String = "" // --client
 
   def initializeRunner(): Instruction[Unit] =
-    succeed(())
+    empty
 
   def initialCompile(compileCommand: String): RunResultEither[Either[Throwable, String]] =
     runResultEither(
@@ -35,8 +35,8 @@ class TestMutationsSBT(projectPath: Path) extends TestMutationsRunner {
       originalTestTime: Long,
       mutant: MutantFile
   ): Instruction[RunResult] = {
-    val prints =
-      if (options.verbose)
+    val prints: Instruction[Unit] =
+      when(options.verbose)(
         for {
           _ <- printLine(
             s"> [BLINKY_MUTATION_${mutant.id}=1] " +
@@ -47,9 +47,7 @@ class TestMutationsSBT(projectPath: Path) extends TestMutationsRunner {
           )
           _ <- printLine("--v--" * 5)
         } yield ()
-      else
-        empty
-
+      )
     val runResult: Instruction[Either[Throwable, TimeoutResult]] =
       prints.flatMap(_ =>
         runBashTimeout(
@@ -59,7 +57,6 @@ class TestMutationsSBT(projectPath: Path) extends TestMutationsRunner {
           path = projectPath
         )
       )
-
     runResult.map {
       case Right(TimeoutResult.Ok)      => RunResult.MutantSurvived
       case Right(TimeoutResult.Timeout) => RunResult.Timeout
@@ -68,6 +65,6 @@ class TestMutationsSBT(projectPath: Path) extends TestMutationsRunner {
   }
 
   def cleanRunnerAfter(projectPath: Path, results: List[(Int, RunResult)]): Instruction[Unit] =
-    succeed(())
+    empty
 
 }

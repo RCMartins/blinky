@@ -39,10 +39,9 @@ object Run {
             case Right(cloneProjectTempFolder) =>
               for {
                 _ <-
-                  if (config.options.verbose)
+                  when(config.options.verbose)(
                     printLine(s"Temporary project folder: $cloneProjectTempFolder")
-                  else
-                    empty
+                  )
                 runResult <-
                   runResultEither(
                     "git",

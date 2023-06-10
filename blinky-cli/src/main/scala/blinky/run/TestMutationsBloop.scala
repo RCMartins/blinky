@@ -12,7 +12,7 @@ class TestMutationsBloop(projectPath: Path) extends TestMutationsRunner {
     runStream(
       "sbt",
       Seq("bloopInstall"),
-      envArgs = defaultEnvArgs,
+      envArgs = Setup.defaultEnvArgs,
       path = projectPath
     ).map(_ => ())
 
@@ -20,14 +20,14 @@ class TestMutationsBloop(projectPath: Path) extends TestMutationsRunner {
     runResultEither(
       "bloop",
       Seq("compile", escapeString(compileCommand)),
-      envArgs = defaultEnvArgs,
+      envArgs = Setup.defaultEnvArgs,
       path = projectPath
     )
 
   def vanillaTestRun(testCommand: String): RunResultEither[Either[Throwable, String]] =
     runBashEither(
       s"bloop test ${escapeString(testCommand)}",
-      envArgs = defaultEnvArgs,
+      envArgs = Setup.defaultEnvArgs,
       path = projectPath
     )
 
@@ -38,7 +38,7 @@ class TestMutationsBloop(projectPath: Path) extends TestMutationsRunner {
       mutant: MutantFile
   ): Instruction[RunResult] = {
     val prints =
-      if (options.verbose)
+      when(options.verbose)(
         for {
           _ <- printLine(
             s"> [BLINKY_MUTATION_${mutant.id}=1] " +
@@ -49,8 +49,7 @@ class TestMutationsBloop(projectPath: Path) extends TestMutationsRunner {
           )
           _ <- printLine("--v--" * 5)
         } yield ()
-      else
-        empty
+      )
 
     val runBloopResult: Instruction[Either[Throwable, TimeoutResult]] =
       prints.flatMap(_ =>
@@ -73,7 +72,7 @@ class TestMutationsBloop(projectPath: Path) extends TestMutationsRunner {
   }
 
   def cleanRunnerAfter(projectPath: Path, results: List[(Int, RunResult)]): Instruction[Unit] =
-    if (results.exists(_._2 == RunResult.Timeout))
+    when(results.exists(_._2 == RunResult.Timeout))(
       runBashEither("bloop exit", path = projectPath).flatMap {
         case Left(error) =>
           printErrorLine(
@@ -81,9 +80,8 @@ class TestMutationsBloop(projectPath: Path) extends TestMutationsRunner {
                |$error""".stripMargin
           )
         case Right(_) =>
-          succeed(())
+          empty
       }
-    else
-      succeed(())
+    )
 
 }

@@ -9,7 +9,6 @@ import blinky.run.modules.{CliModule, ParserModule, TestModules}
 import blinky.v0.{MutantRange, Mutators}
 import os.RelPath
 import scopt.DefaultOEffectSetup
-import zio.test.Assertion._
 import zio.test._
 import zio.{Layer, UIO}
 
@@ -25,19 +24,20 @@ object CliTest extends ZIOSpecDefault {
         val (zioResult, parser) = parse("--version")()
         for {
           _ <- zioResult
-        } yield assert(parser.getOut)(equalTo {
-          s"""blinky v$version
-             |""".stripMargin
-        }) &&
-          assert(parser.getErr)(equalTo(""))
+        } yield assertTrue(
+          parser.getOut ==
+            s"""blinky v$version
+               |""".stripMargin,
+          parser.getErr == ""
+        )
       },
       test("blinky --help should return the help text") {
         val (zioResult, parser) = parse("--help")()
 
         for {
           _ <- zioResult
-        } yield assert(parser.getOut) {
-          equalTo {
+        } yield assertTrue(
+          parser.getOut ==
             s"""blinky v$version
                |Usage: blinky [options] [<blinkyConfFile>]
                |
@@ -66,10 +66,9 @@ object CliTest extends ZIOSpecDefault {
                |  --timeout <duration>     Duration of additional flat timeout for each mutant test
                |  --testInOrder <bool>     If set, forces the mutants to be tested in order: 1,2,3,... (default false)
                |  --mutant <range>         Mutant indices to test. Defaults to 1-2147483647
-               |""".stripMargin
-          }
-        } &&
-          assert(parser.getErr)(equalTo(""))
+               |""".stripMargin,
+          parser.getErr == ""
+        )
       },
       test("blinky empty.conf should return the default config options") {
         val (zioResult, parser) =
@@ -77,37 +76,37 @@ object CliTest extends ZIOSpecDefault {
 
         for {
           result <- zioResult
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(result)(equalTo {
-            Right(
-              MutationsConfigValidated(
-                projectPath = File(getFilePath("some-project")),
-                filesToMutate = SingleFileOrFolder(RelPath("src/main/scala")),
-                filesToExclude = "",
-                mutators = SimpleBlinkyConfig(
-                  enabled = Mutators.all,
-                  disabled = Mutators(Nil)
-                ),
-                options = OptionsConfig(
-                  verbose = false,
-                  dryRun = false,
-                  testRunner = TestRunnerType.Bloop,
-                  compileCommand = "",
-                  testCommand = "",
-                  maxRunningTime = 60.minutes,
-                  failOnMinimum = false,
-                  mutationMinimum = 25.0,
-                  onlyMutateDiff = false,
-                  mutant = Seq(MutantRange(1, Int.MaxValue)),
-                  multiRun = (1, 1),
-                  timeoutFactor = 1.5,
-                  timeout = 5.second,
-                  testInOrder = false,
-                )
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          result == Right(
+            MutationsConfigValidated(
+              projectPath = File(getFilePath("some-project")),
+              filesToMutate = SingleFileOrFolder(RelPath("src/main/scala")),
+              filesToExclude = "",
+              mutators = SimpleBlinkyConfig(
+                enabled = Mutators.all,
+                disabled = Mutators(Nil)
+              ),
+              options = OptionsConfig(
+                verbose = false,
+                dryRun = false,
+                testRunner = TestRunnerType.Bloop,
+                compileCommand = "",
+                testCommand = "",
+                maxRunningTime = 60.minutes,
+                failOnMinimum = false,
+                mutationMinimum = 25.0,
+                onlyMutateDiff = false,
+                mutant = Seq(MutantRange(1, Int.MaxValue)),
+                multiRun = (1, 1),
+                timeoutFactor = 1.5,
+                timeout = 5.second,
+                testInOrder = false,
               )
             )
-          })
+          )
+        )
       },
       test("blinky options1.conf should return the correct options") {
         val (zioResult, parser) =
@@ -115,28 +114,28 @@ object CliTest extends ZIOSpecDefault {
 
         for {
           result <- zioResult
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(result.map(_.options))(equalTo {
-            Right(
-              OptionsConfig(
-                verbose = false,
-                dryRun = false,
-                testRunner = TestRunnerType.SBT,
-                compileCommand = "",
-                testCommand = "",
-                maxRunningTime = 10.minutes,
-                failOnMinimum = true,
-                mutationMinimum = 66.7,
-                onlyMutateDiff = false,
-                mutant = Seq(MutantRange(5, 20)),
-                multiRun = (1, 3),
-                timeoutFactor = 2.0,
-                timeout = 10.second,
-                testInOrder = true,
-              )
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          result.map(_.options) == Right(
+            OptionsConfig(
+              verbose = false,
+              dryRun = false,
+              testRunner = TestRunnerType.SBT,
+              compileCommand = "",
+              testCommand = "",
+              maxRunningTime = 10.minutes,
+              failOnMinimum = true,
+              mutationMinimum = 66.7,
+              onlyMutateDiff = false,
+              mutant = Seq(MutantRange(5, 20)),
+              multiRun = (1, 3),
+              timeoutFactor = 2.0,
+              timeout = 10.second,
+              testInOrder = true,
             )
-          })
+          )
+        )
       },
       test(
         "blinky simple1.conf returns the correct projectName, compileCommand and testCommand"
@@ -146,8 +145,7 @@ object CliTest extends ZIOSpecDefault {
         for {
           result <- zioResult
           config = result.toOption
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
+        } yield assertTrue(parser.getOut == "", parser.getErr == "") &&
           assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
           assert(config.map(_.filesToMutate))(
             equalSome(SingleFileOrFolder(RelPath("src/main/scala/Example.scala")))
@@ -163,8 +161,7 @@ object CliTest extends ZIOSpecDefault {
         for {
           result <- zioResult
           config = result.toOption
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
+        } yield assertTrue(parser.getOut == "", parser.getErr == "") &&
           assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
           assert(config.map(_.filesToMutate))(
             equalSome(SingleFileOrFolder(RelPath("src/main/scala/Example.scala")))
@@ -180,8 +177,7 @@ object CliTest extends ZIOSpecDefault {
         for {
           result <- zioResult
           config = result.toOption
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
+        } yield assertTrue(parser.getOut == "", parser.getErr == "") &&
           assert(config.map(_.filesToMutate))(
             equalSome(FileName("src/main/scala/UnknownFile.scala"))
           )
@@ -194,8 +190,7 @@ object CliTest extends ZIOSpecDefault {
         for {
           result <- zioResult
           config = result.toOption
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
+        } yield assertTrue(parser.getOut == "", parser.getErr == "") &&
           assert(config.map(_.filesToMutate))(
             equalSome(FileName("src/main/scala/UnknownFile.scala"))
           )
@@ -206,14 +201,14 @@ object CliTest extends ZIOSpecDefault {
 
         for {
           result <- zioResult
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(result)(equalTo {
-            Left(
-              s"""Default '${pwdFolder / ".blinky.conf"}' does not exist.
-                 |blinky --help for usage.""".stripMargin
-            )
-          })
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          result == Left(
+            s"""Default '${pwdFolder / ".blinky.conf"}' does not exist.
+               |blinky --help for usage.""".stripMargin
+          )
+        )
       },
       test("blinky <non-existent-file> returns an error if there is no unknown.conf file") {
         val pwdFolder = File(getFilePath("."))
@@ -221,34 +216,32 @@ object CliTest extends ZIOSpecDefault {
 
         for {
           result <- zioResult
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(result)(equalTo {
-            Left(
-              s"""<blinkyConfFile> '${pwdFolder / "unknown.conf"}' does not exist.
-                 |blinky --help for usage.""".stripMargin
-            )
-          })
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          result == Left(
+            s"""<blinkyConfFile> '${pwdFolder / "unknown.conf"}' does not exist.
+               |blinky --help for usage.""".stripMargin
+          )
+        )
       },
       test("return an error multiRun field in wrong") {
         val (zioResult, parser) = parse(getFilePath("wrongMultiRun.conf"))()
 
         for {
           result <- zioResult
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(result)(
-            equalTo(
-              Left(
-                """<input>:2:0 error: Type mismatch;
-                  |  found    : String (value: "1-2")
-                  |  expected : Invalid value, should be a String in 'int/int' format
-                  |  multiRun = "1-2"
-                  |^
-                  |""".stripMargin
-              )
-            )
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          result == Left(
+            """<input>:2:0 error: Type mismatch;
+              |  found    : String (value: "1-2")
+              |  expected : Invalid value, should be a String in 'int/int' format
+              |  multiRun = "1-2"
+              |^
+              |""".stripMargin
           )
+        )
       },
       suite("using overrides parameters")(
         test("return the changed parameters") {
@@ -292,8 +285,7 @@ object CliTest extends ZIOSpecDefault {
           for {
             result <- zioResult
             config = result.toOption
-          } yield assert(parser.getOut)(equalTo("")) &&
-            assert(parser.getErr)(equalTo("")) &&
+          } yield assertTrue(parser.getOut == "", parser.getErr == "") &&
             assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
             assert(config.map(_.filesToMutate))(
               equalSome(SingleFileOrFolder(RelPath("src/main/scala/Main.scala")))
@@ -329,13 +321,13 @@ object CliTest extends ZIOSpecDefault {
 
           for {
             result <- zioResult
-          } yield assert(parser.getOut)(equalTo("")) &&
-            assert(parser.getErr)(equalTo("")) &&
-            assert(result)(equalTo {
-              Left(
-                s"""--projectPath '${pwd / "non-existent" / "project-path"}' does not exist."""
-              )
-            })
+          } yield assertTrue(
+            parser.getOut == "",
+            parser.getErr == "",
+            result == Left(
+              s"""--projectPath '${pwd / "non-existent" / "project-path"}' does not exist."""
+            )
+          )
         }
       ),
       suite("mutationMinimum value check")(
@@ -344,54 +336,52 @@ object CliTest extends ZIOSpecDefault {
 
           for {
             result <- zioResult
-          } yield assert(parser.getOut)(equalTo("")) &&
-            assert(parser.getErr)(equalTo("")) &&
-            assert(result)(equalTo {
-              Left(
-                "mutationMinimum value is invalid. It should be a number between 0 and 100."
-              )
-            })
+          } yield assertTrue(
+            parser.getOut == "",
+            parser.getErr == "",
+            result == Left(
+              "mutationMinimum value is invalid. It should be a number between 0 and 100."
+            )
+          )
         },
         test("return an error if mutationMinimum is above 100") {
           val (zioResult, parser) = parse("--mutationMinimum", "100.1")()
 
           for {
             result <- zioResult
-          } yield assert(parser.getOut)(equalTo("")) &&
-            assert(parser.getErr)(equalTo("")) &&
-            assert(result)(equalTo {
-              Left(
-                "mutationMinimum value is invalid. It should be a number between 0 and 100."
-              )
-            })
+          } yield assertTrue(
+            parser.getOut == "",
+            parser.getErr == "",
+            result == Left(
+              "mutationMinimum value is invalid. It should be a number between 0 and 100."
+            )
+          )
         },
         test("return an error multiRun field in wrong (less than 1)") {
           val (zioResult, parser) = parse("--multiRun", "0/1")()
 
           for {
             _ <- zioResult
-          } yield assert(parser.getOut)(equalTo("")) &&
-            assert(parser.getErr)(
-              equalTo(
-                """Error: Option --multiRun failed when given '0/1'. Invalid index value, should be >= 1
-                  |Try --help for more information.
-                  |""".stripMargin
-              )
-            )
+          } yield assertTrue(
+            parser.getOut == "",
+            parser.getErr ==
+              """Error: Option --multiRun failed when given '0/1'. Invalid index value, should be >= 1
+                |Try --help for more information.
+                |""".stripMargin
+          )
         },
         test("return an error multiRun field in wrong (index <= total)") {
           val (zioResult, parser) = parse("--multiRun", "3/2")()
 
           for {
             _ <- zioResult
-          } yield assert(parser.getOut)(equalTo("")) &&
-            assert(parser.getErr)(
-              equalTo(
-                """Error: Option --multiRun failed when given '3/2'. Invalid amount, should be greater or equal than index
-                  |Try --help for more information.
-                  |""".stripMargin
-              )
-            )
+          } yield assertTrue(
+            parser.getOut == "",
+            parser.getErr ==
+              """Error: Option --multiRun failed when given '3/2'. Invalid amount, should be greater or equal than index
+                |Try --help for more information.
+                |""".stripMargin
+          )
         }
       )
     )
