@@ -57,7 +57,7 @@ object RunExamples {
       os.proc("git", "config", "user.name", "Your Name").call(cwd = testDirectory)
     )
     println(("defaultDirectory", defaultDirectory))
-    os.copy(defaultDirectory, testDirectory, mergeFolders = true)
+    os.copy(defaultDirectory, testDirectory, mergeFolders = true, replaceExisting = true)
 
     showIfError(
       os.proc("git", "add", ".").call(cwd = testDirectory)
