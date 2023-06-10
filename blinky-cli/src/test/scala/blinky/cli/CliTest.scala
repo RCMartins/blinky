@@ -137,9 +137,7 @@ object CliTest extends ZIOSpecDefault {
           )
         )
       },
-      test(
-        "blinky simple1.conf returns the correct projectName, compileCommand and testCommand"
-      ) {
+      test("blinky simple1.conf returns the correct projectName, compileCommand and testCommand") {
         val (zioResult, parser) = parse(getFilePath("simple1.conf"))()
 
         for {
@@ -153,9 +151,7 @@ object CliTest extends ZIOSpecDefault {
           assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
           assert(config.map(_.options.testCommand))(equalSome("example1"))
       },
-      test(
-        "blinky simple2.conf returns the correct projectName, compileCommand and testCommand"
-      ) {
+      test("blinky simple2.conf returns the correct projectName, compileCommand and testCommand") {
         val (zioResult, parser) = parse(getFilePath("simple2.conf"))()
 
         for {
@@ -169,9 +165,7 @@ object CliTest extends ZIOSpecDefault {
           assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
           assert(config.map(_.options.testCommand))(equalSome("example1"))
       },
-      test(
-        "blinky wrongPath1.conf returns a fileName object"
-      ) {
+      test("blinky wrongPath1.conf returns a fileName object") {
         val (zioResult, parser) = parse(getFilePath("wrongPath1.conf"))()
 
         for {
@@ -182,9 +176,7 @@ object CliTest extends ZIOSpecDefault {
             equalSome(FileName("src/main/scala/UnknownFile.scala"))
           )
       },
-      test(
-        "blinky wrongPath2.conf returns a fileName object"
-      ) {
+      test("blinky wrongPath2.conf returns a fileName object") {
         val (zioResult, parser) = parse(getFilePath("wrongPath2.conf"))()
 
         for {
@@ -225,7 +217,7 @@ object CliTest extends ZIOSpecDefault {
           )
         )
       },
-      test("return an error multiRun field in wrong") {
+      test("return an error if multiRun field in wrong") {
         val (zioResult, parser) = parse(getFilePath("wrongMultiRun.conf"))()
 
         for {
@@ -241,6 +233,17 @@ object CliTest extends ZIOSpecDefault {
               |^
               |""".stripMargin
           )
+        )
+      },
+      test("return an error if testRunner field in wrong") {
+        val (zioResult, parser) = parse(getFilePath("wrongTestRunner.conf"))()
+
+        for {
+          result <- zioResult
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          result == Left("Invalid runner type. Should be 'sbt' or 'bloop'.")
         )
       },
       suite("using overrides parameters")(
