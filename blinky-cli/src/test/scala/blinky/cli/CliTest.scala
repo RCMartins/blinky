@@ -4,7 +4,7 @@ import better.files.File
 import blinky.BuildInfo.version
 import blinky.TestSpec._
 import blinky.run.config.FileFilter.{FileName, SingleFileOrFolder}
-import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
+import blinky.run.config._
 import blinky.run.modules.{CliModule, ParserModule, TestModules}
 import blinky.v0.{MutantRange, Mutators}
 import os.RelPath
@@ -48,6 +48,7 @@ object CliTest extends ZIOSpecDefault {
                |  --projectPath <path>     The project directory, can be an absolute or relative path
                |  --filesToMutate <path>   The relative path to the scala src folder or files to mutate
                |  --filesToExclude <path>  The relative path to the folder or files to exclude from mutation
+               |  --testRunner <runner>    The test runner to be used by blinky, "sbt" or "bloop" (default "bloop")
                |  --compileCommand <cmd>   The compile command to be executed by sbt/bloop before the first run
                |  --testCommand <cmd>      The test command to be executed by sbt/bloop
                |  --verbose <bool>         If set, prints out debug information. Defaults to false
@@ -91,6 +92,7 @@ object CliTest extends ZIOSpecDefault {
                 options = OptionsConfig(
                   verbose = false,
                   dryRun = false,
+                  testRunner = TestRunnerType.Bloop,
                   compileCommand = "",
                   testCommand = "",
                   maxRunningTime = 60.minutes,
@@ -101,7 +103,7 @@ object CliTest extends ZIOSpecDefault {
                   multiRun = (1, 1),
                   timeoutFactor = 1.5,
                   timeout = 5.second,
-                  testInOrder = false
+                  testInOrder = false,
                 )
               )
             )
@@ -120,6 +122,7 @@ object CliTest extends ZIOSpecDefault {
               OptionsConfig(
                 verbose = false,
                 dryRun = false,
+                testRunner = TestRunnerType.SBT,
                 compileCommand = "",
                 testCommand = "",
                 maxRunningTime = 10.minutes,
@@ -130,7 +133,7 @@ object CliTest extends ZIOSpecDefault {
                 multiRun = (1, 3),
                 timeoutFactor = 2.0,
                 timeout = 10.second,
-                testInOrder = true
+                testInOrder = true,
               )
             )
           })
@@ -258,6 +261,8 @@ object CliTest extends ZIOSpecDefault {
             "src/main/scala/Main.scala",
             "--filesToExclude",
             "src/main/scala/Utils.scala",
+            "--testRunner",
+            "SBT",
             "--verbose",
             "true",
             "--onlyMutateDiff",
@@ -279,7 +284,7 @@ object CliTest extends ZIOSpecDefault {
             "--testInOrder",
             "true",
             "--mutant",
-            "10-50"
+            "10-50",
           )
 
           val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)()
@@ -298,6 +303,7 @@ object CliTest extends ZIOSpecDefault {
               OptionsConfig(
                 verbose = true,
                 dryRun = true,
+                testRunner = TestRunnerType.SBT,
                 compileCommand = "example2",
                 testCommand = "example2",
                 maxRunningTime = Duration(45, TimeUnit.MINUTES),
@@ -308,7 +314,7 @@ object CliTest extends ZIOSpecDefault {
                 multiRun = (2, 3),
                 timeoutFactor = 1.75,
                 timeout = 3.second,
-                testInOrder = true
+                testInOrder = true,
               )
             })
         },

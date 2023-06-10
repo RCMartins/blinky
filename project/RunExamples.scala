@@ -56,10 +56,9 @@ object RunExamples {
     showIfError(
       os.proc("git", "config", "user.name", "Your Name").call(cwd = testDirectory)
     )
-    showIfError(
-      os.proc("bash", "-c", s"""cp -nr $defaultDirectory/* $testDirectory""")
-        .call(cwd = testDirectory)
-    )
+    println(("defaultDirectory", defaultDirectory))
+    os.copy(defaultDirectory, testDirectory, mergeFolders = true)
+
     showIfError(
       os.proc("git", "add", ".").call(cwd = testDirectory)
     )

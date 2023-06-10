@@ -225,7 +225,7 @@ object Run {
                       for {
                         _ <- printLine(toolPath)
                         _ <- runStream(coursier, params, path = projectRealPath)
-                        runResult <- TestMutationsBloop.run(
+                        runResult <- TestMutations.run(
                           projectRealPath,
                           blinkyConf,
                           config.options
