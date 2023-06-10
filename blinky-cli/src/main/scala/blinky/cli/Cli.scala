@@ -15,7 +15,7 @@ object Cli extends ZIOAppDefault {
   type InterpreterEnvironment = ExternalModule
 
   override def run: ZIO[ZIOAppArgs, Nothing, ExitCode] =
-    ZIO.service[ZIOAppArgs].map(_.getArgs.toList).flatMap { args =>
+    ZIO.serviceWith[ZIOAppArgs](_.getArgs.toList).flatMap { args =>
       parseAndRun(args).provide(
         ParserModule.layer,
         CliModule.layer(File(".")),
@@ -43,8 +43,8 @@ object Cli extends ZIOAppDefault {
       strArgs: List[String]
   ): URIO[ParserEnvironment, Either[String, MutationsConfigValidated]] =
     for {
-      parser <- ZIO.service[ParserModule].flatMap(_.parser)
-      pwd <- ZIO.service[CliModule].flatMap(_.pwd)
+      parser <- ZIO.serviceWithZIO[ParserModule](_.parser)
+      pwd <- ZIO.serviceWithZIO[CliModule](_.pwd)
       args <- ZIO.succeed(OParser.parse(Parser.parser, strArgs, Args(), parser))
     } yield args match {
       case None =>

@@ -19,7 +19,7 @@ object Run {
 
   def run(config: MutationsConfigValidated): RIO[CliModule, Instruction[ExitCode]] =
     for {
-      pwd <- ZIO.service[CliModule].flatMap(_.pwd)
+      pwd <- ZIO.serviceWithZIO[CliModule](_.pwd)
 
       originalProjectRoot = Path(pwd.path.toAbsolutePath)
       originalProjectRelPath =

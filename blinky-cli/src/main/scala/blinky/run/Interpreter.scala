@@ -15,7 +15,7 @@ object Interpreter {
       initialProgram: Instruction[A]
   ): URIO[InterpreterEnvironment, A] =
     for {
-      externalCalls <- ZIO.service[ExternalModule].flatMap(_.external)
+      externalCalls <- ZIO.serviceWithZIO[ExternalModule](_.external)
     } yield interpreterFully(externalCalls, initialProgram)
 
   private def interpreterFully[A](

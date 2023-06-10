@@ -1,6 +1,5 @@
 package blinky.run
 
-import zio.test.Assertion._
 import zio.test._
 
 object UtilsTest extends ZIOSpecDefault {
@@ -8,28 +7,28 @@ object UtilsTest extends ZIOSpecDefault {
   val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("Utils")(
       test("red should return the terminal color code for red color") {
-        assert(Utils.red("test line"))(equalTo("\u001B[31mtest line\u001B[0m"))
+        assertTrue(Utils.red("test line") == "\u001B[31mtest line\u001B[0m")
       },
       test("green should return the terminal color code for green color") {
-        assert(Utils.green("some line"))(equalTo("\u001B[32msome line\u001B[0m"))
+        assertTrue(Utils.green("some line") == "\u001B[32msome line\u001B[0m")
       },
       test("cyan should return the terminal color code for cyan color") {
-        assert(Utils.cyan("hello world"))(equalTo("\u001B[36mhello world\u001B[0m"))
+        assertTrue(Utils.cyan("hello world") == "\u001B[36mhello world\u001B[0m")
       },
       test("escapeString should return the string escaped") {
-        assert(Utils.escapeString("\"test line\""))(equalTo("\\\"test line\\\""))
+        assertTrue(Utils.escapeString("\"test line\"") == "\\\"test line\\\"")
       },
       suite("stripPathPrefix")(
         test("should return the original string if prefix is not found") {
-          assert(Utils.stripPathPrefix("str/ing1", "strg"))(equalTo("str/ing1"))
+          assertTrue(Utils.stripPathPrefix("str/ing1", "strg") == "str/ing1")
         },
         test("should return the striped string if prefix is found") {
-          assert(
+          assertTrue(
             Utils.stripPathPrefix(
               "/home/project/src/main/scala/Code.scala",
               "/home/project"
-            )
-          )(equalTo("/src/main/scala/Code.scala"))
+            ) == "/src/main/scala/Code.scala"
+          )
         }
       ), {
         def testPrettyDiff(
@@ -56,7 +55,7 @@ object UtilsTest extends ZIOSpecDefault {
           test("return an empty string when the input is invalid") {
             val result =
               Utils.prettyDiff("@@ -1,2 +3,4 -5,6 @@", "", "", color = true)
-            assert(result)(equalTo(""))
+            assertTrue(result == "")
           },
           test("return the raw 'git diff' output with line numbers (when color is on)") {
             val original =
@@ -93,7 +92,7 @@ object UtilsTest extends ZIOSpecDefault {
                 .replace("$", "\u001B")
                 .replace("\r", "")
 
-            assert(actual)(equalTo(expected))
+            assertTrue(actual == expected)
           },
           test("return the raw 'git diff' output with line numbers (when color is off)") {
             val original =
@@ -131,7 +130,7 @@ object UtilsTest extends ZIOSpecDefault {
                 .replace("#", " ")
                 .replace("\r", "")
 
-            assert(actual)(equalTo(expected))
+            assertTrue(actual == expected)
           },
           test(
             "return the raw 'git diff' output with line numbers (multiple minus and plus lines)"
@@ -177,7 +176,7 @@ object UtilsTest extends ZIOSpecDefault {
                 .replace("#", " ")
                 .replace("\r", "")
 
-            assert(actual)(equalTo(expected))
+            assertTrue(actual == expected)
           },
           test("return the raw 'git diff' output with line numbers (only minus)") {
             val original =
@@ -211,7 +210,7 @@ object UtilsTest extends ZIOSpecDefault {
                 .replace("#", " ")
                 .replace("\r", "")
 
-            assert(actual)(equalTo(expected))
+            assertTrue(actual == expected)
           },
           test("return the raw 'git diff' output with line numbers (only plus)") {
             val original =
@@ -247,7 +246,7 @@ object UtilsTest extends ZIOSpecDefault {
                 .replace("#", " ")
                 .replace("\r", "")
 
-            assert(actual)(equalTo(expected))
+            assertTrue(actual == expected)
           }
         )
       }
