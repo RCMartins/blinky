@@ -1,8 +1,5 @@
 package blinky
 
-import zio.test.Assertion
-import zio.test.Assertion._
-
 object TestSpec {
 
   @inline
@@ -19,9 +16,6 @@ object TestSpec {
       fileName => getClass.getResource(s"/$fileName").getPath.stripPrefix("/")
     else
       fileName => getClass.getResource(s"/$fileName").getPath
-
-  def equalSome[A](value: A): Assertion[Any] =
-    equalTo(Some(value))
 
   case class SomeException(message: String) extends Exception(message)
 

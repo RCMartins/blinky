@@ -139,58 +139,62 @@ object CliTest extends ZIOSpecDefault {
       },
       test("blinky simple1.conf returns the correct projectName, compileCommand and testCommand") {
         val (zioResult, parser) = parse(getFilePath("simple1.conf"))()
-
         for {
           result <- zioResult
-          config = result.toOption
-        } yield assertTrue(parser.getOut == "", parser.getErr == "") &&
-          assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
-          assert(config.map(_.filesToMutate))(
-            equalSome(SingleFileOrFolder(RelPath("src/main/scala/Example.scala")))
-          ) &&
-          assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
-          assert(config.map(_.options.testCommand))(equalSome("example1"))
+        } yield {
+          lazy val config = result.toOption.get
+          assertTrue(
+            parser.getOut == "",
+            parser.getErr == "",
+            config.projectPath == File(getFilePath("some-project")),
+            config.filesToMutate == SingleFileOrFolder(RelPath("src/main/scala/Example.scala")),
+            config.options.compileCommand == "example1",
+            config.options.testCommand == "example1"
+          )
+        }
       },
       test("blinky simple2.conf returns the correct projectName, compileCommand and testCommand") {
         val (zioResult, parser) = parse(getFilePath("simple2.conf"))()
-
         for {
           result <- zioResult
-          config = result.toOption
-        } yield assertTrue(parser.getOut == "", parser.getErr == "") &&
-          assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
-          assert(config.map(_.filesToMutate))(
-            equalSome(SingleFileOrFolder(RelPath("src/main/scala/Example.scala")))
-          ) &&
-          assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
-          assert(config.map(_.options.testCommand))(equalSome("example1"))
+        } yield {
+          lazy val config = result.toOption.get
+          assertTrue(
+            parser.getOut == "",
+            parser.getErr == "",
+            result.isRight,
+            config.projectPath == File(getFilePath("some-project")),
+            config.filesToMutate == SingleFileOrFolder(RelPath("src/main/scala/Example.scala")),
+            config.options.compileCommand == "example1",
+            config.options.testCommand == "example1",
+          )
+        }
       },
       test("blinky wrongPath1.conf returns a fileName object") {
         val (zioResult, parser) = parse(getFilePath("wrongPath1.conf"))()
-
         for {
           result <- zioResult
           config = result.toOption
-        } yield assertTrue(parser.getOut == "", parser.getErr == "") &&
-          assert(config.map(_.filesToMutate))(
-            equalSome(FileName("src/main/scala/UnknownFile.scala"))
-          )
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          config.map(_.filesToMutate).contains(FileName("src/main/scala/UnknownFile.scala"))
+        )
       },
       test("blinky wrongPath2.conf returns a fileName object") {
         val (zioResult, parser) = parse(getFilePath("wrongPath2.conf"))()
-
         for {
           result <- zioResult
           config = result.toOption
-        } yield assertTrue(parser.getOut == "", parser.getErr == "") &&
-          assert(config.map(_.filesToMutate))(
-            equalSome(FileName("src/main/scala/UnknownFile.scala"))
-          )
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          config.map(_.filesToMutate).contains(FileName("src/main/scala/UnknownFile.scala"))
+        )
       },
       test("blinky <no conf file> returns an error if there is no default .blinky.conf file") {
         val pwdFolder = File(".")
         val (zioResult, parser) = parse()(pwdFolder)
-
         for {
           result <- zioResult
         } yield assertTrue(
@@ -205,7 +209,6 @@ object CliTest extends ZIOSpecDefault {
       test("blinky <non-existent-file> returns an error if there is no unknown.conf file") {
         val pwdFolder = File(getFilePath("."))
         val (zioResult, parser) = parse("unknown.conf")(pwdFolder)
-
         for {
           result <- zioResult
         } yield assertTrue(
@@ -219,7 +222,6 @@ object CliTest extends ZIOSpecDefault {
       },
       test("return an error if multiRun field in wrong") {
         val (zioResult, parser) = parse(getFilePath("wrongMultiRun.conf"))()
-
         for {
           result <- zioResult
         } yield assertTrue(
@@ -237,7 +239,6 @@ object CliTest extends ZIOSpecDefault {
       },
       test("return an error if testRunner field in wrong") {
         val (zioResult, parser) = parse(getFilePath("wrongTestRunner.conf"))()
-
         for {
           result <- zioResult
         } yield assertTrue(
@@ -284,18 +285,18 @@ object CliTest extends ZIOSpecDefault {
           )
 
           val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)()
-
           for {
             result <- zioResult
-            config = result.toOption
-          } yield assertTrue(parser.getOut == "", parser.getErr == "") &&
-            assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
-            assert(config.map(_.filesToMutate))(
-              equalSome(SingleFileOrFolder(RelPath("src/main/scala/Main.scala")))
-            ) &&
-            assert(config.map(_.filesToExclude))(equalSome("src/main/scala/Utils.scala")) &&
-            assert(config.map(_.options))(equalSome {
-              OptionsConfig(
+          } yield {
+            lazy val config = result.toOption.get
+            assertTrue(
+              parser.getOut == "",
+              parser.getErr == "",
+              result.isRight,
+              config.projectPath == File(getFilePath("some-project")),
+              config.filesToMutate == SingleFileOrFolder(RelPath("src/main/scala/Main.scala")),
+              config.filesToExclude == "src/main/scala/Utils.scala",
+              config.options == OptionsConfig(
                 verbose = true,
                 dryRun = true,
                 testRunner = TestRunnerType.SBT,
@@ -311,7 +312,8 @@ object CliTest extends ZIOSpecDefault {
                 timeout = 3.second,
                 testInOrder = true,
               )
-            })
+            )
+          }
         },
         test("return an error if projectPath does not exist") {
           val params: Seq[String] = Seq(
@@ -321,7 +323,6 @@ object CliTest extends ZIOSpecDefault {
 
           val pwd = File(getFilePath("."))
           val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(pwd)
-
           for {
             result <- zioResult
           } yield assertTrue(
@@ -340,7 +341,6 @@ object CliTest extends ZIOSpecDefault {
 
           val pwd = File(getFilePath("."))
           val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(pwd)
-
           for {
             result <- zioResult
             config = result.toOption
@@ -354,7 +354,6 @@ object CliTest extends ZIOSpecDefault {
       suite("mutationMinimum value check")(
         test("return an error if mutationMinimum is negative") {
           val (zioResult, parser) = parse("--mutationMinimum", "-0.1")()
-
           for {
             result <- zioResult
           } yield assertTrue(
@@ -380,7 +379,6 @@ object CliTest extends ZIOSpecDefault {
         },
         test("return an error multiRun field in wrong (less than 1)") {
           val (zioResult, parser) = parse("--multiRun", "0/1")()
-
           for {
             _ <- zioResult
           } yield assertTrue(
@@ -393,7 +391,6 @@ object CliTest extends ZIOSpecDefault {
         },
         test("return an error multiRun field in wrong (index <= total)") {
           val (zioResult, parser) = parse("--multiRun", "3/2")()
-
           for {
             _ <- zioResult
           } yield assertTrue(
