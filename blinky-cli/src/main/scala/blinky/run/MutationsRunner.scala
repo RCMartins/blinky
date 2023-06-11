@@ -5,7 +5,7 @@ import os.Path
 
 trait MutationsRunner {
 
-  def initializeRunner(): Instruction[Either[Throwable, Unit]]
+  def initializeRunner: Instruction[Either[Throwable, Unit]]
 
   def initialCompile(compileCommand: String): Instruction[Either[Throwable, Unit]]
 

@@ -6,7 +6,7 @@ import os.Path
 
 class RunMutationsBloop(projectPath: Path) extends MutationsRunner {
 
-  def initializeRunner(): Instruction[Either[Throwable, Unit]] =
+  def initializeRunner: Instruction[Either[Throwable, Unit]] =
     runStream(
       "sbt",
       Seq("bloopInstall"),

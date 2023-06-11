@@ -27,8 +27,8 @@ object Cli extends ZIOAppDefault {
     for {
       parseResult <- parse(strArgs)
       instructions <- parseResult match {
-        case Left(exitCode) =>
-          ZIO.succeed(PrintErrorLine(exitCode, succeed(ExitCode.failure)))
+        case Left(errorMessage) =>
+          ZIO.succeed(PrintErrorLine(errorMessage, succeed(ExitCode.failure)))
         case Right(configValidated) =>
           Run
             .run(configValidated)

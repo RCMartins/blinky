@@ -9,7 +9,7 @@ class RunMutationsSBT(projectPath: Path) extends MutationsRunner {
 
   private val extraSbtParams: String = ""
 
-  def initializeRunner(): Instruction[Either[Throwable, Unit]] =
+  def initializeRunner: Instruction[Either[Throwable, Unit]] =
     succeed(Right(()))
 
   def initialCompile(compileCommand: String): Instruction[Either[Throwable, Unit]] =

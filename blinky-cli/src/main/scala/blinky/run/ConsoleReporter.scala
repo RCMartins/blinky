@@ -45,11 +45,11 @@ object ConsoleReporter {
           if (score < minimum)
             printLine(
               red(s"Mutation score is below minimum [$scoreFormatted% < $minimum%]")
-            ).flatMap(_ => Instruction.succeed(false))
+            ) *> Instruction.succeed(false)
           else
             printLine(
               green(s"Mutation score is above minimum [$scoreFormatted% >= $minimum%]")
-            ).flatMap(_ => Instruction.succeed(true))
+            ) *> Instruction.succeed(true)
         } else
           succeed(true)
     } yield result

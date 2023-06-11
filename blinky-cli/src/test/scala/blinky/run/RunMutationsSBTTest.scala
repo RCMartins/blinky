@@ -18,8 +18,8 @@ object RunMutationsSBTTest extends ZIOSpecDefault {
       suite("initializeRunner")(
         test("should be empty") {
           testInstruction(
-            instance.initializeRunner(),
-            TestReturn(())
+            instance.initializeRunner,
+            TestReturn(Right(()))
           )
         },
       ),
