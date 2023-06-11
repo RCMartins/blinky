@@ -2,7 +2,7 @@ package blinky.run
 
 import blinky.BuildInfo
 import blinky.run.Instruction._
-import blinky.run.config.{FileFilter, MutationsConfigValidated, SimpleBlinkyConfig}
+import blinky.run.config.{FileFilter, MutationsConfigValidated, SimpleBlinkyConfig, TestRunnerType}
 import blinky.run.modules.CliModule
 import blinky.v0.BlinkyConfig
 import os.{Path, RelPath}
@@ -221,10 +221,15 @@ object Run {
                           s"--config=$scalafixConfFile",
                           "--auto-classpath=target"
                         ).filter(_.nonEmpty)
+                      val runner = config.options.testRunner match {
+                        case TestRunnerType.SBT   => new RunMutationsSBT(projectRealPath)
+                        case TestRunnerType.Bloop => new RunMutationsBloop(projectRealPath)
+                      }
                       for {
                         _ <- printLine(toolPath)
+                        // TODO check for errors:
                         _ <- runStream(coursier, params, path = projectRealPath)
-                        runResult <- RunMutations.run(
+                        runResult <- new RunMutations(runner).run(
                           projectRealPath,
                           blinkyConf.mutantsOutputFile,
                           config.options

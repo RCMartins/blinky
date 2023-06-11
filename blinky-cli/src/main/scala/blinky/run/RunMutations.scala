@@ -4,14 +4,14 @@ import blinky.internal.MutantFile
 import blinky.run.Instruction._
 import blinky.run.Setup.defaultEnvArgs
 import blinky.run.Utils._
-import blinky.run.config.{OptionsConfig, TestRunnerType}
+import blinky.run.config.OptionsConfig
 import os.Path
 import zio.ExitCode
 import zio.json.DecoderOps
 
 import scala.util.Random
 
-object RunMutations {
+class RunMutations(runner: MutationsRunner) {
 
   def run(
       projectPath: Path,
@@ -48,17 +48,11 @@ object RunMutations {
       testResult <-
         if (numberOfMutants == 0)
           printLine("Try changing the mutation settings.").map(_ => ExitCode.success)
-        else {
-          val runner = options.testRunner match {
-            case TestRunnerType.SBT   => new RunMutationsSBT(projectPath)
-            case TestRunnerType.Bloop => new RunMutationsBloop(projectPath)
-          }
-          initializeRunMutations(runner, projectPath, options, mutationReport, numberOfMutants)
-        }
+        else
+          initializeRunMutations(projectPath, options, mutationReport, numberOfMutants)
     } yield testResult
 
   private def initializeRunMutations(
-      runner: MutationsRunner,
       projectPath: Path,
       options: OptionsConfig,
       mutationReport: List[MutantFile],
@@ -71,7 +65,6 @@ object RunMutations {
             .map(_ => ExitCode.failure)
       case Right(_) =>
         runInitialCompile(
-          runner,
           projectPath,
           options,
           mutationReport,
@@ -80,7 +73,6 @@ object RunMutations {
     }
 
   private def runInitialCompile(
-      runner: MutationsRunner,
       projectPath: Path,
       options: OptionsConfig,
       mutationReport: List[MutantFile],
@@ -101,12 +93,11 @@ object RunMutations {
                  |$newIssueLink""".stripMargin
             ).map(_ => ExitCode.failure)
         case Right(_) =>
-          runInitialTests(runner, projectPath, options, mutationReport, numberOfMutants)
+          runInitialTests(projectPath, options, mutationReport, numberOfMutants)
       }
     } yield res
 
   private def runInitialTests(
-      runner: MutationsRunner,
       projectPath: Path,
       options: OptionsConfig,
       mutationReport: List[MutantFile],
@@ -143,7 +134,6 @@ object RunMutations {
                 ).map(_ => ExitCode.success)
               else
                 runMutationsSetup(
-                  runner,
                   projectPath,
                   options,
                   originalTestTime,
@@ -155,7 +145,6 @@ object RunMutations {
     } yield res
 
   private def runMutationsSetup(
-      runner: MutationsRunner,
       projectPath: Path,
       options: OptionsConfig,
       originalTestTime: Long,
@@ -177,7 +166,6 @@ object RunMutations {
 
       initialTime = System.currentTimeMillis()
       results <- runMutations(
-        runner,
         projectPath,
         options,
         originalTestTime,
@@ -197,7 +185,6 @@ object RunMutations {
   }
 
   private def runMutations(
-      runner: MutationsRunner,
       projectPath: Path,
       options: OptionsConfig,
       originalTestTime: Long,
@@ -215,7 +202,7 @@ object RunMutations {
           ).map(_ => Nil)
         case mutant :: othersMutants =>
           for {
-            mutantResult <- runMutant(runner, projectPath, options, originalTestTime, mutant)
+            mutantResult <- runMutant(projectPath, options, originalTestTime, mutant)
             result <- loop(othersMutants)
           } yield mutantResult :: result
       }
@@ -224,7 +211,6 @@ object RunMutations {
   }
 
   private def runMutant(
-      runner: MutationsRunner,
       projectPath: Path,
       options: OptionsConfig,
       originalTestTime: Long,

@@ -9,10 +9,10 @@ import zio.{ExitCode, Scope}
 
 object RunMutationsTest extends ZIOSpecDefault {
 
-  private val instance = RunMutations
-  private val projectPath: Path = Path(getFilePath("some-project"))
-  private val mutantsOutputFile: String = getFilePath("blinky-empty.mutants")
-  private val someException = SomeException("some exception")
+  private lazy val projectPath: Path = Path(getFilePath("some-project"))
+  private lazy val instance = new RunMutations(new RunMutationsSBT(projectPath))
+  private lazy val emptyMutantsOutputFile: String = getFilePath("blinky-empty.mutants")
+  private lazy val someException = SomeException("some exception")
 
   def spec: Spec[TestEnvironment with Scope, Any] =
     suite("RunMutations")(
@@ -21,15 +21,15 @@ object RunMutationsTest extends ZIOSpecDefault {
           testInstruction(
             instance.run(
               projectPath,
-              mutantsOutputFile,
+              emptyMutantsOutputFile,
               OptionsConfig.default,
             ),
             TestReadFile(
-              Path(mutantsOutputFile),
+              Path(emptyMutantsOutputFile),
               Left(someException),
               TestPrintErrorLine(
                 s"""Blinky failed to load mutants file:
-                   |$mutantsOutputFile
+                   |$emptyMutantsOutputFile
                    |""".stripMargin,
                 TestPrintLine(
                   "0 mutants found in 0 scala files.",
