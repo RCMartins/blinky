@@ -123,21 +123,75 @@ object RunTest extends ZIOSpecDefault {
             )
           )
         },
+        test("when file does not exist") {
+          testInstruction(
+            Run.optimiseFilesToMutate(
+              Seq(),
+              Right(()),
+              projectRealPath,
+              FileFilter.FileName("FileA.scala")
+            ),
+            TestPrintLine(
+              s"--filesToMutate 'FileA.scala' does not exist.",
+              TestReturn(Left(ExitCode.failure))
+            )
+          )
+        },
+        test(
+          "when copy result succeeds and filter is SingleFileOrFolder and there is only one file"
+        ) {
+          val singleFile = (projectRealPath / "src" / "File.scala").toString
+          testInstruction(
+            Run.optimiseFilesToMutate(
+              Seq(singleFile),
+              Right(()),
+              projectRealPath,
+              FileFilter.SingleFileOrFolder(RelPath("src/File.scala"))
+            ),
+            TestIsFile(
+              Path(singleFile),
+              mockResult = true,
+              TestReturn(Right((singleFile, Seq(singleFile))))
+            )
+          )
+        },
+        test(
+          "when copy result succeeds and filter is SingleFileOrFolder and files don't match"
+        ) {
+          val file1 = (projectRealPath / "src" / "File1.scala").toString
+          val file2 = (projectRealPath / "src" / "File2.scala").toString
+          val file3 = (projectRealPath / "src" / "File3.scala").toString
+          testInstruction(
+            Run.optimiseFilesToMutate(
+              Seq(file1, file2),
+              Right(()),
+              projectRealPath,
+              FileFilter.SingleFileOrFolder(RelPath("src/File3.scala"))
+            ),
+            TestIsFile(
+              Path(file3),
+              mockResult = true,
+              TestReturn(Right((file3, Seq.empty)))
+            )
+          )
+        },
         test(
           "when copy result succeeds and filter is SingleFileOrFolder and there is only one folder"
         ) {
-          val singleFolder = (projectRealPath / "src").toString
+          val folder = (projectRealPath / "src").toString
+          val file1 = (projectRealPath / "src" / "File1.scala").toString
+          val file2 = (projectRealPath / "src" / "File2.scala").toString
           testInstruction(
             Run.optimiseFilesToMutate(
-              Seq(singleFolder),
+              Seq(file1, file2),
               Right(()),
               projectRealPath,
               FileFilter.SingleFileOrFolder(RelPath("src"))
             ),
             TestIsFile(
-              Path(singleFolder),
-              mockResult = true,
-              TestReturn(Right((singleFolder, Seq(singleFolder))))
+              Path(folder),
+              mockResult = false,
+              TestReturn(Right((folder, Seq(file1, file2))))
             )
           )
         }
