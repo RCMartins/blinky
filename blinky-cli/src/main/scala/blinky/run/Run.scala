@@ -226,7 +226,7 @@ object Run {
                         _ <- runStream(coursier, params, path = projectRealPath)
                         runResult <- RunMutations.run(
                           projectRealPath,
-                          blinkyConf,
+                          blinkyConf.mutantsOutputFile,
                           config.options
                         )
                       } yield runResult

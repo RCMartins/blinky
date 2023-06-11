@@ -79,7 +79,7 @@ object TestInstruction {
 
   final case class TestReadFile[A](
       path: Path,
-      mockResult: String,
+      mockResult: Either[Throwable, String],
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
@@ -161,6 +161,12 @@ object TestInstruction {
       case (
             IsFile(path1, next1),
             TestIsFile(path2, mockResult, next2),
+          ) =>
+        assertTrue(path1 == path2) &&
+        testInstruction(next1(mockResult), next2)
+      case (
+            ReadFile(path1, next1),
+            TestReadFile(path2, mockResult, next2),
           ) =>
         assertTrue(path1 == path2) &&
         testInstruction(next1(mockResult), next2)

@@ -5,7 +5,6 @@ import blinky.run.Instruction._
 import blinky.run.Setup.defaultEnvArgs
 import blinky.run.Utils._
 import blinky.run.config.{OptionsConfig, TestRunnerType}
-import blinky.v0.BlinkyConfig
 import os.Path
 import zio.ExitCode
 import zio.json.DecoderOps
@@ -16,15 +15,15 @@ object RunMutations {
 
   def run(
       projectPath: Path,
-      blinkyConfig: BlinkyConfig,
+      mutantsOutputFile: String,
       options: OptionsConfig,
   ): Instruction[ExitCode] =
     for {
-      mutationReport <- readFile(Path(blinkyConfig.mutantsOutputFile)).flatMap {
+      mutationReport <- readFile(Path(mutantsOutputFile)).flatMap {
         case Left(_) =>
           printErrorLine(
             s"""Blinky failed to load mutants file:
-               |${blinkyConfig.mutantsOutputFile}
+               |$mutantsOutputFile
                |""".stripMargin
           ).map(_ => List.empty[MutantFile])
         case Right(fileData) =>
@@ -41,20 +40,21 @@ object RunMutations {
               }
           )
       }
-      runner = options.testRunner match {
-        case TestRunnerType.SBT   => new RunMutationsSBT(projectPath)
-        case TestRunnerType.Bloop => new RunMutationsBloop(projectPath)
-      }
       numberOfMutants = mutationReport.length
       _ <- {
-        val numberOfFilesWithMutants = mutationReport.view.groupBy(_.fileName).size
+        val numberOfFilesWithMutants = mutationReport.map(_.fileName).distinct.size
         printLine(s"$numberOfMutants mutants found in $numberOfFilesWithMutants scala files.")
       }
       testResult <-
         if (numberOfMutants == 0)
           printLine("Try changing the mutation settings.").map(_ => ExitCode.success)
-        else
+        else {
+          val runner = options.testRunner match {
+            case TestRunnerType.SBT   => new RunMutationsSBT(projectPath)
+            case TestRunnerType.Bloop => new RunMutationsBloop(projectPath)
+          }
           initializeRunMutations(runner, projectPath, options, mutationReport, numberOfMutants)
+        }
     } yield testResult
 
   private def initializeRunMutations(
