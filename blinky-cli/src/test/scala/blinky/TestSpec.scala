@@ -23,4 +23,6 @@ object TestSpec {
   def equalSome[A](value: A): Assertion[Any] =
     equalTo(Some(value))
 
+  case class SomeException(message: String) extends Exception(message)
+
 }

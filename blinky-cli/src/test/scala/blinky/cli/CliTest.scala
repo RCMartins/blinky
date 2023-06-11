@@ -331,6 +331,24 @@ object CliTest extends ZIOSpecDefault {
               s"""--projectPath '${pwd / "non-existent" / "project-path"}' does not exist."""
             )
           )
+        },
+        test("return the correct testRunner for --testRunner=Bloop") {
+          val params: Seq[String] = Seq(
+            "--testRunner",
+            "Bloop"
+          )
+
+          val pwd = File(getFilePath("."))
+          val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(pwd)
+
+          for {
+            result <- zioResult
+            config = result.toOption
+          } yield assertTrue(
+            parser.getOut == "",
+            parser.getErr == "",
+            config.map(_.options.testRunner).contains(TestRunnerType.Bloop)
+          )
         }
       ),
       suite("mutationMinimum value check")(

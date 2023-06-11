@@ -42,25 +42,24 @@ object Setup {
     }
 
   private def copyExeFromResources(name: String, path: Path): Instruction[Unit] =
-    copyResource(s"/$name", path / name)
-      .flatMap {
-        case Left(error) =>
-          printErrorLine(
-            s"""Error copying file from resources ($name to $path)
-               |$error
-               |""".stripMargin
-          )
-        case Right(()) =>
-          runStream("chmod", Seq("+x", name), path = path).flatMap {
-            case Left(error) =>
-              printErrorLine(
-                s"""Error setting file permissions to $path/$name
-                   |$error
-                   |""".stripMargin
-              )
-            case Right(()) =>
-              empty
-          }
-      }
+    copyResource(s"/$name", path / name).flatMap {
+      case Left(error) =>
+        printErrorLine(
+          s"""Error copying file from resources ($name to $path)
+             |$error
+             |""".stripMargin
+        )
+      case Right(()) =>
+        runStream("chmod", Seq("+x", name), path = path).flatMap {
+          case Left(error) =>
+            printErrorLine(
+              s"""Error setting file permissions to $path/$name
+                 |$error
+                 |""".stripMargin
+            )
+          case Right(()) =>
+            empty
+        }
+    }
 
 }

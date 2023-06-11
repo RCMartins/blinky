@@ -2,6 +2,7 @@ package blinky.run
 
 import blinky.internal.MutantFile
 import blinky.run.Instruction._
+import blinky.run.Setup.defaultEnvArgs
 import blinky.run.Utils._
 import blinky.run.config.{OptionsConfig, TestRunnerType}
 import blinky.v0.BlinkyConfig
@@ -11,7 +12,7 @@ import zio.json.DecoderOps
 
 import scala.util.Random
 
-object TestMutations {
+object RunMutations {
 
   def run(
       projectPath: Path,
@@ -42,8 +43,8 @@ object TestMutations {
       }
 
       runner = options.testRunner match {
-        case TestRunnerType.SBT   => new TestMutationsSBT(projectPath)
-        case TestRunnerType.Bloop => new TestMutationsBloop(projectPath)
+        case TestRunnerType.SBT   => new RunMutationsSBT(projectPath)
+        case TestRunnerType.Bloop => new RunMutationsBloop(projectPath)
       }
       testCommand = options.testCommand
       numberOfMutants = mutationReport.length
@@ -124,7 +125,7 @@ object TestMutations {
     } yield testResult
 
   private def runMutationsSetup(
-      runner: TestMutationsRunner,
+      runner: MutationsRunner,
       projectPath: Path,
       options: OptionsConfig,
       originalTestTime: Long,
@@ -166,7 +167,7 @@ object TestMutations {
   }
 
   private def runMutations(
-      runner: TestMutationsRunner,
+      runner: MutationsRunner,
       projectPath: Path,
       options: OptionsConfig,
       originalTestTime: Long,
@@ -193,7 +194,7 @@ object TestMutations {
   }
 
   private def runMutant(
-      runner: TestMutationsRunner,
+      runner: MutationsRunner,
       projectPath: Path,
       options: OptionsConfig,
       originalTestTime: Long,
@@ -203,7 +204,7 @@ object TestMutations {
     val time = System.currentTimeMillis()
 
     for {
-      testResult <- runner.runMutant(projectPath, options, originalTestTime, mutant)
+      testResult <- runMutantCommandLine(runner, projectPath, options, originalTestTime, mutant)
       _ <- testResult match {
         case RunResult.MutantSurvived =>
           printLine(red(s"Mutant #$id was not killed!")).flatMap(_ =>
@@ -228,6 +229,44 @@ object TestMutations {
           printLine(s"time: ${System.currentTimeMillis() - time}").flatMap(_ => printLine("-" * 40))
         )
     } yield id -> testResult
+  }
+
+  private def runMutantCommandLine(
+      runner: MutationsRunner,
+      projectPath: Path,
+      options: OptionsConfig,
+      originalTestTime: Long,
+      mutant: MutantFile,
+  ): Instruction[RunResult] = {
+    val prints: Instruction[Unit] =
+      when(options.verbose)(
+        for {
+          _ <- printLine(
+            s"> [BLINKY_MUTATION_${mutant.id}=1] " +
+              s"""bash -c "${runner.fullTestCommand(options.testCommand)}""""
+          )
+          _ <- printLine(
+            prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true)
+          )
+          _ <- printLine("--v--" * 5)
+        } yield ()
+      )
+
+    val runResult: Instruction[Either[Throwable, TimeoutResult]] =
+      prints.flatMap(_ =>
+        runBashTimeout(
+          runner.fullTestCommand(options.testCommand),
+          envArgs = defaultEnvArgs + (s"BLINKY_MUTATION_${mutant.id}" -> "1"),
+          timeout = (originalTestTime * options.timeoutFactor + options.timeout.toMillis).toLong,
+          path = projectPath
+        )
+      )
+
+    runResult.map {
+      case Right(TimeoutResult.Ok)      => RunResult.MutantSurvived
+      case Right(TimeoutResult.Timeout) => RunResult.Timeout
+      case Left(_)                      => RunResult.MutantKilled
+    }
   }
 
 }

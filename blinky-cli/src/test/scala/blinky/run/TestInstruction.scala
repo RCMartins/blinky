@@ -1,9 +1,8 @@
 package blinky.run
 
-import os.{Path, RelPath}
 import blinky.run.Instruction._
-import zio.test.Assertion.equalTo
-import zio.test.{TestResult, assert}
+import os.{Path, RelPath}
+import zio.test.{TestResult, assertTrue}
 
 trait TestInstruction[+A]
 
@@ -110,67 +109,60 @@ object TestInstruction {
   ): TestResult =
     (actualInstruction, expectationInstruction) match {
       case (Return(value1), TestReturn(value2)) =>
-        assert(value1())(equalTo(value2))
+        assertTrue(value1() == value2)
       case (PrintLine(line1, next1), TestPrintLine(line2, next2)) =>
-        assert(line1)(equalTo(line2)) &&
+        assertTrue(line1 == line2) &&
         testInstruction(next1, next2)
       case (PrintErrorLine(line1, next1), TestPrintErrorLine(line2, next2)) =>
-        assert(line1)(equalTo(line2)) &&
+        assertTrue(line1 == line2) &&
         testInstruction(next1, next2)
       case (
             RunStream(op1, args1, envArgs1, path1, next1),
             TestRunStream(op2, args2, envArgs2, path2, mockResult, next2)
           ) =>
-        assert(op1)(equalTo(op2)) &&
-        assert(args1)(equalTo(args2)) &&
-        assert(envArgs1)(equalTo(envArgs2)) &&
-        assert(path1)(equalTo(path2)) &&
+        assertTrue(op1 == op2, args1 == args2, envArgs1 == envArgs2, path1 == path2) &&
         testInstruction(next1(mockResult), next2)
       case (
             RunResultEither(op1, args1, envArgs1, path1, next1),
             TestRunResultEither(op2, args2, envArgs2, path2, mockResult, next2)
           ) =>
-        assert(op1)(equalTo(op2)) &&
-        assert(args1)(equalTo(args2)) &&
-        assert(envArgs1)(equalTo(envArgs2)) &&
-        assert(path1)(equalTo(path2)) &&
+        assertTrue(op1 == op2, args1 == args2, envArgs1 == envArgs2, path1 == path2) &&
         testInstruction(next1(mockResult), next2)
       case (
             RunResultTimeout(op1, args1, envArgs1, timeout1, path1, next1),
             TestRunResultTimeout(op2, args2, envArgs2, timeout2, path2, mockResult, next2)
           ) =>
-        assert(op1)(equalTo(op2)) &&
-        assert(args1)(equalTo(args2)) &&
-        assert(envArgs1)(equalTo(envArgs2)) &&
-        assert(timeout1)(equalTo(timeout2)) &&
-        assert(path1)(equalTo(path2)) &&
+        assertTrue(
+          op1 == op2,
+          args1 == args2,
+          envArgs1 == envArgs2,
+          timeout1 == timeout2,
+          path1 == path2
+        ) &&
         testInstruction(next1(mockResult), next2)
       case (
             CopyResource(resource1, destinationPath1, next1),
             TestCopyResource(resource2, destinationPath2, mockResult, next2)
           ) =>
-        assert(resource1)(equalTo(resource2)) &&
-        assert(destinationPath1)(equalTo(destinationPath2)) &&
+        assertTrue(resource1 == resource2, destinationPath1 == destinationPath2) &&
         testInstruction(next1(mockResult), next2)
       case (
             CopyRelativeFiles(filesToCopy1, fromPath1, toPath1, next1),
             TestCopyRelativeFiles(filesToCopy2, fromPath2, toPath2, mockResult, next2)
           ) =>
-        assert(filesToCopy1)(equalTo(filesToCopy2)) &&
-        assert(fromPath1)(equalTo(fromPath2)) &&
-        assert(toPath1)(equalTo(toPath2)) &&
+        assertTrue(filesToCopy1 == filesToCopy2, fromPath1 == fromPath2, toPath1 == toPath2) &&
         testInstruction(next1(mockResult), next2)
       case (
             LsFiles(basePath1, next1),
             TestLsFiles(basePath2, mockResult, next2)
           ) =>
-        assert(basePath1)(equalTo(basePath2)) &&
+        assertTrue(basePath1 == basePath2) &&
         testInstruction(next1(mockResult), next2)
       case (
             IsFile(path1, next1),
             TestIsFile(path2, mockResult, next2),
           ) =>
-        assert(path1)(equalTo(path2)) &&
+        assertTrue(path1 == path2) &&
         testInstruction(next1(mockResult), next2)
       case (other1, other2) =>
         println(
