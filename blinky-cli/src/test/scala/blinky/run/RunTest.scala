@@ -3,20 +3,21 @@ package blinky.run
 import blinky.TestSpec._
 import blinky.run.TestInstruction._
 import blinky.run.Utils.red
-import blinky.run.config.FileFilter
+import blinky.run.config._
 import os.{Path, RelPath}
+import zio._
 import zio.test._
-import zio.{ExitCode, Scope}
 
 import java.io.IOException
 
 object RunTest extends ZIOSpecDefault {
 
-  val originalProjectRoot: Path = Path(getFilePath("."))
-  val originalProjectPath: Path = Path(getFilePath("some-project"))
-  val projectRealPath: Path = Path(getFilePath(".")) / "some-temp-folder"
+  private val originalProjectRoot: Path = Path(getFilePath("."))
+  private val originalProjectPath: Path = Path(getFilePath("some-project"))
+  private val cloneProjectBaseFolder: Path = Path(getFilePath(".")) / "some-temp-folder"
+  private val projectRealPath: Path = cloneProjectBaseFolder / "clone-project"
 
-  def spec: Spec[TestEnvironment with Scope, Any] =
+  def spec: Spec[TestEnvironment with Scope, Throwable] =
     suite("Run")(
       suite("processFilesToMutate")(
         test("when files filtering is SingleFileOrFolder") {
@@ -205,8 +206,7 @@ object RunTest extends ZIOSpecDefault {
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               Map.empty,
               originalProjectPath,
-              mockResult =
-                Right(Seq("src/main/scala/SomeFile.scala").mkString(System.lineSeparator())),
+              mockResult = Right("src/main/scala/SomeFile.scala"),
               TestCopyRelativeFiles(
                 Seq(RelPath("src/main/scala/SomeFile.scala")),
                 originalProjectRoot,
@@ -225,8 +225,7 @@ object RunTest extends ZIOSpecDefault {
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               Map.empty,
               originalProjectPath,
-              mockResult =
-                Right(Seq("src/main/scala/SomeFile.scala").mkString(System.lineSeparator())),
+              mockResult = Right("src/main/scala/SomeFile.scala"),
               TestCopyRelativeFiles(
                 Seq(RelPath("src/main/scala/SomeFile.scala")),
                 originalProjectRoot,

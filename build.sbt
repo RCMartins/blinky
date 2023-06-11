@@ -39,9 +39,9 @@ inThisBuild(
   )
 )
 
-Global / excludeFilter := NothingFilter
-Global / fileInputExcludeFilter := ((_: Path, _: FileAttributes) => false)
-Global / onChangedBuildSource := ReloadOnSourceChanges
+val Versions = new {
+  val ZIO = "2.0.15"
+}
 
 lazy val stableVersion = Def.setting {
   (ThisBuild / version).value.replaceAll("\\+.*", "")
@@ -70,7 +70,7 @@ lazy val core =
       libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.2",
       libraryDependencies += "com.lihaoyi"          %% "os-lib"        % "0.8.1",
       libraryDependencies += "dev.zio"              %% "zio-json"      % "0.5.0",
-      libraryDependencies += "dev.zio"              %% "zio"           % "2.0.15",
+      libraryDependencies += "dev.zio"              %% "zio"           % Versions.ZIO,
       libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.16" % "test",
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
@@ -81,14 +81,14 @@ lazy val input =
   project
     .settings(
       scalacOptions := Seq.empty,
-      libraryDependencies += "dev.zio" %% "zio" % "2.0.15"
+      libraryDependencies += "dev.zio" %% "zio" % Versions.ZIO
     )
 
 lazy val output =
   project
     .settings(
       scalacOptions := Seq("-Wconf:cat=other-match-analysis:s"),
-      libraryDependencies += "dev.zio" %% "zio" % "2.0.15",
+      libraryDependencies += "dev.zio" %% "zio" % Versions.ZIO,
       Compile / sourceGenerators += Def.task {
         val sourcesFolder = file((Compile / scalaSource).value.toString + "-output")
         val generatedFolder = (Compile / sourceManaged).value
@@ -115,9 +115,9 @@ lazy val cli =
       libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.11",
       libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.11",
       libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.1.0",
-      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.15",
-      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.15" % "test",
-      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.15" % "test",
+      libraryDependencies += "dev.zio"          %% "zio"                        % Versions.ZIO,
+      libraryDependencies += "dev.zio" %% "zio-test"     % Versions.ZIO % "test",
+      libraryDependencies += "dev.zio" %% "zio-test-sbt" % Versions.ZIO % "test",
       testFrameworks += TestFrameworks.ZIOTest,
       Test / scalacOptions -= "-Ywarn-unused:locals",
       coverageMinimumStmtTotal := 30,
@@ -182,5 +182,8 @@ runCommunityProjects := {
 
 addCommandAlias("test", "tests/test;core/test;cli/test")
 
+Global / excludeFilter := NothingFilter
+Global / fileInputExcludeFilter := ((_: Path, _: FileAttributes) => false)
+Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys += core / buildInfoPackage
 Global / excludeLintKeys += core / buildInfoKeys
