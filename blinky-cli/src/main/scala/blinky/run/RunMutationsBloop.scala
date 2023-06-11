@@ -6,13 +6,13 @@ import os.Path
 
 class RunMutationsBloop(projectPath: Path) extends MutationsRunner {
 
-  def initializeRunner(): Instruction[Unit] =
+  def initializeRunner(): Instruction[Either[Throwable, Unit]] =
     runStream(
       "sbt",
       Seq("bloopInstall"),
       envArgs = Setup.defaultEnvArgs,
       path = projectPath
-    ).map(_ => ())
+    )
 
   def initialCompile(compileCommand: String): Instruction[Either[Throwable, Unit]] =
     runResultEither(
