@@ -1,9 +1,12 @@
 package blinky.run
 
+import better.files.File
 import blinky.TestSpec._
 import blinky.run.TestInstruction._
 import blinky.run.Utils.red
 import blinky.run.config._
+import blinky.run.modules.TestModules
+import com.softwaremill.quicklens.ModifyPimp
 import os.{Path, RelPath}
 import zio._
 import zio.test._
@@ -16,9 +19,11 @@ object RunTest extends ZIOSpecDefault {
   private val originalProjectPath: Path = Path(getFilePath("some-project"))
   private val cloneProjectBaseFolder: Path = Path(getFilePath(".")) / "some-temp-folder"
   private val projectRealPath: Path = cloneProjectBaseFolder / "clone-project"
+  private val someException = SomeException("some exception")
 
   def spec: Spec[TestEnvironment with Scope, Throwable] =
     suite("Run")(
+      runSuite,
       suite("processFilesToMutate")(
         test("when files filtering is SingleFileOrFolder") {
           testInstruction(
@@ -259,5 +264,62 @@ object RunTest extends ZIOSpecDefault {
         }
       )
     )
+
+  private def runSuite: Spec[Any, Throwable] = {
+    val projectFile = File(originalProjectPath.toString)
+    val dummyMutationsConfigValidated: MutationsConfigValidated =
+      MutationsConfigValidated(
+        projectPath = projectFile,
+        filesToMutate = FileFilter.SingleFileOrFolder(RelPath("src")),
+        filesToExclude = "",
+        mutators = SimpleBlinkyConfig.default,
+        options = OptionsConfig.default,
+      )
+
+    suite("run")(
+      test("error if creating temporary folder fails") {
+        Run.run(dummyMutationsConfigValidated).flatMap {
+          testInstruction(
+            _,
+            TestMakeTemporaryDirectory(
+              Left(someException),
+              TestPrintErrorLine(
+                s"""Error creating temporary folder:
+                   |blinky.TestSpec$$SomeException: some exception
+                   |""".stripMargin,
+                TestReturn(ExitCode.failure)
+              ),
+            )
+          )
+        }
+      },
+      test("error if 'git rev-parse ...' fails (with verbose=true)") {
+        Run.run(dummyMutationsConfigValidated.modify(_.options.verbose).setTo(true)).flatMap {
+          testInstruction(
+            _,
+            TestMakeTemporaryDirectory(
+              Right(cloneProjectBaseFolder),
+              TestPrintLine(
+                s"Temporary project folder: $cloneProjectBaseFolder",
+                TestRunResultEither(
+                  "git",
+                  Seq("rev-parse", "--show-toplevel"),
+                  Map.empty,
+                  originalProjectPath,
+                  Left(someException),
+                  TestPrintErrorLine(
+                    s"""${red("GIT command error:")}
+                       |blinky.TestSpec$$SomeException: some exception
+                       |""".stripMargin,
+                    TestReturn(ExitCode.failure)
+                  ),
+                ),
+              ),
+            )
+          )
+        }
+      }
+    ).provide(TestModules.testCliModule(projectFile))
+  }
 
 }
