@@ -73,6 +73,7 @@ lazy val core =
       libraryDependencies += "dev.zio"              %% "zio"           % "2.0.15",
       libraryDependencies += "dev.zio"              %% "zio-test"      % "2.0.15" % "test",
       libraryDependencies += "dev.zio"              %% "zio-test-sbt"  % "2.0.15" % "test",
+      testFrameworks += TestFrameworks.ZIOTest,
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
       buildInfoSettings

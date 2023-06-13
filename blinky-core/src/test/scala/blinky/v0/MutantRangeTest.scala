@@ -9,13 +9,17 @@ object MutantRangeTest extends ZIOSpecDefault {
     suite("MutantRange")(
       suite("contains")(
         test("return true if it contains the index") {
-          assertTrue(MutantRange(2, 4).contains(2))
-          assertTrue(MutantRange(2, 4).contains(3))
-          assertTrue(MutantRange(2, 4).contains(4))
+          assertTrue(
+            MutantRange(2, 4).contains(2),
+            MutantRange(2, 4).contains(3),
+            MutantRange(2, 4).contains(4)
+          )
         },
         test("return false if it does not contain the index") {
-          assertTrue(!MutantRange(2, 4).contains(1))
-          assertTrue(!MutantRange(2, 4).contains(5))
+          assertTrue(
+            !MutantRange(2, 4).contains(1),
+            !MutantRange(2, 4).contains(5)
+          )
         }
       ),
       suite("rangeDecoder")(
@@ -40,11 +44,13 @@ object MutantRangeTest extends ZIOSpecDefault {
           Configured.typeMismatch("Number with a mutant index range", Conf.Bool(true))
         )
       },
-      test("return an error for input '0'") {
+      test("return an error for input '0' (number)") {
         readTest(
           Conf.Num(0),
           Configured.typeMismatch("Number with a mutant index range", Conf.Num(0))
         )
+      },
+      test("return an error for input '0' (string)") {
         readTest(
           Conf.Str("0"),
           Configured.typeMismatch("Number with a mutant index range", Conf.Str("0"))
@@ -74,8 +80,10 @@ object MutantRangeTest extends ZIOSpecDefault {
           Configured.typeMismatch("Number with a mutant index range", Conf.Str("-2"))
         )
       },
-      test("return the correct MutantRange for input '4'") {
+      test("return the correct MutantRange for input '4' (number)") {
         readTest(Conf.Num(4), Configured.ok(Seq(MutantRange(4, 4))))
+      },
+      test("return the correct MutantRange for input '4' (string)") {
         readTest(Conf.Str("4"), Configured.ok(Seq(MutantRange(4, 4))))
       },
       test("return the correct MutantRange for input '10-20'") {
