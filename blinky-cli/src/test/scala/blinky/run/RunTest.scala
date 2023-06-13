@@ -17,8 +17,9 @@ object RunTest extends ZIOSpecDefault {
 
   private val originalProjectRoot: Path = Path(getFilePath("."))
   private val originalProjectPath: Path = Path(getFilePath("some-project"))
-  private val cloneProjectBaseFolder: Path = Path(getFilePath(".")) / "some-temp-folder"
-  private val projectRealPath: Path = cloneProjectBaseFolder / "clone-project"
+  private val cloneProjectTempFolder: Path = Path(getFilePath(".")) / "some-temp-folder"
+  private val projectRealPath: Path = cloneProjectTempFolder / "clone-project"
+  private val projectBaseFolder: Path = cloneProjectTempFolder / "some-project"
   private val someException = SomeException("some exception")
 
   def spec: Spec[TestEnvironment with Scope, Throwable] =
@@ -278,46 +279,80 @@ object RunTest extends ZIOSpecDefault {
 
     suite("run")(
       test("error if creating temporary folder fails") {
-        Run.run(dummyMutationsConfigValidated).flatMap {
-          testInstruction(
-            _,
-            TestMakeTemporaryDirectory(
-              Left(someException),
-              TestPrintErrorLine(
-                s"""Error creating temporary folder:
-                   |blinky.TestSpec$$SomeException: some exception
-                   |""".stripMargin,
-                TestReturn(ExitCode.failure)
-              ),
-            )
+        for {
+          res <- Run.run(dummyMutationsConfigValidated)
+        } yield testInstruction(
+          res,
+          TestMakeTemporaryDirectory(
+            Left(someException),
+            TestPrintErrorLine(
+              s"""Error creating temporary folder:
+                 |blinky.TestSpec$$SomeException: some exception
+                 |""".stripMargin,
+              TestReturn(ExitCode.failure)
+            ),
           )
-        }
+        )
       },
-      test("error if 'git rev-parse ...' fails (with verbose=true)") {
-        Run.run(dummyMutationsConfigValidated.modify(_.options.verbose).setTo(true)).flatMap {
-          testInstruction(
-            _,
-            TestMakeTemporaryDirectory(
-              Right(cloneProjectBaseFolder),
-              TestPrintLine(
-                s"Temporary project folder: $cloneProjectBaseFolder",
+      test("error if 'git rev-parse --show-toplevel' fails (with verbose=true)") {
+        for {
+          res <- Run.run(dummyMutationsConfigValidated.modify(_.options.verbose).setTo(true))
+        } yield testInstruction(
+          res,
+          TestMakeTemporaryDirectory(
+            Right(cloneProjectTempFolder),
+            TestPrintLine(
+              s"Temporary project folder: $cloneProjectTempFolder",
+              TestRunResultEither(
+                "git",
+                Seq("rev-parse", "--show-toplevel"),
+                Map.empty,
+                originalProjectPath,
+                Left(someException),
+                TestPrintLine(
+                  s"""${red("GIT command error:")}
+                     |some exception
+                     |""".stripMargin,
+                  TestReturn(ExitCode.failure)
+                ),
+              ),
+            ),
+          )
+        )
+      },
+      test("error if 'git rev-parse <master-branch>' fails (onlyMutateDiff=true)") {
+        for {
+          res <- Run.run(dummyMutationsConfigValidated.modify(_.options.onlyMutateDiff).setTo(true))
+        } yield testInstruction(
+          res,
+          TestMakeTemporaryDirectory(
+            Right(cloneProjectTempFolder),
+            TestRunResultEither(
+              "git",
+              Seq("rev-parse", "--show-toplevel"),
+              Map.empty,
+              originalProjectPath,
+              Right(originalProjectPath.toString),
+              TestMakeDirectory(
+                projectBaseFolder,
+                Right(()),
                 TestRunResultEither(
                   "git",
-                  Seq("rev-parse", "--show-toplevel"),
+                  Seq("rev-parse", "master"),
                   Map.empty,
                   originalProjectPath,
                   Left(someException),
-                  TestPrintErrorLine(
+                  TestPrintLine(
                     s"""${red("GIT command error:")}
-                       |blinky.TestSpec$$SomeException: some exception
+                       |some exception
                        |""".stripMargin,
                     TestReturn(ExitCode.failure)
                   ),
                 ),
               ),
-            )
+            ),
           )
-        }
+        )
       }
     ).provide(TestModules.testCliModule(projectFile))
   }

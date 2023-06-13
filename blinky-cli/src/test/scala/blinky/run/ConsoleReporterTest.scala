@@ -3,7 +3,9 @@ package blinky.run
 import blinky.run.ConsoleReporter._
 import blinky.run.Instruction.PrintLine
 import blinky.run.RunResult._
+import blinky.run.TestInstruction._
 import blinky.run.config.OptionsConfig
+import zio.ExitCode
 import zio.test._
 
 import scala.annotation.tailrec
@@ -102,14 +104,16 @@ object ConsoleReporterTest extends ZIOSpecDefault {
       },
       suite("filesToMutateIsEmpty")(
         test("print the correct message used when the filesToMutate is empty") {
-          val Instruction.PrintLine(line, _) = ConsoleReporter.filesToMutateIsEmpty
-          assertTrue(
-            line ==
+          testInstruction(
+            ConsoleReporter.filesToMutateIsEmpty,
+            TestPrintLine(
               s"""${greenText(
                   "0 files to mutate because no code change found due to --onlyMutateDiff flag."
                 )}
                  |If you want all files to be tested regardless use --onlyMutateDiff=false
-                 |""".stripMargin
+                 |""".stripMargin,
+              TestReturn(())
+            )
           )
         }
       ),
@@ -117,12 +121,14 @@ object ConsoleReporterTest extends ZIOSpecDefault {
         test("print the correct message used when the filesToMutate is empty") {
           val gitError: String =
             "fatal: ambiguous argument 'master': unknown revision or path not in the working tree."
-          val Instruction.PrintLine(line, _) = ConsoleReporter.gitIssues(new Throwable(gitError))
-          assertTrue(
-            line ==
+          testInstruction(
+            ConsoleReporter.gitFailure(new Throwable(gitError)),
+            TestPrintLine(
               s"""${redText("GIT command error:")}
                  |$gitError
-                 |""".stripMargin
+                 |""".stripMargin,
+              TestReturn(ExitCode.failure)
+            )
           )
         }
       )

@@ -46,9 +46,7 @@ object Run {
               path = originalProjectRoot
             ).flatMap {
               case Left(commandError) =>
-                ConsoleReporter
-                  .gitIssues(commandError)
-                  .map(_ => ExitCode.failure)
+                ConsoleReporter.gitFailure(commandError)
               case Right(gitRevParse) =>
                 val gitFolder: Path = Path(gitRevParse)
                 val cloneProjectBaseFolder: Path = cloneProjectTempFolder / gitFolder.baseName
@@ -78,6 +76,7 @@ object Run {
       projectRealPath: Path
   ): Instruction[ExitCode] =
     for {
+      // TODO check for errors
       _ <- makeDirectory(cloneProjectBaseFolder)
 
       // Setup files to mutate ('scalafix --diff' does not work like I want...)
@@ -88,9 +87,7 @@ object Run {
           runResultEither("git", Seq("rev-parse", defaultGitBranch), path = gitFolder)
             .flatMap {
               case Left(commandError) =>
-                ConsoleReporter
-                  .gitIssues(commandError)
-                  .map(_ => Left(ExitCode.failure))
+                ConsoleReporter.gitFailure(commandError).map(Left(_))
               case Right(masterHash) =>
                 runResultEither(
                   "git",
@@ -98,9 +95,7 @@ object Run {
                   path = gitFolder
                 ).flatMap {
                   case Left(commandError) =>
-                    ConsoleReporter
-                      .gitIssues(commandError)
-                      .map(_ => Left(ExitCode.failure))
+                    ConsoleReporter.gitFailure(commandError).map(Left(_))
                   case Right(diffLines) =>
                     val base: Seq[String] =
                       diffLines
@@ -198,9 +193,7 @@ object Run {
                     path = projectRealPath
                   ).flatMap {
                     case Left(commandError) =>
-                      ConsoleReporter
-                        .gitIssues(commandError)
-                        .map(_ => ExitCode.failure)
+                      ConsoleReporter.gitFailure(commandError)
                     case Right(toolPath) =>
                       val params: Seq[String] =
                         Seq(
@@ -327,9 +320,7 @@ object Run {
       )
       result <- gitResultEither match {
         case Left(commandError) =>
-          ConsoleReporter
-            .gitIssues(commandError)
-            .map(_ => Left(ExitCode.failure))
+          ConsoleReporter.gitFailure(commandError).map(Left(_))
         case Right(gitResult) =>
           val filesToCopy: Seq[RelPath] =
             gitResult.split("\\r?\\n").map(RelPath(_)).toSeq

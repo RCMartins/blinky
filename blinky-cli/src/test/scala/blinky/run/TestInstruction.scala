@@ -55,6 +55,7 @@ object TestInstruction {
 
   final case class TestMakeDirectory[A](
       path: Path,
+      mockResult: Either[Throwable, Unit],
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
@@ -174,6 +175,12 @@ object TestInstruction {
             MakeTemporaryDirectory(next1),
             TestMakeTemporaryDirectory(mockResult, next2),
           ) =>
+        testInstruction(next1(mockResult), next2)
+      case (
+            MakeDirectory(path1, next1),
+            TestMakeDirectory(path2, mockResult, next2),
+          ) =>
+        assertTrue(path1 == path2) &&
         testInstruction(next1(mockResult), next2)
       case (other1, other2) =>
         println(
