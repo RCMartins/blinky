@@ -1,51 +1,57 @@
 package blinky.v0
 
-import blinky.TestSpec
+import zio.test.{Spec, TestEnvironment, ZIOSpecDefault, assertTrue}
 
-class MutatorTest extends TestSpec {
+object MutatorTest extends ZIOSpecDefault {
 
-  "Collections" should {
-
-    "return the correct ListApply 'symbolsToMatch'" in {
-      mutators.Collections.ListApply.symbolsToMatch mustEqual
-        Seq(
-          "scala/collection/immutable/List.",
-          "scala/package.List."
-        )
-    }
-
-    "return the correct SeqApply 'symbolsToMatch'" in {
-      mutators.Collections.SeqApply.symbolsToMatch mustEqual
-        Seq(
-          "scala/collection/Seq.",
-          "scala/collection/mutable/Seq.",
-          "scala/collection/immutable/Seq.",
-          "scala/package.Seq."
-        )
-    }
-
-    "return the correct SetApply 'symbolsToMatch'" in {
-      mutators.Collections.SetApply.symbolsToMatch mustEqual
-        Seq(
-          "scala/Predef.Set.",
-          "scala/collection/mutable/Set.",
-          "scala/collection/immutable/Set.",
-          "scala/package.Set."
-        )
-    }
-
-    "return the correct Reverse 'symbolsToMatch'" in {
-      mutators.Collections.ReverseSymbols mustEqual
-        Seq(
-          "scala/collection/SeqLike#reverse().",
-          "scala/collection/immutable/List#reverse().",
-          "scala/collection/IndexedSeqOptimized#reverse().",
-          "scala/collection/SeqOps#reverse().",
-          "scala/collection/IndexedSeqOps#reverse().",
-          "scala/collection/ArrayOps#reverse()."
-        )
-    }
-
-  }
+  def spec: Spec[TestEnvironment, Any] =
+    suite("Mutator")(
+      suite("Collections")(
+        test("return the correct ListApply 'symbolsToMatch'") {
+          assertTrue(
+            mutators.Collections.ListApply.symbolsToMatch ==
+              Seq(
+                "scala/collection/immutable/List.",
+                "scala/package.List."
+              )
+          )
+        },
+        test("return the correct SeqApply 'symbolsToMatch'") {
+          assertTrue(
+            mutators.Collections.SeqApply.symbolsToMatch ==
+              Seq(
+                "scala/collection/Seq.",
+                "scala/collection/mutable/Seq.",
+                "scala/collection/immutable/Seq.",
+                "scala/package.Seq."
+              )
+          )
+        },
+        test("return the correct SetApply 'symbolsToMatch'") {
+          assertTrue(
+            mutators.Collections.SetApply.symbolsToMatch ==
+              Seq(
+                "scala/Predef.Set.",
+                "scala/collection/mutable/Set.",
+                "scala/collection/immutable/Set.",
+                "scala/package.Set."
+              )
+          )
+        },
+        test("return the correct Reverse 'symbolsToMatch'") {
+          assertTrue(
+            mutators.Collections.ReverseSymbols ==
+              Seq(
+                "scala/collection/SeqLike#reverse().",
+                "scala/collection/immutable/List#reverse().",
+                "scala/collection/IndexedSeqOptimized#reverse().",
+                "scala/collection/SeqOps#reverse().",
+                "scala/collection/IndexedSeqOps#reverse().",
+                "scala/collection/ArrayOps#reverse()."
+              )
+          )
+        }
+      )
+    )
 
 }

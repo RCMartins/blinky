@@ -73,8 +73,10 @@ lazy val core =
           "com.lihaoyi"          %% "os-lib"        % "0.8.1",
           "dev.zio"              %% "zio-json"      % "0.5.0",
           "dev.zio"              %% "zio"           % Versions.ZIO,
-          "org.scalatest"        %% "scalatest"     % "3.2.16" % "test",
+          "dev.zio"              %% "zio-test"      % Versions.ZIO % "test",
+          "dev.zio"              %% "zio-test-sbt"  % Versions.ZIO % "test",
         ),
+      testFrameworks += TestFrameworks.ZIOTest,
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
       buildInfoSettings
@@ -136,11 +138,8 @@ lazy val tests =
   project
     .enablePlugins(ScalafixTestkitPlugin)
     .settings(
-      libraryDependencies ++=
-        Seq(
-          "ch.epfl.scala"                                    % "scalafix-testkit" %
-            SBTDefaults.scalafixTestkitV(scalaVersion.value) % Test cross CrossVersion.full,
-        ),
+      libraryDependencies += "ch.epfl.scala"             % "scalafix-testkit" %
+        SBTDefaults.scalafixTestkitV(scalaVersion.value) % Test cross CrossVersion.full,
       scalafixTestkitOutputSourceDirectories :=
         (output / Compile / sourceDirectories).value,
       scalafixTestkitInputSourceDirectories :=
