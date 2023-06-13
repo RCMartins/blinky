@@ -66,12 +66,15 @@ lazy val core =
     .settings(
       publish / skip := false,
       moduleName := "blinky",
-      libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
-      libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.2",
-      libraryDependencies += "com.lihaoyi"          %% "os-lib"        % "0.8.1",
-      libraryDependencies += "dev.zio"              %% "zio-json"      % "0.5.0",
-      libraryDependencies += "dev.zio"              %% "zio"           % Versions.ZIO,
-      libraryDependencies += "org.scalatest"        %% "scalatest"     % "3.2.16" % "test",
+      libraryDependencies ++=
+        Seq(
+          "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
+          "com.github.pathikrit" %% "better-files"  % "3.9.2",
+          "com.lihaoyi"          %% "os-lib"        % "0.8.1",
+          "dev.zio"              %% "zio-json"      % "0.5.0",
+          "dev.zio"              %% "zio"           % Versions.ZIO,
+          "org.scalatest"        %% "scalatest"     % "3.2.16" % "test",
+        ),
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
       buildInfoSettings
@@ -111,16 +114,19 @@ lazy val cli =
     .settings(
       publish / skip := false,
       moduleName := "blinky-cli",
-      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.9.4",
-      libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.11",
-      libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.11",
-      libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.1.0",
-      libraryDependencies += "dev.zio"          %% "zio"                        % Versions.ZIO,
-      libraryDependencies += "dev.zio" %% "zio-test"     % Versions.ZIO % "test",
-      libraryDependencies += "dev.zio" %% "zio-test-sbt" % Versions.ZIO % "test",
+      libraryDependencies ++=
+        Seq(
+          "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.4",
+          "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.11",
+          "com.geirsson"               %% "metaconfig-core"            % "0.9.11",
+          "com.github.scopt"           %% "scopt"                      % "4.1.0",
+          "dev.zio"                    %% "zio"                        % Versions.ZIO,
+          "dev.zio"                    %% "zio-test"                   % Versions.ZIO % "test",
+          "dev.zio"                    %% "zio-test-sbt"               % Versions.ZIO % "test",
+        ),
       testFrameworks += TestFrameworks.ZIOTest,
       Test / scalacOptions -= "-Ywarn-unused:locals",
-      coverageMinimumStmtTotal := 30,
+      coverageMinimumStmtTotal := 50,
       coverageFailOnMinimum := true
     )
     .settings(buildInfoSettings)
@@ -130,9 +136,11 @@ lazy val tests =
   project
     .enablePlugins(ScalafixTestkitPlugin)
     .settings(
-      libraryDependencies += "ch.epfl.scala"             % "scalafix-testkit" %
-        SBTDefaults.scalafixTestkitV(scalaVersion.value) % Test cross CrossVersion.full,
-      libraryDependencies += "org.scalatest"            %% "scalatest"        % "3.2.16" % Test,
+      libraryDependencies ++=
+        Seq(
+          "ch.epfl.scala"                                    % "scalafix-testkit" %
+            SBTDefaults.scalafixTestkitV(scalaVersion.value) % Test cross CrossVersion.full,
+        ),
       scalafixTestkitOutputSourceDirectories :=
         (output / Compile / sourceDirectories).value,
       scalafixTestkitInputSourceDirectories :=
@@ -181,6 +189,24 @@ runCommunityProjects := {
 }
 
 addCommandAlias("test", "tests/test;core/test;cli/test")
+
+def createCoverageAlias(
+    aliasName: String,
+    projectName: String
+): Seq[Def.Setting[State => State]] =
+  addCommandAlias(
+    aliasName,
+    Seq(
+      s"$projectName/clean",
+      s"set $projectName/coverageEnabled:=true",
+      s"$projectName/test",
+      s"$projectName/coverageReport",
+      s"set $projectName/coverageEnabled:=false",
+      s"$projectName/Test/compile",
+    ).mkString(";")
+  )
+
+createCoverageAlias("cli-cov", "cli")
 
 Global / excludeFilter := NothingFilter
 Global / fileInputExcludeFilter := ((_: Path, _: FileAttributes) => false)
