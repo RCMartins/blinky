@@ -120,9 +120,7 @@ class RunMutations(
             _ <- printLine(green("Original tests passed..."))
             _ <- when(options.verbose)(printLine(result))
             originalTestTime = System.currentTimeMillis() - originalTestInitialTime
-            _ <- when(options.verbose)(
-              printLine(green("time: " + originalTestTime))
-            )
+            _ <- when(options.verbose)(printLine(green("time: " + originalTestTime)))
             res <-
               if (options.dryRun)
                 printLine(
