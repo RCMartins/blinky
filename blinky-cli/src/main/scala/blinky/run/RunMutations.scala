@@ -151,7 +151,7 @@ class RunMutations(
         s"Running the same tests on mutated code (maximum of ${options.maxRunningTime})"
       )
       numberOfMutants: Int = mutationReport.size
-      mutationsToTest =
+      mutationsToTest: Seq[MutantFile] =
         if (
           !options.testInOrder &&
           originalTestTime * numberOfMutants >= options.maxRunningTime.toMillis
@@ -160,16 +160,9 @@ class RunMutations(
         else
           mutationReport
       initialTime = System.currentTimeMillis()
-      results <- runMutations(
-        projectPath,
-        options,
-        originalTestTime,
-        mutationsToTest,
-        initialTime
-      )
+      results <- runMutations(projectPath, options, originalTestTime, mutationsToTest, initialTime)
       totalTime = System.currentTimeMillis() - initialTime
-      result <-
-        ConsoleReporter.reportMutationResult(results, totalTime, numberOfMutants, options)
+      result <- ConsoleReporter.reportMutationResult(results, totalTime, numberOfMutants, options)
       _ <- runner.cleanRunnerAfter(projectPath, results)
     } yield
       if (result)
@@ -185,7 +178,7 @@ class RunMutations(
       initialTime: Long
   ): Instruction[List[(Int, RunResult)]] = {
     def loop(mutants: Seq[MutantFile], index: Int): Instruction[List[(Int, RunResult)]] =
-      if (index > mutants.size)
+      if (index >= mutants.size)
         succeed(Nil)
       else if (System.currentTimeMillis() - initialTime > options.maxRunningTime.toMillis)
         printLine(

@@ -148,8 +148,53 @@ object RunMutationsTest extends ZIOSpecDefault {
             )
           )
         )
-      }
-    ).provideShared(provideRunner(createRunner(vanillaTestRunResult = Left(someException))))
+      }.provideShared(provideRunner(createRunner(vanillaTestRunResult = Left(someException)))),
+      test("runner.vanillaTestRun works and it's running in dryRun mode") {
+        testRunMutations(
+          _.run(
+            projectPath,
+            validMutantsOutputFile,
+            OptionsConfig.default.copy(verbose = true, dryRun = true)
+          ),
+          TestReadFile(
+            Path(validMutantsOutputFile),
+            Right(validMutantsOutputText),
+            TestPrintLine(
+              "2 mutants found in 1 scala files.",
+              TestPrintLine(
+                s"initializeRunner: $projectPath",
+                TestPrintLine(
+                  "Running tests with original config",
+                  TestPrintLine(
+                    s"initialCompile: $projectPath",
+                    TestPrintLine(
+                      s"vanillaTestRun: $projectPath",
+                      TestPrintLine(
+                        greenText("Original tests passed..."),
+                        TestPrintLine(
+                          "some-test-result",
+                          TestPrintLineAny( // TODO: check for a better way to test this
+                            TestPrintLine(
+                              s"""
+                                 |${greenText("In dryRun mode. Everything worked correctly.")}
+                                 |If you want to run it again with mutations active use --dryRun=false
+                                 |""".stripMargin,
+                              TestReturn(ExitCode.success),
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      }.provideShared(
+        provideRunner(createRunner(vanillaTestRunResult = Right("some-test-result")))
+      ),
+    )
 
   private def testRunMutations[A](
       actualInstruction: RunMutations => Instruction[A],

@@ -4,7 +4,7 @@ import blinky.run.Instruction._
 import os.{Path, RelPath}
 import zio.test.{TestResult, assertTrue}
 
-trait TestInstruction[+A]
+sealed trait TestInstruction[+A]
 
 object TestInstruction {
 
@@ -12,6 +12,10 @@ object TestInstruction {
 
   final case class TestPrintLine[A](
       line: String,
+      next: TestInstruction[A]
+  ) extends TestInstruction[A]
+
+  final case class TestPrintLineAny[A](
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
@@ -119,6 +123,11 @@ object TestInstruction {
             TestPrintLine(line2, next2)
           ) =>
         assertTrue(line1 == line2) &&
+        testInstruction(next1, next2)
+      case (
+            PrintLine(_, next1),
+            TestPrintLineAny(next2)
+          ) =>
         testInstruction(next1, next2)
       case (
             PrintErrorLine(line1, next1),
