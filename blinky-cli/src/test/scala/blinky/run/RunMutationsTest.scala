@@ -23,6 +23,7 @@ object RunMutationsTest extends ZIOSpecDefault {
       runSuite,
       initializeRunMutationsSuite,
       initializeRunInitialCompileSuite,
+      initializeRunInitialTestsSuite,
 //      runMutantSuite,
     )
 
@@ -43,9 +44,9 @@ object RunMutationsTest extends ZIOSpecDefault {
                 TestPrintLine(
                   "Try changing the mutation settings.",
                   TestReturn(ExitCode.success),
-                ),
-              ),
-            ),
+                )
+              )
+            )
           )
         )
       }
@@ -68,10 +69,10 @@ object RunMutationsTest extends ZIOSpecDefault {
                   TestPrintErrorLine(
                     "There were errors while initializing blinky!",
                     TestReturn(ExitCode.failure),
-                  ),
-                ),
-              ),
-            ),
+                  )
+                )
+              )
+            )
           )
         )
       }
@@ -79,7 +80,7 @@ object RunMutationsTest extends ZIOSpecDefault {
 
   private def initializeRunInitialCompileSuite: Spec[Any, Nothing] =
     suite("runInitialCompile")(
-      test("runner.initializeRunner fails") {
+      test("runner.initialCompile fails") {
         testRunMutations(
           _.run(projectPath, validMutantsOutputFile, OptionsConfig.default),
           TestReadFile(
@@ -102,16 +103,53 @@ object RunMutationsTest extends ZIOSpecDefault {
                            |If you think it's due to a bug in Blinky please to report in:
                            |https://github.com/RCMartins/blinky/issues/new""".stripMargin,
                         TestReturn(ExitCode.failure),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+                      )
+                    )
+                  )
+                )
+              )
+            )
           )
         )
       }
     ).provideShared(provideRunner(createRunner(initialCompileResult = Left(someException))))
+
+  private def initializeRunInitialTestsSuite: Spec[Any, Nothing] =
+    suite("runInitialTests")(
+      test("runner.vanillaTestRun fails") {
+        testRunMutations(
+          _.run(projectPath, validMutantsOutputFile, OptionsConfig.default),
+          TestReadFile(
+            Path(validMutantsOutputFile),
+            Right(validMutantsOutputText),
+            TestPrintLine(
+              "2 mutants found in 1 scala files.",
+              TestPrintLine(
+                s"initializeRunner: $projectPath",
+                TestPrintLine(
+                  "Running tests with original config",
+                  TestPrintLine(
+                    s"initialCompile: $projectPath",
+                    TestPrintLine(
+                      s"vanillaTestRun: $projectPath",
+                      TestPrintErrorLine(
+                        """Tests failed. No mutations will run until this is fixed.
+                          |This could be because Blinky is not configured correctly.
+                          |Make sure testCommand is set.
+                          |
+                          |blinky.TestSpec$SomeException: some exception
+                          |""".stripMargin,
+                        TestReturn(ExitCode.failure),
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      }
+    ).provideShared(provideRunner(createRunner(vanillaTestRunResult = Left(someException))))
 
   //  private def runMutantSuite: Spec[RunMutations, Nothing] =
 //    def baseRunMutantResult(
