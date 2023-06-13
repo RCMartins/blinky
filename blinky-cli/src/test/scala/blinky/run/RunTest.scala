@@ -430,7 +430,7 @@ object RunTest extends ZIOSpecDefault {
     )
   }
 
-  def testRun[A](
+  private def testRun[A](
       actualInstruction: Run => Instruction[A],
       expectationInstruction: TestInstruction[A]
   ): ZIO[Run, Nothing, TestResult] =

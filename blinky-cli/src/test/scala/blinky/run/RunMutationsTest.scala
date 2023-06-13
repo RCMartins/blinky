@@ -2,34 +2,35 @@ package blinky.run
 
 import better.files.File
 import blinky.TestSpec._
-import blinky.internal.MutantFile
 import blinky.run.TestInstruction._
 import blinky.run.config.OptionsConfig
 import os.Path
 import zio.test._
 import zio.{ExitCode, Scope, ZIO, ZLayer}
 
-import scala.concurrent.duration.DurationInt
-
 object RunMutationsTest extends ZIOSpecDefault {
 
   private lazy val projectPath: Path = Path(getFilePath("some-project"))
-  private lazy val emptyMutantsOutputFile: String = getFilePath("blinky-empty.mutants")
   private lazy val someException = SomeException("some exception")
 
-  private lazy val validMutantsOutputFile: String = getFilePath("blinky1.mutants")
+  private lazy val emptyMutantsOutputFile: String = getFilePath("mutants/blinky-empty.mutants")
+  private lazy val validMutantsOutputFile: String = getFilePath("mutants/blinky1.mutants")
   private lazy val validMutantsOutputText: String = File(validMutantsOutputFile).contentAsString
   private val mockDiffString = "mock-diff-string"
 
   def spec: Spec[TestEnvironment with Scope, Any] =
     suite("RunMutations")(
+      runSuite,
+      initializeRunMutationsSuite,
+      initializeRunInitialCompileSuite,
+//      runMutantSuite,
+    )
+
+  private def runSuite: Spec[Any, Nothing] =
+    suite("run")(
       test("return success with a message if no mutants found") {
         testRunMutations(
-          _.run(
-            projectPath,
-            emptyMutantsOutputFile,
-            OptionsConfig.default,
-          ),
+          _.run(projectPath, emptyMutantsOutputFile, OptionsConfig.default),
           TestReadFile(
             Path(emptyMutantsOutputFile),
             Left(someException),
@@ -47,11 +48,72 @@ object RunMutationsTest extends ZIOSpecDefault {
             ),
           )
         )
-      }.provideSome[PrettyDiff](ZLayer.succeed(RunMutationsSBT) >+> RunMutations.live),
-      runMutantSuite,
-    ).provideSomeLayerShared(dummyPrettyDiff)
+      }
+    ).provideShared(provideRunner(createRunner()))
 
-  private def runMutantSuite: Spec[PrettyDiff, Nothing] =
+  private def initializeRunMutationsSuite: Spec[Any, Nothing] =
+    suite("initializeRunMutations")(
+      test("runner.initializeRunner fails") {
+        testRunMutations(
+          _.run(projectPath, validMutantsOutputFile, OptionsConfig.default),
+          TestReadFile(
+            Path(validMutantsOutputFile),
+            Right(validMutantsOutputText),
+            TestPrintLine(
+              "2 mutants found in 1 scala files.",
+              TestPrintLine(
+                s"initializeRunner: $projectPath",
+                TestPrintErrorLine(
+                  "blinky.TestSpec$SomeException: some exception",
+                  TestPrintErrorLine(
+                    "There were errors while initializing blinky!",
+                    TestReturn(ExitCode.failure),
+                  ),
+                ),
+              ),
+            ),
+          )
+        )
+      }
+    ).provideShared(provideRunner(createRunner(initializeRunnerResult = Left(someException))))
+
+  private def initializeRunInitialCompileSuite: Spec[Any, Nothing] =
+    suite("runInitialCompile")(
+      test("runner.initializeRunner fails") {
+        testRunMutations(
+          _.run(projectPath, validMutantsOutputFile, OptionsConfig.default),
+          TestReadFile(
+            Path(validMutantsOutputFile),
+            Right(validMutantsOutputText),
+            TestPrintLine(
+              "2 mutants found in 1 scala files.",
+              TestPrintLine(
+                s"initializeRunner: $projectPath",
+                TestPrintLine(
+                  "Running tests with original config",
+                  TestPrintLine(
+                    s"initialCompile: $projectPath",
+                    TestPrintErrorLine(
+                      "blinky.TestSpec$SomeException: some exception",
+                      TestPrintErrorLine(
+                        s"""There are compile errors after applying the Blinky rule.
+                           |This could be because Blinky is not configured correctly.
+                           |Make sure compileCommand is set.
+                           |If you think it's due to a bug in Blinky please to report in:
+                           |https://github.com/RCMartins/blinky/issues/new""".stripMargin,
+                        TestReturn(ExitCode.failure),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          )
+        )
+      }
+    ).provideShared(provideRunner(createRunner(initialCompileResult = Left(someException))))
+
+  //  private def runMutantSuite: Spec[RunMutations, Nothing] =
 //    def baseRunMutantResult(
 //        result: Either[Throwable, TimeoutResult],
 //        expected: RunResult
@@ -83,7 +145,7 @@ object RunMutationsTest extends ZIOSpecDefault {
 //      ""
 //    )
 
-    suite("runMutant")(
+//    suite("runMutant")(
 //      test("run tests with an active mutant when verbose=false") {
 //        check(
 //          Gen.elements(
@@ -143,9 +205,9 @@ object RunMutationsTest extends ZIOSpecDefault {
 //          )
 //        }
 //      },
-    ).provideSomeShared(ZLayer.succeed(createRunner()) >+> RunMutations.live)
+//    )
 
-  def testRunMutations[A](
+  private def testRunMutations[A](
       actualInstruction: RunMutations => Instruction[A],
       expectationInstruction: TestInstruction[A]
   ): ZIO[RunMutations, Nothing, TestResult] =
@@ -155,6 +217,11 @@ object RunMutationsTest extends ZIOSpecDefault {
       actualInstruction(instance),
       expectationInstruction
     )
+
+  private def provideRunner(
+      runner: MutationsRunner
+  ): ZLayer[Any, Nothing, MutationsRunner with PrettyDiff with RunMutations] =
+    ZLayer.succeed(runner) >+> dummyPrettyDiff >+> RunMutations.live
 
   private def createRunner(
       initializeRunnerResult: Either[Throwable, Unit] = Right(()),
@@ -169,7 +236,7 @@ object RunMutationsTest extends ZIOSpecDefault {
         projectPath: Path,
         compileCommand: String
     ): Instruction[Either[Throwable, Unit]] =
-      Instruction.printLine(s"initialCompile $projectPath").map(_ => initialCompileResult)
+      Instruction.printLine(s"initialCompile: $projectPath").map(_ => initialCompileResult)
 
     override def fullTestCommand(testCommand: String): String =
       fullTestCommandResult

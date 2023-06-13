@@ -109,12 +109,21 @@ object TestInstruction {
       expectationInstruction: TestInstruction[A]
   ): TestResult =
     (actualInstruction, expectationInstruction) match {
-      case (Return(value1), TestReturn(value2)) =>
+      case (
+            Return(value1),
+            TestReturn(value2)
+          ) =>
         assertTrue(value1() == value2)
-      case (PrintLine(line1, next1), TestPrintLine(line2, next2)) =>
+      case (
+            PrintLine(line1, next1),
+            TestPrintLine(line2, next2)
+          ) =>
         assertTrue(line1 == line2) &&
         testInstruction(next1, next2)
-      case (PrintErrorLine(line1, next1), TestPrintErrorLine(line2, next2)) =>
+      case (
+            PrintErrorLine(line1, next1),
+            TestPrintErrorLine(line2, next2)
+          ) =>
         assertTrue(line1 == line2) &&
         testInstruction(next1, next2)
       case (
@@ -183,14 +192,13 @@ object TestInstruction {
         assertTrue(path1 == path2) &&
         testInstruction(next1(mockResult), next2)
       case (other1, other2) =>
-        println(
+        assertTrue(false).label(
           s"""elem1 Class: ${other1.getClass.getSimpleName}
              |elem2 Class: ${other2.getClass.getSimpleName}
              |elem1: $other1
              |elem2: $other2
              |""".stripMargin
         )
-        ???
     }
 
 }
