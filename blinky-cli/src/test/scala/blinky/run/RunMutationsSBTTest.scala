@@ -57,7 +57,7 @@ object RunMutationsSBTTest extends ZIOSpecDefault {
             instance.vanillaTestRun(projectPath, "testOnly -- -z \"test name\""),
             TestRunResultEither(
               "bash",
-              Seq("-c", "sbt  testOnly -- -z \\\"test name\\\""),
+              Seq("-c", "sbt testOnly -- -z \\\"test name\\\""),
               Map("BLINKY" -> "true"),
               projectPath,
               Right(""),
@@ -70,7 +70,7 @@ object RunMutationsSBTTest extends ZIOSpecDefault {
             instance.vanillaTestRun(projectPath, "testOnly -- -z \"test name\""),
             TestRunResultEither(
               "bash",
-              Seq("-c", "sbt  testOnly -- -z \\\"test name\\\""),
+              Seq("-c", "sbt testOnly -- -z \\\"test name\\\""),
               Map("BLINKY" -> "true"),
               projectPath,
               Left(someException),

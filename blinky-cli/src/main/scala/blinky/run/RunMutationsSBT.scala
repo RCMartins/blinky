@@ -7,8 +7,6 @@ import os.Path
 
 object RunMutationsSBT extends MutationsRunner {
 
-  private val extraSbtParams: String = ""
-
   def initializeRunner(projectPath: Path): Instruction[Either[Throwable, Unit]] =
     succeed(Right(()))
 
@@ -18,13 +16,13 @@ object RunMutationsSBT extends MutationsRunner {
   ): Instruction[Either[Throwable, Unit]] =
     runResultEither(
       "sbt",
-      Seq(extraSbtParams, escapeString(compileCommand)).filter(_.nonEmpty),
+      Seq(escapeString(compileCommand)).filter(_.nonEmpty),
       envArgs = defaultEnvArgs,
       path = projectPath
     ).flatMap(either => succeed(either.map(_ => ())))
 
   def fullTestCommand(testCommand: String): String =
-    s"sbt $extraSbtParams ${escapeString(testCommand)}"
+    s"sbt ${escapeString(testCommand)}"
 
   def vanillaTestRun(
       projectPath: Path,

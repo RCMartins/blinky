@@ -27,20 +27,6 @@ object PrettyDiffTest extends ZIOSpecDefault {
         color
       )
 
-//      suite("stripPathPrefix")(
-//        test("should return the original string if prefix is not found") {
-//          assertTrue(Utils.stripPathPrefix("str/ing1", "strg") == "str/ing1")
-//        },
-//        test("should return the striped string if prefix is found") {
-//          assertTrue(
-//            Utils.stripPathPrefix(
-//              "/home/project/src/main/scala/Code.scala",
-//              "/home/project"
-//            ) == "/src/main/scala/Code.scala"
-//          )
-//        }
-//      ), {
-
     suite("PrettyDiff")(
       suite("prettyDiff")(
         test("return an empty string when the input is invalid") {
@@ -251,6 +237,47 @@ object PrettyDiffTest extends ZIOSpecDefault {
 
             val expected =
               """/someFile.scala
+                |@@ -75,6 +75,8 @@
+                |  75        foo
+                |  76        bar
+                |  77        baz
+                |      78   +line1
+                |      79   +line2
+                |  78  80    more context
+                |  79  81    and more
+                |  80  82    and still context""".stripMargin
+                .replace("#", " ")
+                .replace("\r", "")
+
+            assertTrue(actual == expected)
+          }
+        },
+        test("should return the original string if prefix is not found") {
+          for {
+            instance <- ZIO.service[PrettyDiff]
+          } yield {
+            val original =
+              """@@ -75,6 +75,8 @@
+                | foo
+                | bar
+                | baz
+                |+line1
+                |+line2
+                | more context
+                | and more
+                | and still context""".stripMargin
+
+            val actual =
+              testPrettyDiff(
+                instance,
+                original,
+                "/home/user/project/someFile.scala",
+                "/something/else",
+                color = false
+              ).replace("\r", "")
+
+            val expected =
+              """/home/user/project/someFile.scala
                 |@@ -75,6 +75,8 @@
                 |  75        foo
                 |  76        bar
