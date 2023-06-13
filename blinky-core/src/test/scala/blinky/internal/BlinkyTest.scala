@@ -1,28 +1,29 @@
 package blinky.internal
 
-import blinky.TestSpec
 import blinky.v0.{BlinkyConfig, MutantRange, Mutators}
+import zio.test.{Spec, TestEnvironment, ZIOSpecDefault, assertTrue}
 
 import scala.meta.Lit
 
-class BlinkyTest extends TestSpec {
+object BlinkyTest extends ZIOSpecDefault {
 
-  "calculateGitDiff" should {
+  def spec: Spec[TestEnvironment, Any] =
+    suite("Blinky")(
+      suite("calculateGitDiff")(
+        test("return empty diff if no output file is defined") {
+          val config =
+            BlinkyConfig(
+              mutantsOutputFile = "",
+              filesToMutate = Seq.empty,
+              Seq(MutantRange(1, Int.MaxValue)),
+              enabledMutators = Mutators.all,
+              disabledMutators = Mutators(Nil)
+            )
 
-    "return empty diff if no output file is defined" in {
-      val config =
-        BlinkyConfig(
-          mutantsOutputFile = "",
-          filesToMutate = Seq.empty,
-          Seq(MutantRange(1, Int.MaxValue)),
-          enabledMutators = Mutators.all,
-          disabledMutators = Mutators(Nil)
-        )
-
-      val original = Lit.Boolean(true)
-      new Blinky(config).calculateGitDiff(original, "false") mustEqual ""
-    }
-
-  }
+          val original = Lit.Boolean(true)
+          assertTrue(new Blinky(config).calculateGitDiff(original, "false") == "")
+        }
+      )
+    )
 
 }

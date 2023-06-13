@@ -1,110 +1,115 @@
 package blinky.v0
 
-import blinky.TestSpec
 import metaconfig.{Conf, Configured}
+import zio.test._
 
-class MutantRangeTest extends TestSpec {
+object MutantRangeTest extends ZIOSpecDefault {
 
-  "MutantRange.contains" should {
+  def spec: Spec[TestEnvironment, Any] =
+    suite("MutantRange")(
+      suite("contains")(
+        test("return true if it contains the index") {
+          assertTrue(MutantRange(2, 4).contains(2))
+          assertTrue(MutantRange(2, 4).contains(3))
+          assertTrue(MutantRange(2, 4).contains(4))
+        },
+        test("return false if it does not contain the index") {
+          assertTrue(!MutantRange(2, 4).contains(1))
+          assertTrue(!MutantRange(2, 4).contains(5))
+        }
+      ),
+      suite("rangeDecoder")(
+        test("return an error for input 'true'") {
+          assertTrue(
+            MutantRange.rangeDecoder.read(Conf.Bool(true)) ==
+              Configured.typeMismatch("Number with a mutant index range", Conf.Bool(true))
+          )
+        }
+      ),
+      seqRangeDecoderSuite,
+    )
 
-    "return true if it contains the index" in {
-      MutantRange(2, 4).contains(2) mustEqual true
-      MutantRange(2, 4).contains(3) mustEqual true
-      MutantRange(2, 4).contains(4) mustEqual true
-    }
+  def seqRangeDecoderSuite: Spec[Any, Nothing] = {
+    def readTest(conf: Conf, expected: Configured[Seq[MutantRange]]): TestResult =
+      assertTrue(MutantRange.seqRangeDecoder.read(conf) == expected)
 
-    "return false if it does not contain the index" in {
-      MutantRange(2, 4).contains(1) mustEqual false
-      MutantRange(2, 4).contains(5) mustEqual false
-    }
-
-  }
-
-  "MutantRange.rangeDecoder" should {
-
-    "return an error for input 'true'" in {
-      MutantRange.rangeDecoder.read(Conf.Bool(true)) mustEqual
-        Configured.typeMismatch("Number with a mutant index range", Conf.Bool(true))
-    }
-
-  }
-
-  "MutantRange.seqRangeDecoder" should {
-
-    "return an error for input 'true'" in {
-      readTest(Conf.Bool(true)) mustEqual
-        Configured.typeMismatch("Number with a mutant index range", Conf.Bool(true))
-    }
-
-    "return an error for input '0'" in {
-      readTest(Conf.Num(0)) mustEqual
-        Configured.typeMismatch("Number with a mutant index range", Conf.Num(0))
-
-      readTest(Conf.Str("0")) mustEqual
-        Configured.typeMismatch("Number with a mutant index range", Conf.Str("0"))
-    }
-
-    "return an error for input '1.5'" in {
-      readTest(Conf.Num(1.5)) mustEqual
-        Configured.typeMismatch("Number with a mutant index range", Conf.Num(1.5))
-    }
-
-    "return an error for input '1-a'" in {
-      readTest(Conf.Str("1-a")) mustEqual
-        Configured.typeMismatch("Number with a mutant index range", Conf.Str("1-a"))
-    }
-
-    "return an error for input 'b-3'" in {
-      readTest(Conf.Str("b-3")) mustEqual
-        Configured.typeMismatch("Number with a mutant index range", Conf.Str("b-3"))
-    }
-
-    "return an error for input '1,3,-2,73,-10'" in {
-      readTest(Conf.Str("1,3,-2,73,-10")) mustEqual
-        Configured.typeMismatch("Number with a mutant index range", Conf.Str("-2"))
-    }
-
-    "return the correct MutantRange for input '4'" in {
-      readTest(Conf.Num(4)) mustEqual Configured.ok(Seq(MutantRange(4, 4)))
-      readTest(Conf.Str("4")) mustEqual Configured.ok(Seq(MutantRange(4, 4)))
-    }
-
-    "return the correct MutantRange for input '10-20'" in {
-      readTest(Conf.Str("10-20")) mustEqual Configured.ok(Seq(MutantRange(10, 20)))
-    }
-
-    "return the correct MutantRange for input '1,3,4,20-50,73'" in {
-      readTest(Conf.Str("1,3,4,20-50,73")) mustEqual
-        Configured.ok(
-          Seq(
-            MutantRange(1, 1),
-            MutantRange(3, 3),
-            MutantRange(4, 4),
-            MutantRange(20, 50),
-            MutantRange(73, 73)
+    suite("seqRangeDecoder")(
+      test("return an error for input 'true'") {
+        readTest(
+          Conf.Bool(true),
+          Configured.typeMismatch("Number with a mutant index range", Conf.Bool(true))
+        )
+      },
+      test("return an error for input '0'") {
+        readTest(
+          Conf.Num(0),
+          Configured.typeMismatch("Number with a mutant index range", Conf.Num(0))
+        )
+        readTest(
+          Conf.Str("0"),
+          Configured.typeMismatch("Number with a mutant index range", Conf.Str("0"))
+        )
+      },
+      test("return an error for input '1.5'") {
+        readTest(
+          Conf.Num(1.5),
+          Configured.typeMismatch("Number with a mutant index range", Conf.Num(1.5))
+        )
+      },
+      test("return an error for input '1-a'") {
+        readTest(
+          Conf.Str("1-a"),
+          Configured.typeMismatch("Number with a mutant index range", Conf.Str("1-a"))
+        )
+      },
+      test("return an error for input 'b-3'") {
+        readTest(
+          Conf.Str("b-3"),
+          Configured.typeMismatch("Number with a mutant index range", Conf.Str("b-3"))
+        )
+      },
+      test("return an error for input '1,3,-2,73,-10'") {
+        readTest(
+          Conf.Str("1,3,-2,73,-10"),
+          Configured.typeMismatch("Number with a mutant index range", Conf.Str("-2"))
+        )
+      },
+      test("return the correct MutantRange for input '4'") {
+        readTest(Conf.Num(4), Configured.ok(Seq(MutantRange(4, 4))))
+        readTest(Conf.Str("4"), Configured.ok(Seq(MutantRange(4, 4))))
+      },
+      test("return the correct MutantRange for input '10-20'") {
+        readTest(Conf.Str("10-20"), Configured.ok(Seq(MutantRange(10, 20))))
+      },
+      test("return the correct MutantRange for input '1,3,4,20-50,73'") {
+        readTest(
+          Conf.Str("1,3,4,20-50,73"),
+          Configured.ok(
+            Seq(
+              MutantRange(1, 1),
+              MutantRange(3, 3),
+              MutantRange(4, 4),
+              MutantRange(20, 50),
+              MutantRange(73, 73)
+            )
           )
         )
-    }
-
-    def readTest(conf: Conf): Configured[Seq[MutantRange]] =
-      MutantRange.seqRangeDecoder.read(conf)
-
-  }
-
-  "MutantRange.seqRangeEncoder" should {
-
-    "return the correct Conf.Str" in {
-      MutantRange.seqRangeEncoder.write(
-        Seq(
-          MutantRange(1, 1),
-          MutantRange(3, 3),
-          MutantRange(4, 4),
-          MutantRange(20, 50),
-          MutantRange(73, 73)
+      },
+      test("return the correct Conf.Str") {
+        assertTrue(
+          MutantRange.seqRangeEncoder.write(
+            Seq(
+              MutantRange(1, 1),
+              MutantRange(3, 3),
+              MutantRange(4, 4),
+              MutantRange(20, 50),
+              MutantRange(73, 73)
+            )
+          ) ==
+            Conf.Str("1,3,4,20-50,73")
         )
-      ) mustEqual Conf.Str("1,3,4,20-50,73")
-    }
-
+      }
+    )
   }
 
 }
