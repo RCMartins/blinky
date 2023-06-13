@@ -10,7 +10,7 @@ object RunMutationsBloopTest extends ZIOSpecDefault {
 
   private val projectPath: Path = Path(getFilePath("some-project"))
 
-  private val instance = new RunMutationsBloop(projectPath)
+  private val instance = RunMutationsBloop
   private val someException = SomeException("some exception")
 
   def spec: Spec[TestEnvironment with Scope, Any] =
@@ -18,7 +18,7 @@ object RunMutationsBloopTest extends ZIOSpecDefault {
       suite("initializeRunner")(
         test("run the correct initializeRunner command on right") {
           testInstruction(
-            instance.initializeRunner,
+            instance.initializeRunner(projectPath),
             TestRunStream(
               "sbt",
               Seq("bloopInstall"),
@@ -31,7 +31,7 @@ object RunMutationsBloopTest extends ZIOSpecDefault {
         },
         test("run the correct initializeRunner command on error") {
           testInstruction(
-            instance.initializeRunner,
+            instance.initializeRunner(projectPath),
             TestRunStream(
               "sbt",
               Seq("bloopInstall"),
@@ -46,7 +46,7 @@ object RunMutationsBloopTest extends ZIOSpecDefault {
       suite("initialCompile")(
         test("run the correct initialCompile command on right") {
           testInstruction(
-            instance.initialCompile("\"core\""),
+            instance.initialCompile(projectPath, "\"core\""),
             TestRunResultEither(
               "bloop",
               Seq("compile", "\\\"core\\\""),
@@ -59,7 +59,7 @@ object RunMutationsBloopTest extends ZIOSpecDefault {
         },
         test("run the correct initialCompile command on error") {
           testInstruction(
-            instance.initialCompile("\"core\""),
+            instance.initialCompile(projectPath, "\"core\""),
             TestRunResultEither(
               "bloop",
               Seq("compile", "\\\"core\\\""),
@@ -74,7 +74,7 @@ object RunMutationsBloopTest extends ZIOSpecDefault {
       suite("vanillaTestRun")(
         test("run the correct test command on right") {
           testInstruction(
-            instance.vanillaTestRun("core -o CoreTest -- -z \"test name\""),
+            instance.vanillaTestRun(projectPath, "core -o CoreTest -- -z \"test name\""),
             TestRunResultEither(
               "bash",
               Seq("-c", "bloop test core -o CoreTest -- -z \\\"test name\\\""),
@@ -87,7 +87,7 @@ object RunMutationsBloopTest extends ZIOSpecDefault {
         },
         test("run the correct test command on error") {
           testInstruction(
-            instance.vanillaTestRun("core -o CoreTest -- -z \"test name\""),
+            instance.vanillaTestRun(projectPath, "core -o CoreTest -- -z \"test name\""),
             TestRunResultEither(
               "bash",
               Seq("-c", "bloop test core -o CoreTest -- -z \\\"test name\\\""),

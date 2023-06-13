@@ -13,7 +13,7 @@ import scala.annotation.tailrec
 
 object ConsoleReporterTest extends ZIOSpecDefault {
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
+  def spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("ConsoleReporter")(
       test("print the mutation score") {
         val (result, out) =

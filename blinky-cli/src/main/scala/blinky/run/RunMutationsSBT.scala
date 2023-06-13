@@ -5,14 +5,17 @@ import blinky.run.Setup.defaultEnvArgs
 import blinky.run.Utils._
 import os.Path
 
-class RunMutationsSBT(projectPath: Path) extends MutationsRunner {
+object RunMutationsSBT extends MutationsRunner {
 
   private val extraSbtParams: String = ""
 
-  def initializeRunner: Instruction[Either[Throwable, Unit]] =
+  def initializeRunner(projectPath: Path): Instruction[Either[Throwable, Unit]] =
     succeed(Right(()))
 
-  def initialCompile(compileCommand: String): Instruction[Either[Throwable, Unit]] =
+  def initialCompile(
+      projectPath: Path,
+      compileCommand: String
+  ): Instruction[Either[Throwable, Unit]] =
     runResultEither(
       "sbt",
       Seq(extraSbtParams, escapeString(compileCommand)).filter(_.nonEmpty),
@@ -23,7 +26,10 @@ class RunMutationsSBT(projectPath: Path) extends MutationsRunner {
   def fullTestCommand(testCommand: String): String =
     s"sbt $extraSbtParams ${escapeString(testCommand)}"
 
-  def vanillaTestRun(testCommand: String): RunResultEither[Either[Throwable, String]] =
+  def vanillaTestRun(
+      projectPath: Path,
+      testCommand: String
+  ): Instruction[Either[Throwable, String]] =
     runBashEither(
       fullTestCommand(testCommand),
       envArgs = defaultEnvArgs,

@@ -4,7 +4,7 @@ import better.files.File
 import blinky.TestSpec._
 import blinky.run.TestInstruction._
 import blinky.run.config._
-import blinky.run.modules.{CliModule, TestModules}
+import blinky.run.modules.TestModules
 import com.softwaremill.quicklens.ModifyPimp
 import os.{Path, RelPath}
 import zio._
@@ -20,14 +20,15 @@ object RunTest extends ZIOSpecDefault {
   private val projectRealPath: Path = cloneProjectTempFolder / "clone-project"
   private val projectBaseFolder: Path = cloneProjectTempFolder / "some-project"
   private val someException = SomeException("some exception")
+  private val projectFile = File(originalProjectPath.toString)
 
   def spec: Spec[TestEnvironment with Scope, Throwable] =
     suite("Run")(
       runSuite,
       suite("processFilesToMutate")(
         test("when files filtering is SingleFileOrFolder") {
-          testInstruction(
-            Run.processFilesToMutate(
+          testRun(
+            _.processFilesToMutate(
               projectRealPath,
               FileFilter.SingleFileOrFolder(RelPath("src/main/scala/SomeFile.scala"))
             ),
@@ -35,8 +36,8 @@ object RunTest extends ZIOSpecDefault {
           )
         },
         test("when filterFiles returns empty") {
-          testInstruction(
-            Run.processFilesToMutate(
+          testRun(
+            _.processFilesToMutate(
               projectRealPath,
               FileFilter.FileName("FileD.scala")
             ),
@@ -51,8 +52,8 @@ object RunTest extends ZIOSpecDefault {
           )
         },
         test("when filterFiles returns exactly one file") {
-          testInstruction(
-            Run.processFilesToMutate(
+          testRun(
+            _.processFilesToMutate(
               projectRealPath,
               FileFilter.FileName("FileA.scala")
             ),
@@ -64,8 +65,8 @@ object RunTest extends ZIOSpecDefault {
           )
         },
         test("when filterFiles returns multiple files") {
-          testInstruction(
-            Run.processFilesToMutate(
+          testRun(
+            _.processFilesToMutate(
               projectRealPath,
               FileFilter.FileName("FileB.scala")
             ),
@@ -83,8 +84,8 @@ object RunTest extends ZIOSpecDefault {
           )
         },
         test("when lists files command fails") {
-          testInstruction(
-            Run.processFilesToMutate(
+          testRun(
+            _.processFilesToMutate(
               projectRealPath,
               FileFilter.FileName("FileB.scala")
             ),
@@ -103,8 +104,8 @@ object RunTest extends ZIOSpecDefault {
       ),
       suite("optimiseFilesToMutate")(
         test("when copy result fails") {
-          testInstruction(
-            Run.optimiseFilesToMutate(
+          testRun(
+            _.optimiseFilesToMutate(
               Seq.empty,
               Left(ExitCode.failure),
               projectRealPath,
@@ -115,8 +116,8 @@ object RunTest extends ZIOSpecDefault {
         },
         test("when copy result succeeds and filter is FileName and there is only one file") {
           val singleFile = (projectRealPath / "FileA.scala").toString
-          testInstruction(
-            Run.optimiseFilesToMutate(
+          testRun(
+            _.optimiseFilesToMutate(
               Seq(singleFile),
               Right(()),
               projectRealPath,
@@ -130,8 +131,8 @@ object RunTest extends ZIOSpecDefault {
           )
         },
         test("when file does not exist") {
-          testInstruction(
-            Run.optimiseFilesToMutate(
+          testRun(
+            _.optimiseFilesToMutate(
               Seq(),
               Right(()),
               projectRealPath,
@@ -147,8 +148,8 @@ object RunTest extends ZIOSpecDefault {
           "when copy result succeeds and filter is SingleFileOrFolder and there is only one file"
         ) {
           val singleFile = (projectRealPath / "src" / "File.scala").toString
-          testInstruction(
-            Run.optimiseFilesToMutate(
+          testRun(
+            _.optimiseFilesToMutate(
               Seq(singleFile),
               Right(()),
               projectRealPath,
@@ -167,8 +168,8 @@ object RunTest extends ZIOSpecDefault {
           val file1 = (projectRealPath / "src" / "File1.scala").toString
           val file2 = (projectRealPath / "src" / "File2.scala").toString
           val file3 = (projectRealPath / "src" / "File3.scala").toString
-          testInstruction(
-            Run.optimiseFilesToMutate(
+          testRun(
+            _.optimiseFilesToMutate(
               Seq(file1, file2),
               Right(()),
               projectRealPath,
@@ -187,8 +188,8 @@ object RunTest extends ZIOSpecDefault {
           val folder = (projectRealPath / "src").toString
           val file1 = (projectRealPath / "src" / "File1.scala").toString
           val file2 = (projectRealPath / "src" / "File2.scala").toString
-          testInstruction(
-            Run.optimiseFilesToMutate(
+          testRun(
+            _.optimiseFilesToMutate(
               Seq(file1, file2),
               Right(()),
               projectRealPath,
@@ -204,8 +205,8 @@ object RunTest extends ZIOSpecDefault {
       ),
       suite("copyFilesToTempFolder")(
         test("when both git and copy works") {
-          testInstruction(
-            Run.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
+          testRun(
+            _.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
             TestRunResultEither(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
@@ -223,8 +224,8 @@ object RunTest extends ZIOSpecDefault {
           )
         },
         test("when git works but the copy fails") {
-          testInstruction(
-            Run.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
+          testRun(
+            _.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
             TestRunResultEither(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
@@ -245,8 +246,8 @@ object RunTest extends ZIOSpecDefault {
           )
         },
         test("when git fails") {
-          testInstruction(
-            Run.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
+          testRun(
+            _.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
             TestRunResultEither(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
@@ -263,10 +264,15 @@ object RunTest extends ZIOSpecDefault {
           )
         }
       )
+    ).provideShared(
+      TestModules.testCliModule(projectFile) >+>
+        ZLayer.succeed(RunMutationsSBT) >+>
+        PrettyDiff.live >+>
+        RunMutations.live >+>
+        Run.live
     )
 
-  private def runSuite: Spec[Any, Throwable] = {
-    val projectFile = File(originalProjectPath.toString)
+  private def runSuite: Spec[Run, Throwable] = {
     val dummyMutationsConfigValidated: MutationsConfigValidated =
       MutationsConfigValidated(
         projectPath = projectFile,
@@ -279,11 +285,9 @@ object RunTest extends ZIOSpecDefault {
     def diffLinesTest(
         diffLines: Either[Throwable, String],
         result: TestInstruction[ExitCode]
-    ): ZIO[CliModule, Throwable, TestResult] =
-      for {
-        res <- Run.run(dummyMutationsConfigValidated.modify(_.options.onlyMutateDiff).setTo(true))
-      } yield testInstruction(
-        res,
+    ): ZIO[Run, Nothing, TestResult] =
+      testRun(
+        _.run(dummyMutationsConfigValidated.modify(_.options.onlyMutateDiff).setTo(true)),
         TestMakeTemporaryDirectory(
           Right(cloneProjectTempFolder),
           TestRunResultEither(
@@ -317,10 +321,8 @@ object RunTest extends ZIOSpecDefault {
 
     suite("run")(
       test("error if creating temporary folder fails") {
-        for {
-          res <- Run.run(dummyMutationsConfigValidated)
-        } yield testInstruction(
-          res,
+        testRun(
+          _.run(dummyMutationsConfigValidated),
           TestMakeTemporaryDirectory(
             Left(someException),
             TestPrintErrorLine(
@@ -333,10 +335,8 @@ object RunTest extends ZIOSpecDefault {
         )
       },
       test("error if 'git rev-parse --show-toplevel' fails (with verbose=true)") {
-        for {
-          res <- Run.run(dummyMutationsConfigValidated.modify(_.options.verbose).setTo(true))
-        } yield testInstruction(
-          res,
+        testRun(
+          _.run(dummyMutationsConfigValidated.modify(_.options.verbose).setTo(true)),
           TestMakeTemporaryDirectory(
             Right(cloneProjectTempFolder),
             TestPrintLine(
@@ -359,10 +359,8 @@ object RunTest extends ZIOSpecDefault {
         )
       },
       test("error if 'git rev-parse <master-branch>' fails (onlyMutateDiff=true)") {
-        for {
-          res <- Run.run(dummyMutationsConfigValidated.modify(_.options.onlyMutateDiff).setTo(true))
-        } yield testInstruction(
-          res,
+        testRun(
+          _.run(dummyMutationsConfigValidated.modify(_.options.onlyMutateDiff).setTo(true)),
           TestMakeTemporaryDirectory(
             Right(cloneProjectTempFolder),
             TestRunResultEither(
@@ -429,7 +427,18 @@ object RunTest extends ZIOSpecDefault {
           )
         )
       },
-    ).provide(TestModules.testCliModule(projectFile))
+    )
   }
+
+  def testRun[A](
+      actualInstruction: Run => Instruction[A],
+      expectationInstruction: TestInstruction[A]
+  ): ZIO[Run, Nothing, TestResult] =
+    for {
+      instance <- ZIO.service[Run]
+    } yield testInstruction(
+      actualInstruction(instance),
+      expectationInstruction
+    )
 
 }

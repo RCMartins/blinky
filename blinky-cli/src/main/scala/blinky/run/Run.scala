@@ -1,32 +1,30 @@
 package blinky.run
 
+import better.files.File
 import blinky.BuildInfo
 import blinky.run.Instruction._
-import blinky.run.config.{FileFilter, MutationsConfigValidated, SimpleBlinkyConfig, TestRunnerType}
+import blinky.run.config.{FileFilter, MutationsConfigValidated, SimpleBlinkyConfig}
 import blinky.run.modules.CliModule
 import blinky.v0.BlinkyConfig
 import os.{Path, RelPath}
-import zio.{ExitCode, RIO, ZIO}
+import zio.{ExitCode, ZIO, ZLayer}
 
 import scala.util.Try
 
-object Run {
+class Run(runMutations: RunMutations, pwd: File) {
 
   private val ruleName = "Blinky"
   private val mutantsOutputFileName = "blinky.mutants"
   private val defaultGitBranch = "master"
   private val defaultBlinkyConfFileName = ".scalafix.conf"
 
-  def run(config: MutationsConfigValidated): RIO[CliModule, Instruction[ExitCode]] =
-    for {
-      pwd <- ZIO.serviceWithZIO[CliModule](_.pwd)
-
-      originalProjectRoot = Path(pwd.path.toAbsolutePath)
-      originalProjectRelPath =
-        Try(Path(config.projectPath.pathAsString).relativeTo(originalProjectRoot))
-          .getOrElse(RelPath(config.projectPath.pathAsString))
-      originalProjectPath = originalProjectRoot / originalProjectRelPath
-    } yield makeTemporaryFolder.flatMap {
+  def run(config: MutationsConfigValidated): Instruction[ExitCode] = {
+    val originalProjectRoot = Path(pwd.path.toAbsolutePath)
+    val originalProjectRelPath =
+      Try(Path(config.projectPath.pathAsString).relativeTo(originalProjectRoot))
+        .getOrElse(RelPath(config.projectPath.pathAsString))
+    val originalProjectPath = originalProjectRoot / originalProjectRelPath
+    makeTemporaryFolder.flatMap {
       case Left(error) =>
         printErrorLine(
           s"""Error creating temporary folder:
@@ -65,6 +63,7 @@ object Run {
             }
         } yield runResult
     }
+  }
 
   private def runGitProject(
       config: MutationsConfigValidated,
@@ -212,15 +211,11 @@ object Run {
                           s"--config=$scalafixConfFile",
                           "--auto-classpath=target"
                         ).filter(_.nonEmpty)
-                      val runner = config.options.testRunner match {
-                        case TestRunnerType.SBT   => new RunMutationsSBT(projectRealPath)
-                        case TestRunnerType.Bloop => new RunMutationsBloop(projectRealPath)
-                      }
                       for {
                         _ <- printLine(toolPath)
                         // TODO check for errors:
                         _ <- runStream(coursier, params, path = projectRealPath)
-                        runResult <- new RunMutations(runner).run(
+                        runResult <- runMutations.run(
                           projectRealPath,
                           blinkyConf.mutantsOutputFile,
                           config.options
@@ -339,5 +334,17 @@ object Run {
           } yield Right(())
       }
     } yield result
+
+}
+
+object Run {
+
+  def live: ZLayer[CliModule with RunMutations, Nothing, Run] =
+    ZLayer(
+      for {
+        pwd <- ZIO.serviceWithZIO[CliModule](_.pwd)
+        runMutations <- ZIO.service[RunMutations]
+      } yield new Run(runMutations, pwd)
+    )
 
 }

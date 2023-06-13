@@ -10,7 +10,7 @@ object RunMutationsSBTTest extends ZIOSpecDefault {
 
   private val projectPath: Path = Path(getFilePath("some-project"))
 
-  private val instance = new RunMutationsSBT(projectPath)
+  private val instance = RunMutationsSBT
   private val someException = SomeException("some exception")
 
   def spec: Spec[TestEnvironment with Scope, Any] =
@@ -18,7 +18,7 @@ object RunMutationsSBTTest extends ZIOSpecDefault {
       suite("initializeRunner")(
         test("should be empty") {
           testInstruction(
-            instance.initializeRunner,
+            instance.initializeRunner(projectPath),
             TestReturn(Right(()))
           )
         },
@@ -26,7 +26,7 @@ object RunMutationsSBTTest extends ZIOSpecDefault {
       suite("initialCompile")(
         test("run the correct sbt command on right") {
           testInstruction(
-            instance.initialCompile("\"compile\""),
+            instance.initialCompile(projectPath, "\"compile\""),
             TestRunResultEither(
               "sbt",
               Seq("\\\"compile\\\""),
@@ -39,7 +39,7 @@ object RunMutationsSBTTest extends ZIOSpecDefault {
         },
         test("run the correct sbt command on error") {
           testInstruction(
-            instance.initialCompile("\"compile\""),
+            instance.initialCompile(projectPath, "\"compile\""),
             TestRunResultEither(
               "sbt",
               Seq("\\\"compile\\\""),
@@ -54,7 +54,7 @@ object RunMutationsSBTTest extends ZIOSpecDefault {
       suite("vanillaTestRun")(
         test("run the correct sbt test command on right") {
           testInstruction(
-            instance.vanillaTestRun("testOnly -- -z \"test name\""),
+            instance.vanillaTestRun(projectPath, "testOnly -- -z \"test name\""),
             TestRunResultEither(
               "bash",
               Seq("-c", "sbt  testOnly -- -z \\\"test name\\\""),
@@ -67,7 +67,7 @@ object RunMutationsSBTTest extends ZIOSpecDefault {
         },
         test("run the correct sbt test command on error") {
           testInstruction(
-            instance.vanillaTestRun("testOnly -- -z \"test name\""),
+            instance.vanillaTestRun(projectPath, "testOnly -- -z \"test name\""),
             TestRunResultEither(
               "bash",
               Seq("-c", "sbt  testOnly -- -z \\\"test name\\\""),

@@ -6,7 +6,7 @@ import blinky.run._
 import blinky.run.config._
 import blinky.run.modules.{CliModule, ExternalModule, ParserModule}
 import scopt.OParser
-import zio.{ExitCode, URIO, ZIO, ZIOAppArgs, ZIOAppDefault}
+import zio.{ExitCode, URIO, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
 
 object Cli extends ZIOAppDefault {
 
@@ -30,10 +30,17 @@ object Cli extends ZIOAppDefault {
         case Left(errorMessage) =>
           ZIO.succeed(PrintErrorLine(errorMessage, succeed(ExitCode.failure)))
         case Right(configValidated) =>
-          Run
-            .run(configValidated)
-            .catchAll(throwable =>
-              ZIO.succeed(PrintErrorLine(throwable.getMessage, succeed(ExitCode.failure)))
+          val runner = configValidated.options.testRunner match {
+            case TestRunnerType.SBT   => RunMutationsSBT
+            case TestRunnerType.Bloop => RunMutationsBloop
+          }
+          ZIO
+            .serviceWith[Run](_.run(configValidated))
+            .provideSome[CliModule](
+              ZLayer.succeed(runner) >+>
+                PrettyDiff.live >>>
+                RunMutations.live >>>
+                Run.live
             )
       }
       result <- Interpreter.interpreter(instructions)

@@ -11,7 +11,7 @@ object SetupTest extends ZIOSpecDefault {
   private val path: Path = pwd
   private val someException = SomeException("some exception")
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
+  def spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("Setup")(
       suite("setupCoursier")(
         test("return the correct instruction when 'coursier' is available") {

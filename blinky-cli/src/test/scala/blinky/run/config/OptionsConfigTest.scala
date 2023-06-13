@@ -5,7 +5,7 @@ import zio.test._
 
 object OptionsConfigTest extends ZIOSpecDefault {
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
+  def spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("OptionsConfig")(
       test("Return error when duration config is not a string") {
         assertTrue(

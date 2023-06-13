@@ -6,12 +6,15 @@ import blinky.run.Setup.defaultEnvArgs
 import blinky.run.Utils._
 import blinky.run.config.OptionsConfig
 import os.Path
-import zio.ExitCode
+import zio.{ExitCode, ZIO, ZLayer}
 import zio.json.DecoderOps
 
 import scala.util.Random
 
-class RunMutations(runner: MutationsRunner) {
+class RunMutations(
+    runner: MutationsRunner,
+    prettyDiff: PrettyDiff
+) {
 
   def run(
       projectPath: Path,
@@ -25,7 +28,7 @@ class RunMutations(runner: MutationsRunner) {
             s"""Blinky failed to load mutants file:
                |$mutantsOutputFile
                |""".stripMargin
-          ).map(_ => List.empty[MutantFile])
+          ).map(_ => Seq.empty[MutantFile])
         case Right(fileData) =>
           val (numerator, denominator) = options.multiRun
           succeed(
@@ -33,14 +36,14 @@ class RunMutations(runner: MutationsRunner) {
               .split("\n")
               .filter(_.nonEmpty)
               .map(_.fromJson[MutantFile])
-              .toList
+              .toSeq
               .collect {
                 case Right(mutant) if (mutant.id % denominator) == (numerator - 1) =>
                   mutant
               }
           )
       }
-      numberOfMutants = mutationReport.length
+      numberOfMutants = mutationReport.size
       _ <- {
         val numberOfFilesWithMutants = mutationReport.map(_.fileName).distinct.size
         printLine(s"$numberOfMutants mutants found in $numberOfFilesWithMutants scala files.")
@@ -49,16 +52,15 @@ class RunMutations(runner: MutationsRunner) {
         if (numberOfMutants == 0)
           printLine("Try changing the mutation settings.").map(_ => ExitCode.success)
         else
-          initializeRunMutations(projectPath, options, mutationReport, numberOfMutants)
+          initializeRunMutations(projectPath, options, mutationReport)
     } yield testResult
 
   private def initializeRunMutations(
       projectPath: Path,
       options: OptionsConfig,
-      mutationReport: List[MutantFile],
-      numberOfMutants: Int,
+      mutationReport: Seq[MutantFile],
   ): Instruction[ExitCode] =
-    runner.initializeRunner.flatMap {
+    runner.initializeRunner(projectPath).flatMap {
       case Left(error) =>
         printErrorLine(error.toString) *>
           printErrorLine("There were errors while initializing blinky!")
@@ -68,19 +70,17 @@ class RunMutations(runner: MutationsRunner) {
           projectPath,
           options,
           mutationReport,
-          numberOfMutants,
         )
     }
 
   private def runInitialCompile(
       projectPath: Path,
       options: OptionsConfig,
-      mutationReport: List[MutantFile],
-      numberOfMutants: Int,
+      mutationReport: Seq[MutantFile],
   ): Instruction[ExitCode] =
     for {
       _ <- printLine("Running tests with original config")
-      compileResult <- runner.initialCompile(options.compileCommand)
+      compileResult <- runner.initialCompile(projectPath, options.compileCommand)
       res <- compileResult match {
         case Left(error) =>
           val newIssueLink = "https://github.com/RCMartins/blinky/issues/new"
@@ -93,19 +93,18 @@ class RunMutations(runner: MutationsRunner) {
                  |$newIssueLink""".stripMargin
             ).map(_ => ExitCode.failure)
         case Right(_) =>
-          runInitialTests(projectPath, options, mutationReport, numberOfMutants)
+          runInitialTests(projectPath, options, mutationReport)
       }
     } yield res
 
   private def runInitialTests(
       projectPath: Path,
       options: OptionsConfig,
-      mutationReport: List[MutantFile],
-      numberOfMutants: Int,
+      mutationReport: Seq[MutantFile],
   ): Instruction[ExitCode] =
     for {
       originalTestInitialTime <- succeed(System.currentTimeMillis())
-      vanillaTestResult <- runner.vanillaTestRun(options.testCommand)
+      vanillaTestResult <- runner.vanillaTestRun(projectPath, options.testCommand)
       res <- vanillaTestResult match {
         case Left(error) =>
           printErrorLine(
@@ -137,8 +136,7 @@ class RunMutations(runner: MutationsRunner) {
                   projectPath,
                   options,
                   originalTestTime,
-                  numberOfMutants,
-                  mutationReport
+                  mutationReport,
                 )
           } yield res
       }
@@ -148,12 +146,12 @@ class RunMutations(runner: MutationsRunner) {
       projectPath: Path,
       options: OptionsConfig,
       originalTestTime: Long,
-      numberOfMutants: Int,
-      mutationReport: List[MutantFile]
+      mutationReport: Seq[MutantFile]
   ): Instruction[ExitCode] = {
+    val numberOfMutants: Int = mutationReport.size
     val mutationsToTest =
       if (
-        originalTestTime * numberOfMutants >= options.maxRunningTime.toMillis && !options.testInOrder
+        !options.testInOrder && originalTestTime * numberOfMutants >= options.maxRunningTime.toMillis
       )
         Random.shuffle(mutationReport)
       else
@@ -188,26 +186,24 @@ class RunMutations(runner: MutationsRunner) {
       projectPath: Path,
       options: OptionsConfig,
       originalTestTime: Long,
-      initialMutants: List[MutantFile],
+      initialMutants: Seq[MutantFile],
       initialTime: Long
   ): Instruction[List[(Int, RunResult)]] = {
-    def loop(mutants: List[MutantFile]): Instruction[List[(Int, RunResult)]] =
-      mutants match {
-        case Nil =>
-          succeed(Nil)
-        case _ if System.currentTimeMillis() - initialTime > options.maxRunningTime.toMillis =>
-          printLine(
-            s"Timed out - maximum of ${options.maxRunningTime} " +
-              s"(this can be changed with --maxRunningTime parameter)"
-          ).map(_ => Nil)
-        case mutant :: othersMutants =>
-          for {
-            mutantResult <- runMutant(projectPath, options, originalTestTime, mutant)
-            result <- loop(othersMutants)
-          } yield mutantResult :: result
-      }
+    def loop(mutants: Seq[MutantFile], index: Int): Instruction[List[(Int, RunResult)]] =
+      if (index > mutants.size)
+        succeed(Nil)
+      else if (System.currentTimeMillis() - initialTime > options.maxRunningTime.toMillis)
+        printLine(
+          s"Timed out - maximum of ${options.maxRunningTime} " +
+            s"(this can be changed with --maxRunningTime parameter)"
+        ).map(_ => Nil)
+      else
+        for {
+          mutantResult <- runMutant(projectPath, options, originalTestTime, mutants(index))
+          result <- loop(mutants, index + 1)
+        } yield mutantResult :: result
 
-    loop(initialMutants)
+    loop(initialMutants, index = 0)
   }
 
   private def runMutant(
@@ -226,7 +222,7 @@ class RunMutations(runner: MutationsRunner) {
           printLine(red(s"Mutant #$id was not killed!")) *>
             when(!options.verbose)(
               printLine(
-                prettyDiff(
+                prettyDiff.prettyDiff(
                   mutant.diff,
                   mutant.fileName,
                   projectPath.toString,
@@ -262,7 +258,7 @@ class RunMutations(runner: MutationsRunner) {
               s"""bash -c "${runner.fullTestCommand(options.testCommand)}""""
           )
           _ <- printLine(
-            prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true)
+            prettyDiff.prettyDiff(mutant.diff, mutant.fileName, projectPath.toString, color = true)
           )
           _ <- printLine("--v--" * 5)
         } yield ()
@@ -283,5 +279,17 @@ class RunMutations(runner: MutationsRunner) {
       case Left(_)                      => RunResult.MutantKilled
     }
   }
+
+}
+
+object RunMutations {
+
+  def live: ZLayer[MutationsRunner with PrettyDiff, Nothing, RunMutations] =
+    ZLayer(
+      for {
+        runner <- ZIO.service[MutationsRunner]
+        prettyDiff <- ZIO.service[PrettyDiff]
+      } yield new RunMutations(runner, prettyDiff)
+    )
 
 }

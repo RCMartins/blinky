@@ -4,9 +4,9 @@ import blinky.run.Instruction._
 import blinky.run.Utils._
 import os.Path
 
-class RunMutationsBloop(projectPath: Path) extends MutationsRunner {
+object RunMutationsBloop extends MutationsRunner {
 
-  def initializeRunner: Instruction[Either[Throwable, Unit]] =
+  def initializeRunner(projectPath: Path): Instruction[Either[Throwable, Unit]] =
     runStream(
       "sbt",
       Seq("bloopInstall"),
@@ -14,7 +14,10 @@ class RunMutationsBloop(projectPath: Path) extends MutationsRunner {
       path = projectPath
     )
 
-  def initialCompile(compileCommand: String): Instruction[Either[Throwable, Unit]] =
+  def initialCompile(
+      projectPath: Path,
+      compileCommand: String
+  ): Instruction[Either[Throwable, Unit]] =
     runResultEither(
       "bloop",
       Seq("compile", escapeString(compileCommand)),
@@ -25,7 +28,10 @@ class RunMutationsBloop(projectPath: Path) extends MutationsRunner {
   def fullTestCommand(testCommand: String): String =
     s"bloop test ${escapeString(testCommand)}"
 
-  def vanillaTestRun(testCommand: String): RunResultEither[Either[Throwable, String]] =
+  def vanillaTestRun(
+      projectPath: Path,
+      testCommand: String
+  ): Instruction[Either[Throwable, String]] =
     runBashEither(
       fullTestCommand(testCommand),
       envArgs = Setup.defaultEnvArgs,
