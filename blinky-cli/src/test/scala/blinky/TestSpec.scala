@@ -19,4 +19,8 @@ object TestSpec {
 
   case class SomeException(message: String) extends Exception(message)
 
+  def redText(str: String): String = s"\u001B[31m" + str + "\u001B[0m"
+
+  def greenText(str: String): String = s"\u001B[32m" + str + "\u001B[0m"
+
 }

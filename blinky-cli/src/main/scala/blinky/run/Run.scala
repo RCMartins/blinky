@@ -99,9 +99,10 @@ object Run {
                   case Right(diffLines) =>
                     val base: Seq[String] =
                       diffLines
-                        .split(System.lineSeparator())
+                        .split("\\r?\\n")
                         .toSeq
                         .map(file => cloneProjectBaseFolder / RelPath(file))
+                        // TODO why sbt?
                         .filter(file => file.ext == "scala" || file.ext == "sbt")
                         .map(_.toString)
 
@@ -146,6 +147,7 @@ object Run {
             .map(_ => ExitCode.success)
         case Right((filesToMutateStr, filesToMutateSeq)) =>
           for {
+            // TODO: This should stop blinky from running if there is an error.
             coursier <- Setup.setupCoursier(projectRealPath)
             _ <- Setup.sbtCompileWithSemanticDB(projectRealPath)
 

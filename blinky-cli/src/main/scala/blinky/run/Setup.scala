@@ -31,6 +31,7 @@ object Setup {
       envArgs = defaultEnvArgs,
       path = path
     ).flatMap {
+      // TODO: This should stop blinky from running if there is an error.
       case Left(error) =>
         printErrorLine(
           s"""Error compiling with semanticdb enabled!

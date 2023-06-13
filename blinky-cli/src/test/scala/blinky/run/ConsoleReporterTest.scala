@@ -1,5 +1,6 @@
 package blinky.run
 
+import blinky.TestSpec._
 import blinky.run.ConsoleReporter._
 import blinky.run.Instruction.PrintLine
 import blinky.run.RunResult._
@@ -154,9 +155,5 @@ object ConsoleReporterTest extends ZIOSpecDefault {
 
     getReturn(reportMutationResult(results, totalTime, numberOfMutants, options), "")
   }
-
-  private def redText(str: String): String = s"\u001B[31m" + str + "\u001B[0m"
-
-  private def greenText(str: String): String = s"\u001B[32m" + str + "\u001B[0m"
 
 }

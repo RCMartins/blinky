@@ -3,9 +3,8 @@ package blinky.run
 import better.files.File
 import blinky.TestSpec._
 import blinky.run.TestInstruction._
-import blinky.run.Utils.red
 import blinky.run.config._
-import blinky.run.modules.TestModules
+import blinky.run.modules.{CliModule, TestModules}
 import com.softwaremill.quicklens.ModifyPimp
 import os.{Path, RelPath}
 import zio._
@@ -255,7 +254,7 @@ object RunTest extends ZIOSpecDefault {
               originalProjectPath,
               mockResult = Left(new Throwable("git command error message")),
               TestPrintLine(
-                s"""${red("GIT command error:")}
+                s"""${redText("GIT command error:")}
                    |git command error message
                    |""".stripMargin,
                 TestReturn(Left(ExitCode.failure))
@@ -275,6 +274,45 @@ object RunTest extends ZIOSpecDefault {
         filesToExclude = "",
         mutators = SimpleBlinkyConfig.default,
         options = OptionsConfig.default,
+      )
+
+    def diffLinesTest(
+        diffLines: Either[Throwable, String],
+        result: TestInstruction[ExitCode]
+    ): ZIO[CliModule, Throwable, TestResult] =
+      for {
+        res <- Run.run(dummyMutationsConfigValidated.modify(_.options.onlyMutateDiff).setTo(true))
+      } yield testInstruction(
+        res,
+        TestMakeTemporaryDirectory(
+          Right(cloneProjectTempFolder),
+          TestRunResultEither(
+            "git",
+            Seq("rev-parse", "--show-toplevel"),
+            Map.empty,
+            originalProjectPath,
+            Right(originalProjectPath.toString),
+            TestMakeDirectory(
+              projectBaseFolder,
+              Right(()),
+              TestRunResultEither(
+                "git",
+                Seq("rev-parse", "master"),
+                Map.empty,
+                originalProjectPath,
+                Right("hash123456789"),
+                TestRunResultEither(
+                  "git",
+                  Seq("--no-pager", "diff", "--name-only", "hash123456789"),
+                  Map.empty,
+                  originalProjectPath,
+                  diffLines,
+                  result,
+                ),
+              ),
+            ),
+          ),
+        )
       )
 
     suite("run")(
@@ -310,7 +348,7 @@ object RunTest extends ZIOSpecDefault {
                 originalProjectPath,
                 Left(someException),
                 TestPrintLine(
-                  s"""${red("GIT command error:")}
+                  s"""${redText("GIT command error:")}
                      |some exception
                      |""".stripMargin,
                   TestReturn(ExitCode.failure)
@@ -343,7 +381,7 @@ object RunTest extends ZIOSpecDefault {
                   originalProjectPath,
                   Left(someException),
                   TestPrintLine(
-                    s"""${red("GIT command error:")}
+                    s"""${redText("GIT command error:")}
                        |some exception
                        |""".stripMargin,
                     TestReturn(ExitCode.failure)
@@ -353,7 +391,44 @@ object RunTest extends ZIOSpecDefault {
             ),
           )
         )
-      }
+      },
+      test("error if 'git --no-pager diff --name-only <hash>'") {
+        diffLinesTest(
+          Left(someException),
+          TestPrintLine(
+            s"""${redText("GIT command error:")}
+               |some exception
+               |""".stripMargin,
+            TestReturn(ExitCode.failure)
+          )
+        )
+      },
+      test("when 'git --no-pager diff --name-only <hash>' works but there are no files") {
+        diffLinesTest(
+          Right(""), // no files
+          TestPrintLine(
+            s"""${greenText(
+                "0 files to mutate because no code change found due to --onlyMutateDiff flag."
+              )}
+               |If you want all files to be tested regardless use --onlyMutateDiff=false
+               |""".stripMargin,
+            TestReturn(ExitCode.success)
+          )
+        )
+      },
+      test("when 'git --no-pager diff --name-only <hash>' works but there are no scala files") {
+        diffLinesTest(
+          Right("SomeFile.md\nOtherFile.conf"), // no scala files
+          TestPrintLine(
+            s"""${greenText(
+                "0 files to mutate because no code change found due to --onlyMutateDiff flag."
+              )}
+               |If you want all files to be tested regardless use --onlyMutateDiff=false
+               |""".stripMargin,
+            TestReturn(ExitCode.success)
+          )
+        )
+      },
     ).provide(TestModules.testCliModule(projectFile))
   }
 
