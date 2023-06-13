@@ -147,21 +147,20 @@ class RunMutations(
       options: OptionsConfig,
       originalTestTime: Long,
       mutationReport: Seq[MutantFile]
-  ): Instruction[ExitCode] = {
-    val numberOfMutants: Int = mutationReport.size
-    val mutationsToTest =
-      if (
-        !options.testInOrder && originalTestTime * numberOfMutants >= options.maxRunningTime.toMillis
-      )
-        Random.shuffle(mutationReport)
-      else
-        mutationReport
-
+  ): Instruction[ExitCode] =
     for {
       _ <- printLine(
         s"Running the same tests on mutated code (maximum of ${options.maxRunningTime})"
       )
-
+      numberOfMutants: Int = mutationReport.size
+      mutationsToTest =
+        if (
+          !options.testInOrder &&
+          originalTestTime * numberOfMutants >= options.maxRunningTime.toMillis
+        )
+          Random.shuffle(mutationReport)
+        else
+          mutationReport
       initialTime = System.currentTimeMillis()
       results <- runMutations(
         projectPath,
@@ -171,7 +170,6 @@ class RunMutations(
         initialTime
       )
       totalTime = System.currentTimeMillis() - initialTime
-
       result <-
         ConsoleReporter.reportMutationResult(results, totalTime, numberOfMutants, options)
       _ <- runner.cleanRunnerAfter(projectPath, results)
@@ -180,7 +178,6 @@ class RunMutations(
         ExitCode.success
       else
         ExitCode.failure
-  }
 
   private def runMutations(
       projectPath: Path,
