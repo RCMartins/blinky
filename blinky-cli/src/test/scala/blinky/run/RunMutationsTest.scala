@@ -17,7 +17,7 @@ object RunMutationsTest extends ZIOSpecDefault {
   def spec: Spec[TestEnvironment with Scope, Any] =
     suite("RunMutations")(
       suite("run")(
-        test("return success with a messge if no mutants found") {
+        test("return success with a message if no mutants found") {
           testInstruction(
             instance.run(
               projectPath,
