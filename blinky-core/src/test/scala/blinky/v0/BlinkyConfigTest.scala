@@ -1,22 +1,25 @@
 package blinky.v0
 
-import blinky.TestSpec
+import zio.test.{Spec, TestEnvironment, ZIOSpecDefault, assertTrue}
 
-class BlinkyConfigTest extends TestSpec {
+object BlinkyConfigTest extends ZIOSpecDefault {
 
-  "BlinkyConfig.default" should {
-
-    "return the correct default settings" in {
-      BlinkyConfig.default mustEqual
-        BlinkyConfig(
-          mutantsOutputFile = "",
-          filesToMutate = Seq.empty,
-          Seq(MutantRange(1, Int.MaxValue)),
-          enabledMutators = Mutators.all,
-          disabledMutators = Mutators(Nil)
-        )
-    }
-
-  }
+  def spec: Spec[TestEnvironment, Any] =
+    suite("BlinkyConfig")(
+      suite("default")(
+        test("return the correct default settings") {
+          assertTrue(
+            BlinkyConfig.default ==
+              BlinkyConfig(
+                mutantsOutputFile = "",
+                filesToMutate = Seq.empty,
+                Seq(MutantRange(1, Int.MaxValue)),
+                enabledMutators = Mutators.all,
+                disabledMutators = Mutators(Nil)
+              )
+          )
+        }
+      )
+    )
 
 }
