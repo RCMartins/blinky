@@ -37,20 +37,19 @@ object RunCurrentVersion {
         ) ++
           extraParams.toSeq
 
-      var broken = false
+      var lastLine: String = ""
 
       os.proc(allParams.filter(_.nonEmpty).map(os.Shellable.StringShellable): _*)
         .call(
           cwd = path,
           stdout = ProcessOutput.Readlines { str =>
-            if (str.contains("Mutation score is below minimum"))
-              broken = true
+            lastLine = str
             println(str)
           },
           stderr = ProcessOutput.Readlines(Console.err.println)
         )
 
-      if (broken)
+      if (lastLine.contains("Mutation score is below minimum"))
         sys.exit(1)
     }
   }
