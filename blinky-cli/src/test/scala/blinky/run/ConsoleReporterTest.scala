@@ -121,7 +121,7 @@ object ConsoleReporterTest extends ZIOSpecDefault {
       suite("gitIssues")(
         test("print the correct message used when the filesToMutate is empty") {
           val gitError: String =
-            "fatal: ambiguous argument 'master': unknown revision or path not in the working tree."
+            "fatal: ambiguous argument 'main': unknown revision or path not in the working tree."
           testInstruction(
             ConsoleReporter.gitFailure(new Throwable(gitError)),
             TestPrintLine(

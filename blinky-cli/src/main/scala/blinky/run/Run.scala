@@ -15,7 +15,6 @@ class Run(runMutations: RunMutations, pwd: File) {
 
   private val ruleName = "Blinky"
   private val mutantsOutputFileName = "blinky.mutants"
-  private val defaultGitBranch = "master"
   private val defaultBlinkyConfFileName = ".scalafix.conf"
 
   def run(config: MutationsConfigValidated): Instruction[ExitCode] = {
@@ -83,14 +82,14 @@ class Run(runMutations: RunMutations, pwd: File) {
         if (config.options.onlyMutateDiff)
           // maybe copy the .git folder so it can be used by TestMutations, etc?
           // cp(gitFolder / ".git", cloneProjectBaseFolder / ".git")
-          runResultEither("git", Seq("rev-parse", defaultGitBranch), path = gitFolder)
+          runResultEither("git", Seq("rev-parse", config.options.mainBranch), path = gitFolder)
             .flatMap {
               case Left(commandError) =>
                 ConsoleReporter.gitFailure(commandError).map(Left(_))
-              case Right(masterHash) =>
+              case Right(mainHash) =>
                 runResultEither(
                   "git",
-                  Seq("--no-pager", "diff", "--name-only", masterHash),
+                  Seq("--no-pager", "diff", "--name-only", mainHash),
                   path = gitFolder
                 ).flatMap {
                   case Left(commandError) =>

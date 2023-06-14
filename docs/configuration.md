@@ -116,6 +116,11 @@ If set, only mutates added and edited files in git diff against the master branc
 
 Default: false
 
+#### mainBranch
+Sets the main branch to compare against when using `onlyMutateDiff` option.
+
+Default: main
+
 #### multiRun
 Only test the mutants of the given index, 1 <= job-index <= amount-of-jobs
 
@@ -192,12 +197,13 @@ options = {
   verbose = false
   dryRun = false
   testRunner = "sbt"
-  compileCommand = "tests"
+  compileCommand = "Test/compile"
   testCommand = "tests"
   maxRunningTime = 40 minutes
   failOnMinimum = true
   mutationMinimum = 50
   onlyMutateDiff = true
+  mainBranch = "master"
   timeout = 5 seconds
   timeoutFactor = 2.0
   mutant = "1-20,50,73"

@@ -52,7 +52,8 @@ object CliTest extends ZIOSpecDefault {
                |  --compileCommand <cmd>   The compile command to be executed by sbt/bloop before the first run
                |  --testCommand <cmd>      The test command to be executed by sbt/bloop
                |  --verbose <bool>         If set, prints out debug information. Defaults to false
-               |  --onlyMutateDiff <bool>  If set, only mutate added and edited files in git diff against the master branch
+               |  --onlyMutateDiff <bool>  If set, only mutate added and edited files in git diff against the main branch
+               |  --mainBranch <branch>    Sets the main branch to compare against when using --onlyMutateDiff (default 'main')
                |  --dryRun <bool>          If set, apply mutations and compile the code but do not run the actual mutation testing
                |  --maxRunningTime <duration>
                |                           Maximum time allowed to run mutation tests
@@ -98,6 +99,7 @@ object CliTest extends ZIOSpecDefault {
                 failOnMinimum = false,
                 mutationMinimum = 25.0,
                 onlyMutateDiff = false,
+                mainBranch = "main",
                 mutant = Seq(MutantRange(1, Int.MaxValue)),
                 multiRun = (1, 1),
                 timeoutFactor = 1.5,
@@ -128,6 +130,7 @@ object CliTest extends ZIOSpecDefault {
               failOnMinimum = true,
               mutationMinimum = 66.7,
               onlyMutateDiff = false,
+              mainBranch = "master",
               mutant = Seq(MutantRange(5, 20)),
               multiRun = (1, 3),
               timeoutFactor = 2.0,
@@ -264,6 +267,8 @@ object CliTest extends ZIOSpecDefault {
             "true",
             "--onlyMutateDiff",
             "true",
+            "--mainBranch",
+            "dev",
             "--dryRun",
             "true",
             "--maxRunningTime",
@@ -306,6 +311,7 @@ object CliTest extends ZIOSpecDefault {
                 failOnMinimum = true,
                 mutationMinimum = 73.9,
                 onlyMutateDiff = true,
+                mainBranch = "dev",
                 mutant = Seq(MutantRange(10, 50)),
                 multiRun = (2, 3),
                 timeoutFactor = 1.75,

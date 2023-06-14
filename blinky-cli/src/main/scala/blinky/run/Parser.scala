@@ -105,7 +105,16 @@ object Parser {
         .action { (onlyMutateDiff, config) =>
           config.add(_.modify(_.options.onlyMutateDiff).setTo(onlyMutateDiff))
         }
-        .text("If set, only mutate added and edited files in git diff against the master branch")
+        .text("If set, only mutate added and edited files in git diff against the main branch")
+        .maxOccurs(1),
+      opt[String]("mainBranch")
+        .valueName("<branch>")
+        .action { (mainBranch, config) =>
+          config.add(_.modify(_.options.mainBranch).setTo(mainBranch))
+        }
+        .text(
+          "Sets the main branch to compare against when using --onlyMutateDiff (default 'main')"
+        )
         .maxOccurs(1),
       opt[Boolean]("dryRun")
         .valueName("<bool>")
