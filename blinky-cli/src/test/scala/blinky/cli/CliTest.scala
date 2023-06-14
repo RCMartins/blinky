@@ -4,12 +4,11 @@ import better.files.File
 import blinky.BuildInfo.version
 import blinky.TestSpec._
 import blinky.run.config.FileFilter.{FileName, SingleFileOrFolder}
-import blinky.run.config.{MutationsConfigValidated, OptionsConfig, SimpleBlinkyConfig}
+import blinky.run.config._
 import blinky.run.modules.{CliModule, ParserModule, TestModules}
 import blinky.v0.{MutantRange, Mutators}
 import os.RelPath
 import scopt.DefaultOEffectSetup
-import zio.test.Assertion._
 import zio.test._
 import zio.{Layer, UIO}
 
@@ -25,19 +24,20 @@ object CliTest extends ZIOSpecDefault {
         val (zioResult, parser) = parse("--version")()
         for {
           _ <- zioResult
-        } yield assert(parser.getOut)(equalTo {
-          s"""blinky v$version
-             |""".stripMargin
-        }) &&
-          assert(parser.getErr)(equalTo(""))
+        } yield assertTrue(
+          parser.getOut ==
+            s"""blinky v$version
+               |""".stripMargin,
+          parser.getErr == ""
+        )
       },
       test("blinky --help should return the help text") {
         val (zioResult, parser) = parse("--help")()
 
         for {
           _ <- zioResult
-        } yield assert(parser.getOut) {
-          equalTo {
+        } yield assertTrue(
+          parser.getOut ==
             s"""blinky v$version
                |Usage: blinky [options] [<blinkyConfFile>]
                |
@@ -48,6 +48,7 @@ object CliTest extends ZIOSpecDefault {
                |  --projectPath <path>     The project directory, can be an absolute or relative path
                |  --filesToMutate <path>   The relative path to the scala src folder or files to mutate
                |  --filesToExclude <path>  The relative path to the folder or files to exclude from mutation
+               |  --testRunner <runner>    The test runner to be used by blinky, "sbt" or "bloop" (default "bloop")
                |  --compileCommand <cmd>   The compile command to be executed by sbt/bloop before the first run
                |  --testCommand <cmd>      The test command to be executed by sbt/bloop
                |  --verbose <bool>         If set, prints out debug information. Defaults to false
@@ -65,10 +66,9 @@ object CliTest extends ZIOSpecDefault {
                |  --timeout <duration>     Duration of additional flat timeout for each mutant test
                |  --testInOrder <bool>     If set, forces the mutants to be tested in order: 1,2,3,... (default false)
                |  --mutant <range>         Mutant indices to test. Defaults to 1-2147483647
-               |""".stripMargin
-          }
-        } &&
-          assert(parser.getErr)(equalTo(""))
+               |""".stripMargin,
+          parser.getErr == ""
+        )
       },
       test("blinky empty.conf should return the default config options") {
         val (zioResult, parser) =
@@ -76,36 +76,37 @@ object CliTest extends ZIOSpecDefault {
 
         for {
           result <- zioResult
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(result)(equalTo {
-            Right(
-              MutationsConfigValidated(
-                projectPath = File(getFilePath("some-project")),
-                filesToMutate = SingleFileOrFolder(RelPath("src/main/scala")),
-                filesToExclude = "",
-                mutators = SimpleBlinkyConfig(
-                  enabled = Mutators.all,
-                  disabled = Mutators(Nil)
-                ),
-                options = OptionsConfig(
-                  verbose = false,
-                  dryRun = false,
-                  compileCommand = "",
-                  testCommand = "",
-                  maxRunningTime = 60.minutes,
-                  failOnMinimum = false,
-                  mutationMinimum = 25.0,
-                  onlyMutateDiff = false,
-                  mutant = Seq(MutantRange(1, Int.MaxValue)),
-                  multiRun = (1, 1),
-                  timeoutFactor = 1.5,
-                  timeout = 5.second,
-                  testInOrder = false
-                )
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          result == Right(
+            MutationsConfigValidated(
+              projectPath = File(getFilePath("some-project")),
+              filesToMutate = SingleFileOrFolder(RelPath("src/main/scala")),
+              filesToExclude = "",
+              mutators = SimpleBlinkyConfig(
+                enabled = Mutators.all,
+                disabled = Mutators(Nil)
+              ),
+              options = OptionsConfig(
+                verbose = false,
+                dryRun = false,
+                testRunner = TestRunnerType.Bloop,
+                compileCommand = "",
+                testCommand = "",
+                maxRunningTime = 60.minutes,
+                failOnMinimum = false,
+                mutationMinimum = 25.0,
+                onlyMutateDiff = false,
+                mutant = Seq(MutantRange(1, Int.MaxValue)),
+                multiRun = (1, 1),
+                timeoutFactor = 1.5,
+                timeout = 5.second,
+                testInOrder = false,
               )
             )
-          })
+          )
+        )
       },
       test("blinky options1.conf should return the correct options") {
         val (zioResult, parser) =
@@ -113,139 +114,138 @@ object CliTest extends ZIOSpecDefault {
 
         for {
           result <- zioResult
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(result.map(_.options))(equalTo {
-            Right(
-              OptionsConfig(
-                verbose = false,
-                dryRun = false,
-                compileCommand = "",
-                testCommand = "",
-                maxRunningTime = 10.minutes,
-                failOnMinimum = true,
-                mutationMinimum = 66.7,
-                onlyMutateDiff = false,
-                mutant = Seq(MutantRange(5, 20)),
-                multiRun = (1, 3),
-                timeoutFactor = 2.0,
-                timeout = 10.second,
-                testInOrder = true
-              )
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          result.map(_.options) == Right(
+            OptionsConfig(
+              verbose = false,
+              dryRun = false,
+              testRunner = TestRunnerType.SBT,
+              compileCommand = "",
+              testCommand = "",
+              maxRunningTime = 10.minutes,
+              failOnMinimum = true,
+              mutationMinimum = 66.7,
+              onlyMutateDiff = false,
+              mutant = Seq(MutantRange(5, 20)),
+              multiRun = (1, 3),
+              timeoutFactor = 2.0,
+              timeout = 10.second,
+              testInOrder = true,
             )
-          })
+          )
+        )
       },
-      test(
-        "blinky simple1.conf returns the correct projectName, compileCommand and testCommand"
-      ) {
+      test("blinky simple1.conf returns the correct projectName, compileCommand and testCommand") {
         val (zioResult, parser) = parse(getFilePath("simple1.conf"))()
-
         for {
           result <- zioResult
-          config = result.toOption
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
-          assert(config.map(_.filesToMutate))(
-            equalSome(SingleFileOrFolder(RelPath("src/main/scala/Example.scala")))
-          ) &&
-          assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
-          assert(config.map(_.options.testCommand))(equalSome("example1"))
+        } yield {
+          lazy val config = result.toOption.get
+          assertTrue(
+            parser.getOut == "",
+            parser.getErr == "",
+            config.projectPath == File(getFilePath("some-project")),
+            config.filesToMutate == SingleFileOrFolder(RelPath("src/main/scala/Example.scala")),
+            config.options.compileCommand == "example1",
+            config.options.testCommand == "example1"
+          )
+        }
       },
-      test(
-        "blinky simple2.conf returns the correct projectName, compileCommand and testCommand"
-      ) {
+      test("blinky simple2.conf returns the correct projectName, compileCommand and testCommand") {
         val (zioResult, parser) = parse(getFilePath("simple2.conf"))()
-
         for {
           result <- zioResult
-          config = result.toOption
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
-          assert(config.map(_.filesToMutate))(
-            equalSome(SingleFileOrFolder(RelPath("src/main/scala/Example.scala")))
-          ) &&
-          assert(config.map(_.options.compileCommand))(equalSome("example1")) &&
-          assert(config.map(_.options.testCommand))(equalSome("example1"))
+        } yield {
+          lazy val config = result.toOption.get
+          assertTrue(
+            parser.getOut == "",
+            parser.getErr == "",
+            result.isRight,
+            config.projectPath == File(getFilePath("some-project")),
+            config.filesToMutate == SingleFileOrFolder(RelPath("src/main/scala/Example.scala")),
+            config.options.compileCommand == "example1",
+            config.options.testCommand == "example1",
+          )
+        }
       },
-      test(
-        "blinky wrongPath1.conf returns a fileName object"
-      ) {
+      test("blinky wrongPath1.conf returns a fileName object") {
         val (zioResult, parser) = parse(getFilePath("wrongPath1.conf"))()
-
         for {
           result <- zioResult
           config = result.toOption
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(config.map(_.filesToMutate))(
-            equalSome(FileName("src/main/scala/UnknownFile.scala"))
-          )
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          config.map(_.filesToMutate).contains(FileName("src/main/scala/UnknownFile.scala"))
+        )
       },
-      test(
-        "blinky wrongPath2.conf returns a fileName object"
-      ) {
+      test("blinky wrongPath2.conf returns a fileName object") {
         val (zioResult, parser) = parse(getFilePath("wrongPath2.conf"))()
-
         for {
           result <- zioResult
           config = result.toOption
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(config.map(_.filesToMutate))(
-            equalSome(FileName("src/main/scala/UnknownFile.scala"))
-          )
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          config.map(_.filesToMutate).contains(FileName("src/main/scala/UnknownFile.scala"))
+        )
       },
       test("blinky <no conf file> returns an error if there is no default .blinky.conf file") {
         val pwdFolder = File(".")
         val (zioResult, parser) = parse()(pwdFolder)
-
         for {
           result <- zioResult
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(result)(equalTo {
-            Left(
-              s"""Default '${pwdFolder / ".blinky.conf"}' does not exist.
-                 |blinky --help for usage.""".stripMargin
-            )
-          })
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          result == Left(
+            s"""Default '${pwdFolder / ".blinky.conf"}' does not exist.
+               |blinky --help for usage.""".stripMargin
+          )
+        )
       },
       test("blinky <non-existent-file> returns an error if there is no unknown.conf file") {
         val pwdFolder = File(getFilePath("."))
         val (zioResult, parser) = parse("unknown.conf")(pwdFolder)
-
         for {
           result <- zioResult
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(result)(equalTo {
-            Left(
-              s"""<blinkyConfFile> '${pwdFolder / "unknown.conf"}' does not exist.
-                 |blinky --help for usage.""".stripMargin
-            )
-          })
-      },
-      test("return an error multiRun field in wrong") {
-        val (zioResult, parser) = parse(getFilePath("wrongMultiRun.conf"))()
-
-        for {
-          result <- zioResult
-        } yield assert(parser.getOut)(equalTo("")) &&
-          assert(parser.getErr)(equalTo("")) &&
-          assert(result)(
-            equalTo(
-              Left(
-                """<input>:2:0 error: Type mismatch;
-                  |  found    : String (value: "1-2")
-                  |  expected : Invalid value, should be a String in 'int/int' format
-                  |  multiRun = "1-2"
-                  |^
-                  |""".stripMargin
-              )
-            )
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          result == Left(
+            s"""<blinkyConfFile> '${pwdFolder / "unknown.conf"}' does not exist.
+               |blinky --help for usage.""".stripMargin
           )
+        )
+      },
+      test("return an error if multiRun field in wrong") {
+        val (zioResult, parser) = parse(getFilePath("wrongMultiRun.conf"))()
+        for {
+          result <- zioResult
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          result == Left(
+            """<input>:2:0 error: Type mismatch;
+              |  found    : String (value: "1-2")
+              |  expected : Invalid value, should be a String in 'int/int' format
+              |  multiRun = "1-2"
+              |^
+              |""".stripMargin
+          )
+        )
+      },
+      test("return an error if testRunner field in wrong") {
+        val (zioResult, parser) = parse(getFilePath("wrongTestRunner.conf"))()
+        for {
+          result <- zioResult
+        } yield assertTrue(
+          parser.getOut == "",
+          parser.getErr == "",
+          result == Left("Invalid runner type. Should be 'sbt' or 'bloop'.")
+        )
       },
       suite("using overrides parameters")(
         test("return the changed parameters") {
@@ -258,6 +258,8 @@ object CliTest extends ZIOSpecDefault {
             "src/main/scala/Main.scala",
             "--filesToExclude",
             "src/main/scala/Utils.scala",
+            "--testRunner",
+            "SBT",
             "--verbose",
             "true",
             "--onlyMutateDiff",
@@ -279,25 +281,25 @@ object CliTest extends ZIOSpecDefault {
             "--testInOrder",
             "true",
             "--mutant",
-            "10-50"
+            "10-50",
           )
 
           val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)()
-
           for {
             result <- zioResult
-            config = result.toOption
-          } yield assert(parser.getOut)(equalTo("")) &&
-            assert(parser.getErr)(equalTo("")) &&
-            assert(config.map(_.projectPath))(equalSome(File(getFilePath("some-project")))) &&
-            assert(config.map(_.filesToMutate))(
-              equalSome(SingleFileOrFolder(RelPath("src/main/scala/Main.scala")))
-            ) &&
-            assert(config.map(_.filesToExclude))(equalSome("src/main/scala/Utils.scala")) &&
-            assert(config.map(_.options))(equalSome {
-              OptionsConfig(
+          } yield {
+            lazy val config = result.toOption.get
+            assertTrue(
+              parser.getOut == "",
+              parser.getErr == "",
+              result.isRight,
+              config.projectPath == File(getFilePath("some-project")),
+              config.filesToMutate == SingleFileOrFolder(RelPath("src/main/scala/Main.scala")),
+              config.filesToExclude == "src/main/scala/Utils.scala",
+              config.options == OptionsConfig(
                 verbose = true,
                 dryRun = true,
+                testRunner = TestRunnerType.SBT,
                 compileCommand = "example2",
                 testCommand = "example2",
                 maxRunningTime = Duration(45, TimeUnit.MINUTES),
@@ -308,9 +310,10 @@ object CliTest extends ZIOSpecDefault {
                 multiRun = (2, 3),
                 timeoutFactor = 1.75,
                 timeout = 3.second,
-                testInOrder = true
+                testInOrder = true,
               )
-            })
+            )
+          }
         },
         test("return an error if projectPath does not exist") {
           val params: Seq[String] = Seq(
@@ -320,72 +323,83 @@ object CliTest extends ZIOSpecDefault {
 
           val pwd = File(getFilePath("."))
           val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(pwd)
-
           for {
             result <- zioResult
-          } yield assert(parser.getOut)(equalTo("")) &&
-            assert(parser.getErr)(equalTo("")) &&
-            assert(result)(equalTo {
-              Left(
-                s"""--projectPath '${pwd / "non-existent" / "project-path"}' does not exist."""
-              )
-            })
+          } yield assertTrue(
+            parser.getOut == "",
+            parser.getErr == "",
+            result == Left(
+              s"""--projectPath '${pwd / "non-existent" / "project-path"}' does not exist."""
+            )
+          )
+        },
+        test("return the correct testRunner for --testRunner=Bloop") {
+          val params: Seq[String] = Seq(
+            "--testRunner",
+            "Bloop"
+          )
+
+          val pwd = File(getFilePath("."))
+          val (zioResult, parser) = parse(getFilePath("empty.conf") +: params: _*)(pwd)
+          for {
+            result <- zioResult
+            config = result.toOption
+          } yield assertTrue(
+            parser.getOut == "",
+            parser.getErr == "",
+            config.map(_.options.testRunner).contains(TestRunnerType.Bloop)
+          )
         }
       ),
       suite("mutationMinimum value check")(
         test("return an error if mutationMinimum is negative") {
           val (zioResult, parser) = parse("--mutationMinimum", "-0.1")()
-
           for {
             result <- zioResult
-          } yield assert(parser.getOut)(equalTo("")) &&
-            assert(parser.getErr)(equalTo("")) &&
-            assert(result)(equalTo {
-              Left(
-                "mutationMinimum value is invalid. It should be a number between 0 and 100."
-              )
-            })
+          } yield assertTrue(
+            parser.getOut == "",
+            parser.getErr == "",
+            result == Left(
+              "mutationMinimum value is invalid. It should be a number between 0 and 100."
+            )
+          )
         },
         test("return an error if mutationMinimum is above 100") {
           val (zioResult, parser) = parse("--mutationMinimum", "100.1")()
 
           for {
             result <- zioResult
-          } yield assert(parser.getOut)(equalTo("")) &&
-            assert(parser.getErr)(equalTo("")) &&
-            assert(result)(equalTo {
-              Left(
-                "mutationMinimum value is invalid. It should be a number between 0 and 100."
-              )
-            })
+          } yield assertTrue(
+            parser.getOut == "",
+            parser.getErr == "",
+            result == Left(
+              "mutationMinimum value is invalid. It should be a number between 0 and 100."
+            )
+          )
         },
         test("return an error multiRun field in wrong (less than 1)") {
           val (zioResult, parser) = parse("--multiRun", "0/1")()
-
           for {
             _ <- zioResult
-          } yield assert(parser.getOut)(equalTo("")) &&
-            assert(parser.getErr)(
-              equalTo(
-                """Error: Option --multiRun failed when given '0/1'. Invalid index value, should be >= 1
-                  |Try --help for more information.
-                  |""".stripMargin
-              )
-            )
+          } yield assertTrue(
+            parser.getOut == "",
+            parser.getErr ==
+              """Error: Option --multiRun failed when given '0/1'. Invalid index value, should be >= 1
+                |Try --help for more information.
+                |""".stripMargin
+          )
         },
         test("return an error multiRun field in wrong (index <= total)") {
           val (zioResult, parser) = parse("--multiRun", "3/2")()
-
           for {
             _ <- zioResult
-          } yield assert(parser.getOut)(equalTo("")) &&
-            assert(parser.getErr)(
-              equalTo(
-                """Error: Option --multiRun failed when given '3/2'. Invalid amount, should be greater or equal than index
-                  |Try --help for more information.
-                  |""".stripMargin
-              )
-            )
+          } yield assertTrue(
+            parser.getOut == "",
+            parser.getErr ==
+              """Error: Option --multiRun failed when given '3/2'. Invalid amount, should be greater or equal than index
+                |Try --help for more information.
+                |""".stripMargin
+          )
         }
       )
     )

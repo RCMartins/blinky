@@ -6,7 +6,7 @@ import blinky.run._
 import blinky.run.config._
 import blinky.run.modules.{CliModule, ExternalModule, ParserModule}
 import scopt.OParser
-import zio.{ExitCode, URIO, ZIO, ZIOAppArgs, ZIOAppDefault}
+import zio.{ExitCode, URIO, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
 
 object Cli extends ZIOAppDefault {
 
@@ -15,7 +15,7 @@ object Cli extends ZIOAppDefault {
   type InterpreterEnvironment = ExternalModule
 
   override def run: ZIO[ZIOAppArgs, Nothing, ExitCode] =
-    ZIO.service[ZIOAppArgs].map(_.getArgs.toList).flatMap { args =>
+    ZIO.serviceWith[ZIOAppArgs](_.getArgs.toList).flatMap { args =>
       parseAndRun(args).provide(
         ParserModule.layer,
         CliModule.layer(File(".")),
@@ -27,13 +27,20 @@ object Cli extends ZIOAppDefault {
     for {
       parseResult <- parse(strArgs)
       instructions <- parseResult match {
-        case Left(exitCode) =>
-          ZIO.succeed(PrintErrorLine(exitCode, succeed(ExitCode.failure)))
+        case Left(errorMessage) =>
+          ZIO.succeed(PrintErrorLine(errorMessage, succeed(ExitCode.failure)))
         case Right(configValidated) =>
-          Run
-            .run(configValidated)
-            .catchAll(throwable =>
-              ZIO.succeed(PrintErrorLine(throwable.getMessage, succeed(ExitCode.failure)))
+          val runner = configValidated.options.testRunner match {
+            case TestRunnerType.SBT   => RunMutationsSBT
+            case TestRunnerType.Bloop => RunMutationsBloop
+          }
+          ZIO
+            .serviceWith[Run](_.run(configValidated))
+            .provideSome[CliModule](
+              ZLayer.succeed(runner) >+>
+                PrettyDiff.live >>>
+                RunMutations.live >>>
+                Run.live
             )
       }
       result <- Interpreter.interpreter(instructions)
@@ -43,8 +50,8 @@ object Cli extends ZIOAppDefault {
       strArgs: List[String]
   ): URIO[ParserEnvironment, Either[String, MutationsConfigValidated]] =
     for {
-      parser <- ZIO.service[ParserModule].flatMap(_.parser)
-      pwd <- ZIO.service[CliModule].flatMap(_.pwd)
+      parser <- ZIO.serviceWithZIO[ParserModule](_.parser)
+      pwd <- ZIO.serviceWithZIO[CliModule](_.pwd)
       args <- ZIO.succeed(OParser.parse(Parser.parser, strArgs, Args(), parser))
     } yield args match {
       case None =>

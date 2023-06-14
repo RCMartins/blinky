@@ -1,17 +1,19 @@
 package blinky.run
 
+import blinky.TestSpec._
 import blinky.run.ConsoleReporter._
 import blinky.run.Instruction.PrintLine
 import blinky.run.RunResult._
+import blinky.run.TestInstruction._
 import blinky.run.config.OptionsConfig
-import zio.test.Assertion._
+import zio.ExitCode
 import zio.test._
 
 import scala.annotation.tailrec
 
 object ConsoleReporterTest extends ZIOSpecDefault {
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
+  def spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("ConsoleReporter")(
       test("print the mutation score") {
         val (result, out) =
@@ -22,22 +24,23 @@ object ConsoleReporterTest extends ZIOSpecDefault {
             OptionsConfig.default.copy(failOnMinimum = false)
           )
 
-        assert(out)(equalTo {
-          s"""
-             |Mutation Results:
-             |Total mutants found: 10
-             |Total mutants tested: 3  (30%)
-             |
-             |Total Time (seconds): 1
-             |Average time each (seconds): 0.4
-             |
-             |Mutants Killed: ${greenText("2")}
-             |Mutants Not Killed: ${redText("1")}
-             |Score: 66.6%
-             |
-             |""".stripMargin
-        }) &&
-        assert(result)(equalTo(true))
+        assertTrue(
+          out ==
+            s"""
+               |Mutation Results:
+               |Total mutants found: 10
+               |Total mutants tested: 3  (30%)
+               |
+               |Total Time (seconds): 1
+               |Average time each (seconds): 0.4
+               |
+               |Mutants Killed: ${greenText("2")}
+               |Mutants Not Killed: ${redText("1")}
+               |Score: 66.6%
+               |
+               |""".stripMargin,
+          result
+        )
       },
       test("print the mutation score when failOnMinimum flag is on (score == minimum)") {
         val (result, out) =
@@ -53,23 +56,24 @@ object ConsoleReporterTest extends ZIOSpecDefault {
             OptionsConfig.default.copy(failOnMinimum = true, mutationMinimum = 50.0)
           )
 
-        assert(out)(equalTo {
-          s"""
-             |Mutation Results:
-             |Total mutants found: 16
-             |Total mutants tested: 4  (25%)
-             |
-             |Total Time (seconds): 12
-             |Average time each (seconds): 3.1
-             |
-             |Mutants Killed: ${greenText("2")}
-             |Mutants Not Killed: ${redText("2")}
-             |Score: 50.0%
-             |
-             |${greenText("Mutation score is above minimum [50.0% >= 50.0%]")}
-             |""".stripMargin
-        }) &&
-        assert(result)(equalTo(true))
+        assertTrue(
+          out ==
+            s"""
+               |Mutation Results:
+               |Total mutants found: 16
+               |Total mutants tested: 4  (25%)
+               |
+               |Total Time (seconds): 12
+               |Average time each (seconds): 3.1
+               |
+               |Mutants Killed: ${greenText("2")}
+               |Mutants Not Killed: ${redText("2")}
+               |Score: 50.0%
+               |
+               |${greenText("Mutation score is above minimum [50.0% >= 50.0%]")}
+               |""".stripMargin,
+          result
+        )
       },
       test("print the mutation score when failOnMinimum flag is on (score < minimum)") {
         val (result, out) =
@@ -80,46 +84,53 @@ object ConsoleReporterTest extends ZIOSpecDefault {
             OptionsConfig.default.copy(failOnMinimum = true, mutationMinimum = 33.4)
           )
 
-        assert(out)(equalTo {
-          s"""
-             |Mutation Results:
-             |Total mutants found: 34
-             |Total mutants tested: 3  (8%)
-             |
-             |Total Time (seconds): 12
-             |Average time each (seconds): 4.2
-             |
-             |Mutants Killed: ${greenText("1")}
-             |Mutants Not Killed: ${redText("2")}
-             |Score: 33.3%
-             |
-             |${redText("Mutation score is below minimum [33.3% < 33.4%]")}
-             |""".stripMargin
-        }) &&
-        assert(result)(equalTo(false))
+        assertTrue(
+          out ==
+            s"""
+               |Mutation Results:
+               |Total mutants found: 34
+               |Total mutants tested: 3  (8%)
+               |
+               |Total Time (seconds): 12
+               |Average time each (seconds): 4.2
+               |
+               |Mutants Killed: ${greenText("1")}
+               |Mutants Not Killed: ${redText("2")}
+               |Score: 33.3%
+               |
+               |${redText("Mutation score is below minimum [33.3% < 33.4%]")}
+               |""".stripMargin,
+          !result
+        )
       },
       suite("filesToMutateIsEmpty")(
         test("print the correct message used when the filesToMutate is empty") {
-          val Instruction.PrintLine(line, _) = ConsoleReporter.filesToMutateIsEmpty
-          assert(line)(equalTo {
-            s"""${greenText(
-                "0 files to mutate because no code change found due to --onlyMutateDiff flag."
-              )}
-               |If you want all files to be tested regardless use --onlyMutateDiff=false
-               |""".stripMargin
-          })
+          testInstruction(
+            ConsoleReporter.filesToMutateIsEmpty,
+            TestPrintLine(
+              s"""${greenText(
+                  "0 files to mutate because no code change found due to --onlyMutateDiff flag."
+                )}
+                 |If you want all files to be tested regardless use --onlyMutateDiff=false
+                 |""".stripMargin,
+              TestReturn(())
+            )
+          )
         }
       ),
       suite("gitIssues")(
         test("print the correct message used when the filesToMutate is empty") {
           val gitError: String =
             "fatal: ambiguous argument 'master': unknown revision or path not in the working tree."
-          val Instruction.PrintLine(line, _) = ConsoleReporter.gitIssues(new Throwable(gitError))
-          assert(line)(equalTo {
-            s"""${redText("GIT command error:")}
-               |$gitError
-               |""".stripMargin
-          })
+          testInstruction(
+            ConsoleReporter.gitFailure(new Throwable(gitError)),
+            TestPrintLine(
+              s"""${redText("GIT command error:")}
+                 |$gitError
+                 |""".stripMargin,
+              TestReturn(ExitCode.failure)
+            )
+          )
         }
       )
     )
@@ -144,9 +155,5 @@ object ConsoleReporterTest extends ZIOSpecDefault {
 
     getReturn(reportMutationResult(results, totalTime, numberOfMutants, options), "")
   }
-
-  private def redText(str: String): String = s"\u001B[31m" + str + "\u001B[0m"
-
-  private def greenText(str: String): String = s"\u001B[32m" + str + "\u001B[0m"
 
 }

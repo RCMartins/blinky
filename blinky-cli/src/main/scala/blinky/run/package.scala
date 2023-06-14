@@ -64,6 +64,12 @@ package object run {
         case LsFiles(basePath, next) =>
           LsFiles(basePath, next(_: Either[Throwable, Seq[String]]).flatMap(f))
       }
+
+    /** A variant of `flatMap` that ignores the value produced by this instruction.
+      */
+    final def *>[B](that: => Instruction[B]): Instruction[B] =
+      self.flatMap(_ => that)
+
   }
 
 }

@@ -1,6 +1,7 @@
 package blinky.run
 
 import blinky.BuildInfo
+import blinky.TestSpec.SomeException
 import blinky.run.TestInstruction._
 import os.{Path, pwd}
 import zio.test._
@@ -8,8 +9,9 @@ import zio.test._
 object SetupTest extends ZIOSpecDefault {
 
   private val path: Path = pwd
+  private val someException = SomeException("some exception")
 
-  val spec: Spec[TestEnvironment, TestFailure[Nothing]] =
+  def spec: Spec[TestEnvironment, TestFailure[Nothing]] =
     suite("Setup")(
       suite("setupCoursier")(
         test("return the correct instruction when 'coursier' is available") {
@@ -95,7 +97,29 @@ object SetupTest extends ZIOSpecDefault {
               TestReturn(())
             )
           )
-        }
+        },
+        test("return the correct instruction") {
+          testInstruction(
+            Setup.sbtCompileWithSemanticDB(path),
+            TestRunStream(
+              "sbt",
+              Seq(
+                "set Global / semanticdbEnabled := true",
+                s"""set Global / semanticdbVersion := "${BuildInfo.semanticdbVersion}"""",
+                "compile"
+              ),
+              Map("BLINKY" -> "true"),
+              path,
+              Left(someException),
+              TestPrintErrorLine(
+                s"""Error compiling with semanticdb enabled!
+                   |blinky.TestSpec$$SomeException: some exception
+                   |""".stripMargin,
+                TestReturn(())
+              )
+            )
+          )
+        },
       ),
     )
 

@@ -3,6 +3,7 @@ package blinky.run
 import blinky.run.Instruction._
 import blinky.run.Utils._
 import blinky.run.config.OptionsConfig
+import zio.ExitCode
 
 object ConsoleReporter {
 
@@ -45,11 +46,11 @@ object ConsoleReporter {
           if (score < minimum)
             printLine(
               red(s"Mutation score is below minimum [$scoreFormatted% < $minimum%]")
-            ).flatMap(_ => Instruction.succeed(false))
+            ) *> Instruction.succeed(false)
           else
             printLine(
               green(s"Mutation score is above minimum [$scoreFormatted% >= $minimum%]")
-            ).flatMap(_ => Instruction.succeed(true))
+            ) *> Instruction.succeed(true)
         } else
           succeed(true)
     } yield result
@@ -61,11 +62,11 @@ object ConsoleReporter {
          |If you want all files to be tested regardless use --onlyMutateDiff=false
          |""".stripMargin
     )
-  def gitIssues(error: Throwable): Instruction[Unit] =
+  def gitFailure(error: Throwable): Instruction[ExitCode] =
     printLine(
       s"""${red("GIT command error:")}
          |${error.getMessage}
          |""".stripMargin
-    )
+    ).map(_ => ExitCode.failure)
 
 }

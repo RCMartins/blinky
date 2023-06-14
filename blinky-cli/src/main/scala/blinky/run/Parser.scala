@@ -1,7 +1,7 @@
 package blinky.run
 
 import blinky.BuildInfo
-import blinky.run.config.{Args, OptionsConfig}
+import blinky.run.config.{Args, OptionsConfig, TestRunnerType}
 import blinky.v0.MutantRange
 import com.softwaremill.quicklens._
 import metaconfig.{Conf, Configured}
@@ -20,6 +20,18 @@ object Parser {
           case Left(message) => throw new IllegalArgumentException(message)
           case Right(value)  => value
         }
+    }
+
+  private def readTestRunnerType: Read[TestRunnerType] =
+    new Read[TestRunnerType] {
+      override def arity: Int = 1
+
+      override def reads: String => TestRunnerType =
+        str =>
+          TestRunnerType.decoder.read(Conf.Str(str)).toEither match {
+            case Left(confError) => throw new IllegalArgumentException(confError.msg)
+            case Right(value)    => value
+          }
     }
 
   private val builder: OParserBuilder[Args] = OParser.builder[Args]
@@ -59,6 +71,13 @@ object Parser {
         .valueName("<path>")
         .action((filesToExclude, config) => config.add(_.copy(filesToExclude = filesToExclude)))
         .text("The relative path to the folder or files to exclude from mutation")
+        .maxOccurs(1),
+      opt[TestRunnerType]("testRunner")(readTestRunnerType)
+        .valueName("<runner>")
+        .action { (testRunnerType, config) =>
+          config.add(_.modify(_.options.testRunner).setTo(testRunnerType))
+        }
+        .text("""The test runner to be used by blinky, "sbt" or "bloop" (default "bloop")""")
         .maxOccurs(1),
       opt[String]("compileCommand")
         .valueName("<cmd>")

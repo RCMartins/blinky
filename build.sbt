@@ -39,9 +39,9 @@ inThisBuild(
   )
 )
 
-Global / excludeFilter := NothingFilter
-Global / fileInputExcludeFilter := ((_: Path, _: FileAttributes) => false)
-Global / onChangedBuildSource := ReloadOnSourceChanges
+val Versions = new {
+  val ZIO = "2.0.15"
+}
 
 lazy val stableVersion = Def.setting {
   (ThisBuild / version).value.replaceAll("\\+.*", "")
@@ -66,13 +66,16 @@ lazy val core =
     .settings(
       publish / skip := false,
       moduleName := "blinky",
-      libraryDependencies += "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
-      libraryDependencies += "com.github.pathikrit" %% "better-files"  % "3.9.2",
-      libraryDependencies += "com.lihaoyi"          %% "os-lib"        % "0.8.1",
-      libraryDependencies += "dev.zio"              %% "zio-json"      % "0.5.0",
-      libraryDependencies += "dev.zio"              %% "zio"           % "2.0.15",
-      libraryDependencies += "dev.zio"              %% "zio-test"      % "2.0.15" % "test",
-      libraryDependencies += "dev.zio"              %% "zio-test-sbt"  % "2.0.15" % "test",
+      libraryDependencies ++=
+        Seq(
+          "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
+          "com.github.pathikrit" %% "better-files"  % "3.9.2",
+          "com.lihaoyi"          %% "os-lib"        % "0.8.1",
+          "dev.zio"              %% "zio-json"      % "0.5.0",
+          "dev.zio"              %% "zio"           % Versions.ZIO,
+          "dev.zio"              %% "zio-test"      % Versions.ZIO % "test",
+          "dev.zio"              %% "zio-test-sbt"  % Versions.ZIO % "test",
+        ),
       testFrameworks += TestFrameworks.ZIOTest,
       coverageMinimumStmtTotal := 94,
       coverageFailOnMinimum := true,
@@ -83,14 +86,14 @@ lazy val input =
   project
     .settings(
       scalacOptions := Seq.empty,
-      libraryDependencies += "dev.zio" %% "zio" % "2.0.15"
+      libraryDependencies += "dev.zio" %% "zio" % Versions.ZIO
     )
 
 lazy val output =
   project
     .settings(
-      scalacOptions := Seq.empty,
-      libraryDependencies += "dev.zio" %% "zio" % "2.0.15",
+      scalacOptions := Seq("-Wconf:cat=other-match-analysis:s"),
+      libraryDependencies += "dev.zio" %% "zio" % Versions.ZIO,
       Compile / sourceGenerators += Def.task {
         val sourcesFolder = file((Compile / scalaSource).value.toString + "-output")
         val generatedFolder = (Compile / sourceManaged).value
@@ -113,16 +116,19 @@ lazy val cli =
     .settings(
       publish / skip := false,
       moduleName := "blinky-cli",
-      libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.9.4",
-      libraryDependencies += "com.geirsson"     %% "metaconfig-typesafe-config" % "0.9.11",
-      libraryDependencies += "com.geirsson"     %% "metaconfig-core"            % "0.9.11",
-      libraryDependencies += "com.github.scopt" %% "scopt"                      % "4.1.0",
-      libraryDependencies += "dev.zio"          %% "zio"                        % "2.0.15",
-      libraryDependencies += "dev.zio"          %% "zio-test"                   % "2.0.15" % "test",
-      libraryDependencies += "dev.zio"          %% "zio-test-sbt"               % "2.0.15" % "test",
+      libraryDependencies ++=
+        Seq(
+          "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.4",
+          "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.11",
+          "com.geirsson"               %% "metaconfig-core"            % "0.9.11",
+          "com.github.scopt"           %% "scopt"                      % "4.1.0",
+          "dev.zio"                    %% "zio"                        % Versions.ZIO,
+          "dev.zio"                    %% "zio-test"                   % Versions.ZIO % "test",
+          "dev.zio"                    %% "zio-test-sbt"               % Versions.ZIO % "test",
+        ),
       testFrameworks += TestFrameworks.ZIOTest,
       Test / scalacOptions -= "-Ywarn-unused:locals",
-      coverageMinimumStmtTotal := 30,
+      coverageMinimumStmtTotal := 50,
       coverageFailOnMinimum := true
     )
     .settings(buildInfoSettings)
@@ -183,5 +189,26 @@ runCommunityProjects := {
 
 addCommandAlias("test", "tests/test;core/test;cli/test")
 
+def createCoverageAlias(
+    aliasName: String,
+    projectName: String
+): Seq[Def.Setting[State => State]] =
+  addCommandAlias(
+    aliasName,
+    Seq(
+      s"$projectName/clean",
+      s"set $projectName/coverageEnabled:=true",
+      s"$projectName/test",
+      s"$projectName/coverageReport",
+      s"set $projectName/coverageEnabled:=false",
+      s"$projectName/Test/compile",
+    ).mkString(";")
+  )
+
+createCoverageAlias("cli-cov", "cli")
+
+Global / excludeFilter := NothingFilter
+Global / fileInputExcludeFilter := ((_: Path, _: FileAttributes) => false)
+Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys += core / buildInfoPackage
 Global / excludeLintKeys += core / buildInfoKeys

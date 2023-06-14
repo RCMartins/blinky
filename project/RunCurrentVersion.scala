@@ -28,6 +28,7 @@ object RunCurrentVersion {
     else {
       val allParams: Seq[String] =
         Seq(
+          "cs",
           "launch",
           s"com.github.rcmartins:blinky-cli_2.13:$versionNumber",
           "--",
@@ -36,12 +37,20 @@ object RunCurrentVersion {
         ) ++
           extraParams.toSeq
 
-      os.proc(("cs" +: allParams.filter(_.nonEmpty)).map(os.Shellable.StringShellable): _*)
+      var lastLine: String = ""
+
+      os.proc(allParams.filter(_.nonEmpty).map(os.Shellable.StringShellable): _*)
         .call(
           cwd = path,
-          stdout = ProcessOutput.Readlines(println),
+          stdout = ProcessOutput.Readlines { str =>
+            lastLine = str
+            println(str)
+          },
           stderr = ProcessOutput.Readlines(Console.err.println)
         )
+
+      if (lastLine.contains("Mutation score is below minimum"))
+        sys.exit(1)
     }
   }
 }

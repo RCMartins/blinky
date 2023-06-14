@@ -38,13 +38,17 @@ to actually run the long and compute-intensive part of running the tests.
 
 Default: `false`
 
+#### testRunner
+The test runner to use. Currently supported runners are: `bloop` and `sbt`.
+
+Default: `bloop`
+
 #### compileCommand
 Command used by _Blinky_ to do the first compile before starting to run the tests.
 This is useful to calculate the time the first test takes without counting compiling.
 
 If using Bloop, _Blinky_ will run: `bloop compile <compileCommand>`
 
-**(Not implemented)**
 If using SBT, _Blinky_ will run: `sbt <compileCommand>`
 
 Default: `""`
@@ -54,7 +58,6 @@ Command used by _Blinky_ to test the code in each run.
 
 If using Bloop, _Blinky_ will run: `bloop test <testCommand>`
 
-**(Not implemented)**
 If using SBT, _Blinky_ will run: `sbt <testCommand>`
 
 Default: `""`
@@ -188,6 +191,7 @@ filesToExclude = "**/internal/*scala"
 options = {
   verbose = false
   dryRun = false
+  testRunner = "sbt"
   compileCommand = "tests"
   testCommand = "tests"
   maxRunningTime = 40 minutes

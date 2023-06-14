@@ -1,8 +1,5 @@
 package blinky
 
-import zio.test.Assertion
-import zio.test.Assertion._
-
 object TestSpec {
 
   @inline
@@ -20,7 +17,10 @@ object TestSpec {
     else
       fileName => getClass.getResource(s"/$fileName").getPath
 
-  def equalSome[A](value: A): Assertion[Any] =
-    equalTo(Some(value))
+  case class SomeException(message: String) extends Exception(message)
+
+  def redText(str: String): String = s"\u001B[31m" + str + "\u001B[0m"
+
+  def greenText(str: String): String = s"\u001B[32m" + str + "\u001B[0m"
 
 }

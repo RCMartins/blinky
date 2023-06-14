@@ -10,6 +10,7 @@ import scala.util.{Failure, Success, Try}
 case class OptionsConfig(
     verbose: Boolean,
     dryRun: Boolean,
+    testRunner: TestRunnerType,
     compileCommand: String,
     testCommand: String,
     maxRunningTime: Duration,
@@ -27,6 +28,7 @@ object OptionsConfig {
   val default: OptionsConfig = OptionsConfig(
     verbose = false,
     dryRun = false,
+    testRunner = TestRunnerType.Bloop,
     compileCommand = "",
     testCommand = "",
     maxRunningTime = 60.minutes,

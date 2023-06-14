@@ -4,7 +4,10 @@ title: Project Maintenance
 sidebar_label: Project Maintenance
 ---
 
-To debug an arbitrary expression, run on an ammonite with `amm --thin` command
+To run the tests locally, use `sbt test`.
+Sometimes it's necessary to run `sbt` with more memory available, use `sbt -J-Xmx3G test` instead.
+
+To debug an arbitrary expression, run on an ammonite shell with `amm --thin` command
 ```scala
 import $ivy.`org.scalameta::scalameta:4.7.8`, scala.meta._
 """List("a", "b", "c").reduceOption(_ + _)""".parse[Term].get.structure // prints the AST structure

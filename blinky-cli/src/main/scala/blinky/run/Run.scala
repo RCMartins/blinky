@@ -1,78 +1,69 @@
 package blinky.run
 
+import better.files.File
 import blinky.BuildInfo
 import blinky.run.Instruction._
 import blinky.run.config.{FileFilter, MutationsConfigValidated, SimpleBlinkyConfig}
 import blinky.run.modules.CliModule
 import blinky.v0.BlinkyConfig
 import os.{Path, RelPath}
-import zio.{ExitCode, RIO, ZIO}
+import zio.{ExitCode, ZIO, ZLayer}
 
 import scala.util.Try
 
-object Run {
+class Run(runMutations: RunMutations, pwd: File) {
 
   private val ruleName = "Blinky"
   private val mutantsOutputFileName = "blinky.mutants"
   private val defaultGitBranch = "master"
   private val defaultBlinkyConfFileName = ".scalafix.conf"
 
-  def run(config: MutationsConfigValidated): RIO[CliModule, Instruction[ExitCode]] =
-    for {
-      pwd <- ZIO.service[CliModule].flatMap(_.pwd)
-
-      originalProjectRoot = Path(pwd.path.toAbsolutePath)
-      originalProjectRelPath =
-        Try(Path(config.projectPath.pathAsString).relativeTo(originalProjectRoot))
-          .getOrElse(RelPath(config.projectPath.pathAsString))
-      originalProjectPath = originalProjectRoot / originalProjectRelPath
-
-      instruction =
+  def run(config: MutationsConfigValidated): Instruction[ExitCode] = {
+    val originalProjectRoot = Path(pwd.path.toAbsolutePath)
+    val originalProjectRelPath =
+      Try(Path(config.projectPath.pathAsString).relativeTo(originalProjectRoot))
+        .getOrElse(RelPath(config.projectPath.pathAsString))
+    val originalProjectPath = originalProjectRoot / originalProjectRelPath
+    makeTemporaryFolder.flatMap {
+      case Left(error) =>
+        printErrorLine(
+          s"""Error creating temporary folder:
+             |$error
+             |""".stripMargin
+        ).map(_ => ExitCode.failure)
+      case Right(cloneProjectTempFolder) =>
         for {
-          runResult <- makeTemporaryFolder.flatMap {
-            case Left(error) =>
-              printErrorLine(
-                s"""Error creating temporary folder:
-                   |$error
-                   |""".stripMargin
-              ).map(_ => ExitCode.failure)
-            case Right(cloneProjectTempFolder) =>
-              for {
-                _ <-
-                  if (config.options.verbose)
-                    printLine(s"Temporary project folder: $cloneProjectTempFolder")
-                  else
-                    empty
-                runResult <-
-                  runResultEither(
-                    "git",
-                    Seq("rev-parse", "--show-toplevel"),
-                    path = originalProjectRoot
-                  ).flatMap {
-                    case Left(commandError) =>
-                      ConsoleReporter
-                        .gitIssues(commandError)
-                        .map(_ => ExitCode.failure)
-                    case Right(gitRevParse) =>
-                      val gitFolder: Path = Path(gitRevParse)
-                      val cloneProjectBaseFolder: Path = cloneProjectTempFolder / gitFolder.baseName
-                      val projectRealRelPath: RelPath = originalProjectPath.relativeTo(gitFolder)
-                      val projectRealPath: Path = cloneProjectBaseFolder / projectRealRelPath
+          _ <-
+            when(config.options.verbose)(
+              printLine(s"Temporary project folder: $cloneProjectTempFolder")
+            )
+          runResult <-
+            runResultEither(
+              "git",
+              Seq("rev-parse", "--show-toplevel"),
+              path = originalProjectRoot
+            ).flatMap {
+              case Left(commandError) =>
+                ConsoleReporter.gitFailure(commandError)
+              case Right(gitRevParse) =>
+                val gitFolder: Path = Path(gitRevParse)
+                val cloneProjectBaseFolder: Path = cloneProjectTempFolder / gitFolder.baseName
+                val projectRealRelPath: RelPath = originalProjectPath.relativeTo(gitFolder)
+                val projectRealPath: Path = cloneProjectBaseFolder / projectRealRelPath
 
-                      runGitProject(
-                        config,
-                        gitFolder,
-                        originalProjectRoot,
-                        originalProjectPath,
-                        cloneProjectTempFolder,
-                        cloneProjectBaseFolder,
-                        projectRealPath
-                      )
-                  }
-              } yield runResult
-          }
+                runGitProject(
+                  config,
+                  gitFolder,
+                  originalProjectRoot,
+                  originalProjectPath,
+                  cloneProjectTempFolder,
+                  cloneProjectBaseFolder,
+                  projectRealPath
+                )
+            }
         } yield runResult
-    } yield instruction
+    }
+  }
 
   private def runGitProject(
       config: MutationsConfigValidated,
@@ -84,6 +75,7 @@ object Run {
       projectRealPath: Path
   ): Instruction[ExitCode] =
     for {
+      // TODO check for errors
       _ <- makeDirectory(cloneProjectBaseFolder)
 
       // Setup files to mutate ('scalafix --diff' does not work like I want...)
@@ -94,9 +86,7 @@ object Run {
           runResultEither("git", Seq("rev-parse", defaultGitBranch), path = gitFolder)
             .flatMap {
               case Left(commandError) =>
-                ConsoleReporter
-                  .gitIssues(commandError)
-                  .map(_ => Left(ExitCode.failure))
+                ConsoleReporter.gitFailure(commandError).map(Left(_))
               case Right(masterHash) =>
                 runResultEither(
                   "git",
@@ -104,15 +94,14 @@ object Run {
                   path = gitFolder
                 ).flatMap {
                   case Left(commandError) =>
-                    ConsoleReporter
-                      .gitIssues(commandError)
-                      .map(_ => Left(ExitCode.failure))
+                    ConsoleReporter.gitFailure(commandError).map(Left(_))
                   case Right(diffLines) =>
                     val base: Seq[String] =
                       diffLines
-                        .split(System.lineSeparator())
+                        .split("\\r?\\n")
                         .toSeq
                         .map(file => cloneProjectBaseFolder / RelPath(file))
+                        // TODO why sbt?
                         .filter(file => file.ext == "scala" || file.ext == "sbt")
                         .map(_.toString)
 
@@ -136,6 +125,7 @@ object Run {
             }
         else
           for {
+            // TODO check for errors
             _ <- copyFilesToTempFolder(
               originalProjectRoot,
               originalProjectPath,
@@ -156,6 +146,7 @@ object Run {
             .map(_ => ExitCode.success)
         case Right((filesToMutateStr, filesToMutateSeq)) =>
           for {
+            // TODO: This should stop blinky from running if there is an error.
             coursier <- Setup.setupCoursier(projectRealPath)
             _ <- Setup.sbtCompileWithSemanticDB(projectRealPath)
 
@@ -203,9 +194,7 @@ object Run {
                     path = projectRealPath
                   ).flatMap {
                     case Left(commandError) =>
-                      ConsoleReporter
-                        .gitIssues(commandError)
-                        .map(_ => ExitCode.failure)
+                      ConsoleReporter.gitFailure(commandError)
                     case Right(toolPath) =>
                       val params: Seq[String] =
                         Seq(
@@ -224,10 +213,11 @@ object Run {
                         ).filter(_.nonEmpty)
                       for {
                         _ <- printLine(toolPath)
+                        // TODO check for errors:
                         _ <- runStream(coursier, params, path = projectRealPath)
-                        runResult <- TestMutationsBloop.run(
+                        runResult <- runMutations.run(
                           projectRealPath,
-                          blinkyConf,
+                          blinkyConf.mutantsOutputFile,
                           config.options
                         )
                       } yield runResult
@@ -236,6 +226,61 @@ object Run {
           } yield runResult
       }
     } yield runResult
+
+  private[run] def processFilesToMutate(
+      projectRealPath: Path,
+      filesToMutate: FileFilter
+  ): Instruction[Either[ExitCode, String]] =
+    filesToMutate match {
+      case FileFilter.SingleFileOrFolder(fileOrFolder) =>
+        succeed(Right(fileOrFolder.toString))
+      case FileFilter.FileName(fileName) =>
+        lsFiles(projectRealPath).flatMap {
+          case Left(throwable) =>
+            printErrorLine(
+              s"""Failed to list files in $projectRealPath
+                 |$throwable
+                 |""".stripMargin
+            ).map(_ => Left(ExitCode.failure))
+          case Right(files) =>
+            filterFiles(files, fileName)
+        }
+    }
+
+  private[run] def optimiseFilesToMutate(
+      base: Seq[String],
+      copyResult: Either[ExitCode, Unit],
+      projectRealPath: Path,
+      filesToMutate: FileFilter
+  ): Instruction[Either[ExitCode, (String, Seq[String])]] =
+    copyResult match {
+      case Left(result) =>
+        succeed(Left(result))
+      case Right(_) => // This part is just an optimization of 'base'
+        for {
+          fileToMutateResult <- filesToMutate match {
+            case FileFilter.SingleFileOrFolder(fileOrFolder) =>
+              succeed(Right(projectRealPath / fileOrFolder))
+            case FileFilter.FileName(fileName) =>
+              filterFiles(base, fileName).map(_.map(Path(_)))
+          }
+          result <-
+            fileToMutateResult match {
+              case Left(exitCode) =>
+                succeed(Left(exitCode))
+              case Right(configFileOrFolderToMutate) =>
+                val configFileOrFolderToMutateStr =
+                  configFileOrFolderToMutate.toString
+                IsFile(
+                  configFileOrFolderToMutate,
+                  if (_)
+                    succeed(base.filter(_ == configFileOrFolderToMutateStr))
+                  else
+                    succeed(base.filter(_.startsWith(configFileOrFolderToMutateStr)))
+                ).map(baseFiltered => Right((configFileOrFolderToMutateStr, baseFiltered)))
+            }
+        } yield result
+    }
 
   private def filterFiles(
       files: Seq[String],
@@ -258,68 +303,7 @@ object Run {
     }
   }
 
-  def processFilesToMutate(
-      projectRealPath: Path,
-      filesToMutate: FileFilter
-  ): Instruction[Either[ExitCode, String]] =
-    filesToMutate match {
-      case FileFilter.SingleFileOrFolder(fileOrFolder) =>
-        succeed(Right(fileOrFolder.toString))
-      case FileFilter.FileName(fileName) =>
-        lsFiles(projectRealPath).flatMap {
-          case Left(throwable) =>
-            printErrorLine(
-              s"""Failed to list files in $projectRealPath
-                 |$throwable
-                 |""".stripMargin
-            ).map(_ => Left(ExitCode.failure))
-          case Right(files) =>
-            filterFiles(files, fileName)
-        }
-    }
-
-  def optimiseFilesToMutate(
-      base: Seq[String],
-      copyResult: Either[ExitCode, Unit],
-      projectRealPath: Path,
-      filesToMutate: FileFilter
-  ): Instruction[Either[ExitCode, (String, Seq[String])]] =
-    copyResult match {
-      case Left(result) =>
-        succeed(Left(result))
-      case Right(_) => // This part is just an optimization of 'base'
-        val fileToMutateInst: Instruction[Either[ExitCode, Path]] =
-          filesToMutate match {
-            case FileFilter.SingleFileOrFolder(fileOrFolder) =>
-              succeed(Right(projectRealPath / fileOrFolder))
-            case FileFilter.FileName(fileName) =>
-              filterFiles(base, fileName).map(_.map(Path(_)))
-          }
-
-        for {
-          fileToMutateResult <- fileToMutateInst
-          result <-
-            fileToMutateResult match {
-              case Left(exitCode) =>
-                succeed(Left(exitCode))
-              case Right(configFileOrFolderToMutate) =>
-                val configFileOrFolderToMutateStr =
-                  configFileOrFolderToMutate.toString
-                IsFile(
-                  configFileOrFolderToMutate,
-                  if (_)
-                    if (base.contains(configFileOrFolderToMutateStr))
-                      succeed(Seq(configFileOrFolderToMutateStr))
-                    else
-                      succeed(Seq.empty[String])
-                  else
-                    succeed(base.filter(_.startsWith(configFileOrFolderToMutateStr)))
-                ).map(baseFiltered => Right((configFileOrFolderToMutateStr, baseFiltered)))
-            }
-        } yield result
-    }
-
-  def copyFilesToTempFolder(
+  private[run] def copyFilesToTempFolder(
       originalProjectRoot: Path,
       originalProjectPath: Path,
       projectRealPath: Path
@@ -333,9 +317,7 @@ object Run {
       )
       result <- gitResultEither match {
         case Left(commandError) =>
-          ConsoleReporter
-            .gitIssues(commandError)
-            .map(_ => Left(ExitCode.failure))
+          ConsoleReporter.gitFailure(commandError).map(Left(_))
         case Right(gitResult) =>
           val filesToCopy: Seq[RelPath] =
             gitResult.split("\\r?\\n").map(RelPath(_)).toSeq
@@ -352,5 +334,17 @@ object Run {
           } yield Right(())
       }
     } yield result
+
+}
+
+object Run {
+
+  def live: ZLayer[CliModule with RunMutations, Nothing, Run] =
+    ZLayer(
+      for {
+        pwd <- ZIO.serviceWithZIO[CliModule](_.pwd)
+        runMutations <- ZIO.service[RunMutations]
+      } yield new Run(runMutations, pwd)
+    )
 
 }

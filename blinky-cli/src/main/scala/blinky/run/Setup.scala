@@ -6,6 +6,8 @@ import os.Path
 
 object Setup {
 
+  val defaultEnvArgs: Map[String, String] = Map("BLINKY" -> "true")
+
   def setupCoursier(path: Path): Instruction[String] =
     runResultEither("coursier", Seq("--help"), path = path).flatMap {
       case Right(_) => succeed("coursier")
@@ -26,9 +28,10 @@ object Setup {
         s"""set Global / semanticdbVersion := "${BuildInfo.semanticdbVersion}"""",
         "compile"
       ),
-      envArgs = Map("BLINKY" -> "true"),
+      envArgs = defaultEnvArgs,
       path = path
     ).flatMap {
+      // TODO: This should stop blinky from running if there is an error.
       case Left(error) =>
         printErrorLine(
           s"""Error compiling with semanticdb enabled!
@@ -40,25 +43,24 @@ object Setup {
     }
 
   private def copyExeFromResources(name: String, path: Path): Instruction[Unit] =
-    copyResource(s"/$name", path / name)
-      .flatMap {
-        case Left(error) =>
-          printErrorLine(
-            s"""Error copying file from resources ($name to $path)
-               |$error
-               |""".stripMargin
-          )
-        case Right(()) =>
-          runStream("chmod", Seq("+x", name), path = path).flatMap {
-            case Left(error) =>
-              printErrorLine(
-                s"""Error setting file permissions to $path/$name
-                   |$error
-                   |""".stripMargin
-              )
-            case Right(()) =>
-              empty
-          }
-      }
+    copyResource(s"/$name", path / name).flatMap {
+      case Left(error) =>
+        printErrorLine(
+          s"""Error copying file from resources ($name to $path)
+             |$error
+             |""".stripMargin
+        )
+      case Right(()) =>
+        runStream("chmod", Seq("+x", name), path = path).flatMap {
+          case Left(error) =>
+            printErrorLine(
+              s"""Error setting file permissions to $path/$name
+                 |$error
+                 |""".stripMargin
+            )
+          case Right(()) =>
+            empty
+        }
+    }
 
 }

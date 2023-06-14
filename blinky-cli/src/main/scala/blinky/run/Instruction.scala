@@ -85,7 +85,7 @@ object Instruction {
 
   val empty: Instruction[Unit] = succeed(())
 
-  def conditional(cond: Boolean)(value: Instruction[Unit]): Instruction[Unit] =
+  def when(cond: Boolean)(value: Instruction[Unit]): Instruction[Unit] =
     if (cond) value else empty
 
   def printLine(line: String): PrintLine[Unit] =
