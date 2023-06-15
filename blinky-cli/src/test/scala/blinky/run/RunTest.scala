@@ -301,7 +301,7 @@ object RunTest extends ZIOSpecDefault {
               Right(()),
               TestRunResultEither(
                 "git",
-                Seq("rev-parse", "master"),
+                Seq("rev-parse", "main"),
                 Map.empty,
                 originalProjectPath,
                 Right("hash123456789"),
@@ -358,9 +358,17 @@ object RunTest extends ZIOSpecDefault {
           )
         )
       },
-      test("error if 'git rev-parse <master-branch>' fails (onlyMutateDiff=true)") {
+      test(
+        "error if 'git rev-parse <main-branch>' fails (onlyMutateDiff=true and mainBranch=main-branch)"
+      ) {
         testRun(
-          _.run(dummyMutationsConfigValidated.modify(_.options.onlyMutateDiff).setTo(true)),
+          _.run(
+            dummyMutationsConfigValidated
+              .modify(_.options.onlyMutateDiff)
+              .setTo(true)
+              .modify(_.options.mainBranch)
+              .setTo("main-branch")
+          ),
           TestMakeTemporaryDirectory(
             Right(cloneProjectTempFolder),
             TestRunResultEither(
@@ -374,7 +382,7 @@ object RunTest extends ZIOSpecDefault {
                 Right(()),
                 TestRunResultEither(
                   "git",
-                  Seq("rev-parse", "master"),
+                  Seq("rev-parse", "main-branch"),
                   Map.empty,
                   originalProjectPath,
                   Left(someException),

@@ -66,6 +66,9 @@ object RunExamples {
     showIfError(
       os.proc("git", "commit", "-m", "first commit!").call(cwd = testDirectory)
     )
+    showIfError(
+      os.proc("git", "checkout", "-b", "main").call(cwd = testDirectory)
+    )
 
     val startupScript = testDirectory / "startup.sh"
     if (os.exists(startupScript)) {
