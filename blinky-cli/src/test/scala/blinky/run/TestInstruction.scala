@@ -66,6 +66,7 @@ object TestInstruction {
   final case class TestCopyInto[A](
       from: Path,
       to: Path,
+      mockResult: Either[Throwable, Unit],
       next: TestInstruction[A]
   ) extends TestInstruction[A]
 
@@ -199,6 +200,12 @@ object TestInstruction {
             TestMakeDirectory(path2, mockResult, next2),
           ) =>
         assertTrue(path1 == path2) &&
+        testInstruction(next1(mockResult), next2)
+      case (
+            CopyInto(from1, to1, next1),
+            TestCopyInto(from2, to2, mockResult, next2),
+          ) =>
+        assertTrue(from1 == from2, to1 == to2) &&
         testInstruction(next1(mockResult), next2)
       case (other1, other2) =>
         assertTrue(false).label(

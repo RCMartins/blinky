@@ -90,6 +90,7 @@ object CliTest extends ZIOSpecDefault {
                 disabled = Mutators(Nil)
               ),
               options = OptionsConfig(
+                copyGitFolder = false,
                 verbose = false,
                 dryRun = false,
                 testRunner = TestRunnerType.Bloop,
@@ -121,6 +122,7 @@ object CliTest extends ZIOSpecDefault {
           parser.getErr == "",
           result.map(_.options) == Right(
             OptionsConfig(
+              copyGitFolder = true,
               verbose = false,
               dryRun = false,
               testRunner = TestRunnerType.SBT,
@@ -263,6 +265,8 @@ object CliTest extends ZIOSpecDefault {
             "src/main/scala/Utils.scala",
             "--testRunner",
             "SBT",
+            "--copyGitFolder",
+            "true",
             "--verbose",
             "true",
             "--onlyMutateDiff",
@@ -302,6 +306,7 @@ object CliTest extends ZIOSpecDefault {
               config.filesToMutate == SingleFileOrFolder(RelPath("src/main/scala/Main.scala")),
               config.filesToExclude == "src/main/scala/Utils.scala",
               config.options == OptionsConfig(
+                copyGitFolder = true,
                 verbose = true,
                 dryRun = true,
                 testRunner = TestRunnerType.SBT,

@@ -206,26 +206,67 @@ object RunTest extends ZIOSpecDefault {
       suite("copyFilesToTempFolder")(
         test("when both git and copy works") {
           testRun(
-            _.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
+            _.copyFilesToTempFolder(
+              originalProjectRoot = originalProjectRoot,
+              originalProjectPath = originalProjectPath,
+              projectRealPath = projectRealPath,
+              copyGitFolder = true
+            ),
             TestRunResultEither(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
               Map.empty,
               originalProjectPath,
               mockResult = Right("src/main/scala/SomeFile.scala"),
-              TestCopyRelativeFiles(
-                Seq(RelPath("src/main/scala/SomeFile.scala")),
-                originalProjectRoot,
+              TestCopyInto(
+                originalProjectPath / ".git",
                 projectRealPath,
                 Right(()),
-                TestReturn(Right(()))
+                TestCopyRelativeFiles(
+                  Seq(RelPath("src/main/scala/SomeFile.scala")),
+                  originalProjectRoot,
+                  projectRealPath,
+                  Right(()),
+                  TestReturn(Right(()))
+                )
+              )
+            )
+          )
+        },
+        test("when git folder copy fails") {
+          testRun(
+            _.copyFilesToTempFolder(
+              originalProjectRoot = originalProjectRoot,
+              originalProjectPath = originalProjectPath,
+              projectRealPath = projectRealPath,
+              copyGitFolder = true
+            ),
+            TestRunResultEither(
+              "git",
+              Seq("ls-files", "--others", "--exclude-standard", "--cached"),
+              Map.empty,
+              originalProjectPath,
+              mockResult = Right("src/main/scala/SomeFile.scala"),
+              TestCopyInto(
+                originalProjectPath / ".git",
+                projectRealPath,
+                Left(new IOException("Some Error")),
+                TestPrintLine(
+                  "Error when copying .git folder.",
+                  TestReturn(Left(ExitCode.failure))
+                )
               )
             )
           )
         },
         test("when git works but the copy fails") {
           testRun(
-            _.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
+            _.copyFilesToTempFolder(
+              originalProjectRoot = originalProjectRoot,
+              originalProjectPath = originalProjectPath,
+              projectRealPath = projectRealPath,
+              copyGitFolder = false
+            ),
             TestRunResultEither(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),
@@ -247,7 +288,12 @@ object RunTest extends ZIOSpecDefault {
         },
         test("when git fails") {
           testRun(
-            _.copyFilesToTempFolder(originalProjectRoot, originalProjectPath, projectRealPath),
+            _.copyFilesToTempFolder(
+              originalProjectRoot = originalProjectRoot,
+              originalProjectPath = originalProjectPath,
+              projectRealPath = projectRealPath,
+              copyGitFolder = false
+            ),
             TestRunResultEither(
               "git",
               Seq("ls-files", "--others", "--exclude-standard", "--cached"),

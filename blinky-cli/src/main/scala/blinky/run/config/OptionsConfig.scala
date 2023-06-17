@@ -8,6 +8,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 case class OptionsConfig(
+    copyGitFolder: Boolean,
     verbose: Boolean,
     dryRun: Boolean,
     testRunner: TestRunnerType,
@@ -27,6 +28,7 @@ case class OptionsConfig(
 
 object OptionsConfig {
   val default: OptionsConfig = OptionsConfig(
+    copyGitFolder = false,
     verbose = false,
     dryRun = false,
     testRunner = TestRunnerType.Bloop,
