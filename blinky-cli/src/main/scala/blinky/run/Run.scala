@@ -324,8 +324,10 @@ class Run(runMutations: RunMutations, pwd: File) {
           val resultGitFolderCopy: Instruction[Either[ExitCode, Unit]] =
             if (copyGitFolder)
               copyInto(originalProjectPath / ".git", projectRealPath).flatMap {
-                case Left(_)  => printLine("Error when copying .git folder.").map(_ => Left(ExitCode.failure))
-                case Right(_) => succeed(Right(()))
+                case Left(_) =>
+                  printLine("Error when copying .git folder.").map(_ => Left(ExitCode.failure))
+                case Right(_) =>
+                  succeed(Right(()))
               }
             else
               succeed(Right(()))
