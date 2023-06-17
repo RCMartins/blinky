@@ -74,7 +74,11 @@ The glob syntax is defined by <a href="https://docs.oracle.com/javase/8/docs/api
 <p>Default: <code>false</code></p>
 <h4><a class="anchor" aria-hidden="true" id="dryrun"></a><a href="#dryrun" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>dryRun</h4>
 <p>Will not run the mutation tests, useful to check if everything is working without starting
-to actually run the long and compute-intensive part of running the tests.</p>
+to actually run the long and compute-intensive part of running the mutated tests.</p>
+<p>Default: <code>false</code></p>
+<h4><a class="anchor" aria-hidden="true" id="copygitfolder"></a><a href="#copygitfolder" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>copyGitFolder</h4>
+<p>If set, <em>Blinky</em> will copy the original <code>.git</code> folder to the temporary directory used
+to run the tests.</p>
 <p>Default: <code>false</code></p>
 <h4><a class="anchor" aria-hidden="true" id="testrunner"></a><a href="#testrunner" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>testRunner</h4>
 <p>The test runner to use. Currently supported runners are: <code>bloop</code> and <code>sbt</code>.</p>
@@ -178,16 +182,26 @@ or just single mutators.</p>
 <p>This configuration will allow all mutators except <code>LiteralBooleans</code>, <code>ArithmeticOperators.IntMulToDiv</code> and <code>ScalaOptions.OrElse</code>.</p>
 <p>Default value: <code>[]</code></p>
 <hr>
-<p>Example of a more complete <code>.blinky.conf</code> file:</p>
+<p>Example of a simple <code>.blinky.conf</code> file:</p>
+<pre><code class="hljs css language-hocon"><span class="hljs-attr">projectPath</span> = <span class="hljs-string">"."</span>
+<span class="hljs-attr">filesToMutate</span> = <span class="hljs-string">"src"</span>
+<span class="hljs-attr">options</span> = {
+  <span class="hljs-attr">testRunner</span> = <span class="hljs-string">"sbt"</span>
+  <span class="hljs-attr">compileCommand</span> = <span class="hljs-string">"Test/compile"</span>
+  <span class="hljs-attr">testCommand</span> = <span class="hljs-string">"test"</span>
+}
+</code></pre>
+<p>Example of a more custom configured <code>.blinky.conf</code> file:</p>
 <pre><code class="hljs css language-hocon"><span class="hljs-attr">projectPath</span> = <span class="hljs-string">"."</span>
 <span class="hljs-attr">filesToMutate</span> = <span class="hljs-string">"blinky-core/src"</span>
 <span class="hljs-attr">filesToExclude</span> = <span class="hljs-string">"**/internal/*scala"</span>
 <span class="hljs-attr">options</span> = {
+  <span class="hljs-attr">copyGitFolder</span> = <span class="hljs-literal">true</span>
   <span class="hljs-attr">verbose</span> = <span class="hljs-literal">false</span>
   <span class="hljs-attr">dryRun</span> = <span class="hljs-literal">false</span>
   <span class="hljs-attr">testRunner</span> = <span class="hljs-string">"sbt"</span>
   <span class="hljs-attr">compileCommand</span> = <span class="hljs-string">"Test/compile"</span>
-  <span class="hljs-attr">testCommand</span> = <span class="hljs-string">"tests"</span>
+  <span class="hljs-attr">testCommand</span> = <span class="hljs-string">"test"</span>
   <span class="hljs-attr">maxRunningTime</span> = <span class="hljs-number">40</span> minutes
   <span class="hljs-attr">failOnMinimum</span> = <span class="hljs-literal">true</span>
   <span class="hljs-attr">mutationMinimum</span> = <span class="hljs-number">50</span>
