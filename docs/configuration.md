@@ -118,7 +118,7 @@ Exits with non-zero code if the mutation score is below `mutationMinimum` value.
 Default: `false`
 
 #### onlyMutateDiff
-If set, only mutates added and edited files in git diff against the master branch.
+If set, only mutates added and edited files in git diff against the main branch.
 
 Default: false
 
