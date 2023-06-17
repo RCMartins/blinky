@@ -103,7 +103,7 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
     Mutant(mutantIndex, gitDiff, fileName, original, mutated, needsParens)
   }
 
-  def calculateGitDiff(original: Term, mutatedInput: String): String =
+  private[internal] def calculateGitDiff(original: Term, mutatedInput: String): String =
     mutantsOutputFileOpt match {
       case None =>
         ""
@@ -133,12 +133,11 @@ class Blinky(config: BlinkyConfig) extends SemanticRule("Blinky") {
         }
     }
 
-  private def saveNewMutantsToFile(mutantsFound: Seq[Mutant]): Unit =
-    if (mutantsFound.nonEmpty)
-      mutantsOutputFileOpt.foreach { mutantsOutputFile =>
-        val jsonMutationReport: Seq[String] =
-          mutantsFound.map(mutant => mutant.toMutantFile.toJson)
-        mutantsOutputFile.appendLines(jsonMutationReport: _*)
-      }
+  private[internal] def saveNewMutantsToFile(mutantsFound: Seq[Mutant]): Unit =
+    mutantsOutputFileOpt.foreach { mutantsOutputFile =>
+      val jsonMutationReport: Seq[String] =
+        mutantsFound.map(mutant => mutant.toMutantFile.toJson)
+      mutantsOutputFile.appendLines(jsonMutationReport: _*)
+    }
 
 }

@@ -16,18 +16,18 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
   def topTreeMutations(tree: Tree): Seq[(Term, MutatedTerms)] =
     tree match {
       case term: Term =>
-        topTermMutations(term, parensRequired = false)
+        topTermMutations(term)
       case Defn.Val(_, _, _, right) =>
-        topTermMutations(right, parensRequired = false)
+        topTermMutations(right)
       case Defn.Var.After_4_7_2(_, _, _, right) =>
-        topTermMutations(right, parensRequired = false)
+        topTermMutations(right)
       case Defn.Def.After_4_7_3(_, _, paramsClauseList, _, body) =>
         paramsClauseList.flatMap(
           _.paramClauses.flatMap(
             _.flatMap(param => topTermMutations(param.default, parensRequired = false))
           )
         ) ++
-          topTermMutations(body, parensRequired = false)
+          topTermMutations(body)
       case Defn.Object(_, _, template) =>
         template.stats.flatMap(topTreeMutations)
       case Defn.Trait.After_4_6_0(_, _, _, constructor, template) =>
@@ -56,7 +56,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
 
   private def topTermMutations(
       term: Term,
-      parensRequired: Boolean,
+      parensRequired: Boolean = false,
       overrideOriginal: Option[Term] = None
   ): Seq[(Term, MutatedTerms)] =
     termMutations(term, mainTermsOnly = false).collect {
@@ -111,13 +111,13 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
           topMainTermMutations(fun).map(mutated => Term.Apply(mutated, args)) ++
             listTermsMutateMain(args).map(Term.Apply.After_4_6_0(fun, _)),
           topTermMutations(fun, parensRequired = true) ++
-            args.flatMap(topTermMutations(_, parensRequired = false))
+            args.flatMap(topTermMutations(_))
         )
       case applyType @ Term.ApplyType.After_4_6_0(term, targs) =>
         selectSmallerMutation(
           applyType,
           topMainTermMutations(term).map(mutated => Term.ApplyType(mutated, targs)),
-          topTermMutations(term, parensRequired = false, overrideOriginal = Some(applyType))
+          topTermMutations(term, overrideOriginal = Some(applyType))
         )
       case select @ Term.Select(qual, name) =>
         selectSmallerMutation(
@@ -129,7 +129,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
         selectSmallerMutation(
           tuple,
           listTermsMutateMain(args).map(Term.Tuple(_)),
-          args.flatMap(topTermMutations(_, parensRequired = false))
+          args.flatMap(topTermMutations(_))
         )
       case matchTerm @ Term.Match.After_4_4_5(expr, cases, mods) =>
         selectSmallerMutation(
@@ -144,7 +144,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
               },
           cases.flatMap(caseTerm =>
             topTermMutations(caseTerm.cond, parensRequired = true) ++
-              topTermMutations(caseTerm.body, parensRequired = false)
+              topTermMutations(caseTerm.body)
           )
         )
       case parFunc @ Term.PartialFunction(cases) =>
@@ -157,26 +157,26 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
             .map { case (mutated, index) => Term.PartialFunction(cases.updated(index, mutated)) },
           cases.flatMap(caseTerm =>
             topTermMutations(caseTerm.cond, parensRequired = true) ++
-              topTermMutations(caseTerm.body, parensRequired = false)
+              topTermMutations(caseTerm.body)
           )
         )
       case function @ Term.Function.After_4_6_0(params, body) =>
         selectSmallerMutation(
           function,
           topMainTermMutations(body).map(mutated => Term.Function(params, mutated)),
-          topTermMutations(body, parensRequired = false)
+          topTermMutations(body)
         )
       case function @ Term.AnonymousFunction(term) =>
         selectSmallerMutation(
           function,
           topMainTermMutations(term).map(mutated => Term.AnonymousFunction(mutated)),
-          topTermMutations(term, parensRequired = false)
+          topTermMutations(term)
         )
       case assign @ Term.Assign(name, exp) =>
         selectSmallerMutation(
           assign,
           topMainTermMutations(exp).map(mutated => Term.Assign(name, mutated)),
-          topTermMutations(exp, parensRequired = false)
+          topTermMutations(exp)
         )
       case block @ Term.Block(stats) =>
         selectSmallerMutation(
@@ -190,29 +190,29 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
           topMainTermMutations(cond).map(mutated => Term.If(mutated, thenPart, elsePart, mods)) ++
             topMainTermMutations(thenPart).map(mutated => Term.If(cond, mutated, elsePart, mods)) ++
             topMainTermMutations(elsePart).map(mutated => Term.If(cond, thenPart, mutated, mods)),
-          topTermMutations(cond, parensRequired = false) ++
-            topTermMutations(thenPart, parensRequired = false) ++
-            topTermMutations(elsePart, parensRequired = false)
+          topTermMutations(cond) ++
+            topTermMutations(thenPart) ++
+            topTermMutations(elsePart)
         )
       case forTerm @ Term.For(enumsList, bodyTerm) =>
         selectSmallerMutation(
           forTerm,
           topMainTermMutations(bodyTerm).map(mutated => Term.For(enumsList, mutated)),
           enumsList.flatMap(topTermMutateEnumerator) ++
-            topTermMutations(bodyTerm, parensRequired = false)
+            topTermMutations(bodyTerm)
         )
       case forYield @ Term.ForYield(enumsList, bodyTerm) =>
         selectSmallerMutation(
           forYield,
           topMainTermMutations(bodyTerm).map(mutated => Term.ForYield(enumsList, mutated)),
           enumsList.flatMap(topTermMutateEnumerator) ++
-            topTermMutations(bodyTerm, parensRequired = false)
+            topTermMutations(bodyTerm)
         )
       case newTerm @ Term.New(init) =>
         selectSmallerMutation(
           newTerm,
           initMutateMain(init).map(Term.New(_)),
-          init.argClauses.flatMap(_.flatMap(topTermMutations(_, parensRequired = false)))
+          init.argClauses.flatMap(_.flatMap(topTermMutations(_)))
         )
       case newAnonymous @ Term.NewAnonymous(
             Template.After_4_4_0(early, inits, self, stats, types)
@@ -227,7 +227,7 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
             Seq.empty, // TODO when the top stats are completely done we should update this
           inits
             .flatMap(
-              _.argClauses.flatMap(_.flatMap(topTermMutations(_, parensRequired = false)))
+              _.argClauses.flatMap(_.flatMap(topTermMutations(_)))
             ) ++
             stats.flatMap(topTreeMutations)
         )
@@ -250,10 +250,10 @@ class FindMutations(activeMutators: Seq[Mutator], implicit val doc: SemanticDocu
 
   private def topTermMutateEnumerator(enumerator: Enumerator): Seq[(Term, MutatedTerms)] =
     enumerator match {
-      case Enumerator.CaseGenerator(_, term) => topTermMutations(term, parensRequired = false)
-      case Enumerator.Generator(_, term)     => topTermMutations(term, parensRequired = false)
+      case Enumerator.CaseGenerator(_, term) => topTermMutations(term)
+      case Enumerator.Generator(_, term)     => topTermMutations(term)
       case Enumerator.Guard(term)            => topTermMutations(term, parensRequired = true)
-      case Enumerator.Val(_, term)           => topTermMutations(term, parensRequired = false)
+      case Enumerator.Val(_, term)           => topTermMutations(term)
     }
 
   private def listTermsMutateMain(originalList: List[Term]): List[List[Term]] =

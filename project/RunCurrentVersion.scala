@@ -1,4 +1,4 @@
-import os.{Path, ProcessOutput}
+import os.{CommandResult, Path, ProcessOutput}
 
 object RunCurrentVersion {
 
@@ -39,17 +39,18 @@ object RunCurrentVersion {
 
       var lastLine: String = ""
 
-      os.proc(allParams.filter(_.nonEmpty).map(os.Shellable.StringShellable): _*)
-        .call(
-          cwd = path,
-          stdout = ProcessOutput.Readlines { str =>
-            lastLine = str
-            println(str)
-          },
-          stderr = ProcessOutput.Readlines(Console.err.println)
-        )
+      val commandResult: CommandResult =
+        os.proc(allParams.filter(_.nonEmpty).map(os.Shellable.StringShellable): _*)
+          .call(
+            cwd = path,
+            stdout = ProcessOutput.Readlines { str =>
+              lastLine = str
+              println(str)
+            },
+            stderr = ProcessOutput.Readlines(Console.err.println)
+          )
 
-      if (lastLine.contains("Mutation score is below minimum"))
+      if (commandResult.exitCode != 0 || lastLine.contains("Mutation score is below minimum"))
         sys.exit(1)
     }
   }
