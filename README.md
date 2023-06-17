@@ -31,8 +31,8 @@ data of all files that we want to mutate.
 ### [User documentation][docs]
 Head over to [the user docs][docs] for instructions on how to install blinky.
 
-[badge-github-actions]: https://github.com/RCMartins/blinky/actions/workflows/ci.yml/badge.svg?branch=master "build"
-[badge-codecov]: https://codecov.io/gh/RCMartins/blinky/branch/master/graph/badge.svg?token=o3yIhzL932 "covecov"
+[badge-github-actions]: https://github.com/RCMartins/blinky/actions/workflows/ci.yml/badge.svg?branch=main "build"
+[badge-codecov]: https://codecov.io/gh/RCMartins/blinky/branch/main/graph/badge.svg?token=o3yIhzL932 "covecov"
 [badge-release]: https://img.shields.io/nexus/r/com.github.rcmartins/blinky_2.13?server=https%3A%2F%2Foss.sonatype.org%2F "release"
 [badge-snapshot]: https://img.shields.io/nexus/s/com.github.rcmartins/blinky-cli_2.13?server=https%3A%2F%2Foss.sonatype.org "snapshot"
 [badge-scalasteward]: https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII= "scala steward"
