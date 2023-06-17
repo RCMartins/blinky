@@ -48,6 +48,7 @@ object CliTest extends ZIOSpecDefault {
                |  --projectPath <path>     The project directory, can be an absolute or relative path
                |  --filesToMutate <path>   The relative path to the scala src folder or files to mutate
                |  --filesToExclude <path>  The relative path to the folder or files to exclude from mutation
+               |  --copyGitFolder <bool>   If set, also copies the .git folder to the temporary project directory (default false)
                |  --testRunner <runner>    The test runner to be used by blinky, "sbt" or "bloop" (default "bloop")
                |  --compileCommand <cmd>   The compile command to be executed by sbt/bloop before the first run
                |  --testCommand <cmd>      The test command to be executed by sbt/bloop

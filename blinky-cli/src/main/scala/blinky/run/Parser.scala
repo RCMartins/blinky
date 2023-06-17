@@ -72,6 +72,15 @@ object Parser {
         .action((filesToExclude, config) => config.add(_.copy(filesToExclude = filesToExclude)))
         .text("The relative path to the folder or files to exclude from mutation")
         .maxOccurs(1),
+      opt[Boolean]("copyGitFolder")
+        .valueName("<bool>")
+        .action { (copyGitFolder, config) =>
+          config.add(_.modify(_.options.copyGitFolder).setTo(copyGitFolder))
+        }
+        .text(
+          "If set, also copies the .git folder to the temporary project directory (default false)"
+        )
+        .maxOccurs(1),
       opt[TestRunnerType]("testRunner")(readTestRunnerType)
         .valueName("<runner>")
         .action { (testRunnerType, config) =>
