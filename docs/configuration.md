@@ -34,7 +34,13 @@ Default: `false`
 
 #### dryRun
 Will not run the mutation tests, useful to check if everything is working without starting
-to actually run the long and compute-intensive part of running the tests.
+to actually run the long and compute-intensive part of running the mutated tests.
+
+Default: `false`
+
+#### copyGitFolder
+If set, _Blinky_ will copy the original `.git` folder to the temporary directory used
+to run the tests.
 
 Default: `false`
 
@@ -188,17 +194,29 @@ Default value: `[]`
 
 ---
 
-Example of a more complete `.blinky.conf` file:
+Example of a simple `.blinky.conf` file:
+```hocon
+projectPath = "."
+filesToMutate = "src"
+options = {
+  testRunner = "sbt"
+  compileCommand = "Test/compile"
+  testCommand = "test"
+}
+```
+
+Example of a more custom configured `.blinky.conf` file:
 ```hocon
 projectPath = "."
 filesToMutate = "blinky-core/src"
 filesToExclude = "**/internal/*scala"
 options = {
+  copyGitFolder = true
   verbose = false
   dryRun = false
   testRunner = "sbt"
   compileCommand = "Test/compile"
-  testCommand = "tests"
+  testCommand = "test"
   maxRunningTime = 40 minutes
   failOnMinimum = true
   mutationMinimum = 50

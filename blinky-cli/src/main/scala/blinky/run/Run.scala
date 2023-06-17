@@ -109,9 +109,10 @@ class Run(runMutations: RunMutations, pwd: File) {
                     else
                       for {
                         copyResult <- copyFilesToTempFolder(
-                          originalProjectRoot,
-                          originalProjectPath,
-                          projectRealPath
+                          originalProjectRoot = originalProjectRoot,
+                          originalProjectPath = originalProjectPath,
+                          projectRealPath = projectRealPath,
+                          copyGitFolder = config.options.copyGitFolder,
                         )
                         result <- optimiseFilesToMutate(
                           base,
@@ -126,9 +127,10 @@ class Run(runMutations: RunMutations, pwd: File) {
           for {
             // TODO check for errors
             _ <- copyFilesToTempFolder(
-              originalProjectRoot,
-              originalProjectPath,
-              projectRealPath
+              originalProjectRoot = originalProjectRoot,
+              originalProjectPath = originalProjectPath,
+              projectRealPath = projectRealPath,
+              copyGitFolder = config.options.copyGitFolder,
             )
             processResult <- processFilesToMutate(
               projectRealPath,
@@ -305,7 +307,8 @@ class Run(runMutations: RunMutations, pwd: File) {
   private[run] def copyFilesToTempFolder(
       originalProjectRoot: Path,
       originalProjectPath: Path,
-      projectRealPath: Path
+      projectRealPath: Path,
+      copyGitFolder: Boolean,
   ): Instruction[Either[ExitCode, Unit]] =
     for {
       // Copy only the files tracked by git into our temporary folder
@@ -318,19 +321,34 @@ class Run(runMutations: RunMutations, pwd: File) {
         case Left(commandError) =>
           ConsoleReporter.gitFailure(commandError).map(Left(_))
         case Right(gitResult) =>
-          val filesToCopy: Seq[RelPath] =
-            gitResult.split("\\r?\\n").map(RelPath(_)).toSeq
-          for {
-            copyResult <- copyRelativeFiles(
-              filesToCopy,
-              originalProjectRoot,
-              projectRealPath
-            )
-            _ <- copyResult match {
-              case Left(error) => printLine(s"Error copying project files: $error")
-              case Right(())   => empty
-            }
-          } yield Right(())
+          val resultGitFolderCopy: Instruction[Either[ExitCode, Unit]] =
+            if (copyGitFolder)
+              copyInto(originalProjectPath / ".git", projectRealPath).flatMap {
+                case Left(_) =>
+                  printLine("Error when copying .git folder.").map(_ => Left(ExitCode.failure))
+                case Right(_) =>
+                  succeed(Right(()))
+              }
+            else
+              succeed(Right(()))
+          resultGitFolderCopy.flatMap {
+            case Left(exit) =>
+              succeed(Left(exit))
+            case Right(_) =>
+              def filesToCopy: Seq[RelPath] =
+                gitResult.split("\\r?\\n").map(RelPath(_)).toSeq
+              for {
+                copyResult <- copyRelativeFiles(
+                  filesToCopy,
+                  originalProjectRoot,
+                  projectRealPath
+                )
+                _ <- copyResult match {
+                  case Left(error) => printLine(s"Error copying project files: $error")
+                  case Right(())   => empty
+                }
+              } yield Right(())
+          }
       }
     } yield result
 
