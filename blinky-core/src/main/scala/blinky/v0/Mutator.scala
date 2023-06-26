@@ -26,6 +26,8 @@ object Mutator {
 
   type MutationResult = PartialFunction[Term, ReplaceType]
 
+  type MutationSimpleResult = PartialFunction[Term, List[Term]]
+
   private val allGroups: List[MutatorGroup] =
     List(
       mutators.ArithmeticOperators,
@@ -63,6 +65,18 @@ object Mutator {
 
   def default(terms: Term*): ReplaceType = Standard(terms.toList)
 
+  def default(terms: List[Term]): ReplaceType = Standard(terms)
+
   def fullReplace(terms: Term*): ReplaceType = FullReplace(terms.toList)
+
+  def getSymbolType(term: Term)(implicit doc: SemanticDocument): Option[Symbol] =
+    term.symbol.info.flatMap {
+      _.signature match {
+        case ValueSignature(TypeRef(_, symbol, _))        => Some(symbol)
+        case MethodSignature(_, _, TypeRef(_, symbol, _)) => Some(symbol)
+        case TypeSignature(_, TypeRef(_, symbol, _), _)   => Some(symbol)
+        case _                                            => None
+      }
+    }
 
 }
