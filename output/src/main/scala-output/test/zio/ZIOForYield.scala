@@ -15,20 +15,31 @@ object ZIOForYield {
     if (???) for (a <- task1) yield a ///
         else for (a <- task1; _ <- task2) yield a
 
-  val task4c: ZIO[Int, Nothing, Int] =
+  val task4c: ZIO[String with Int, Nothing, Int] =
+    if (???) for (_ <- task2) yield 1 + 1 ///
+else if (???) for (_ <- task1) yield 1 + 1 ///
+         else for (_ <- task1; _ <- task2) yield 1 + 1
+
+  val task4d: ZIO[Int, Nothing, Int] =
     for {
       a <- task1
     } yield a
 
-  val task4d: ZIO[Int, Nothing, Int] =
+  val task4e: ZIO[Int, Nothing, Int] =
     if (???) zio.ZIO.succeed(1) ///
 else if (???) for (_ <- task1; v = 1; _ <- task1) yield 1 ///
 else if (???) for (_ <- task1; v = 1; _ <- task3) yield 1 ///
-        else for (_ <- task1; v = 1; _ <- task3; _ <- task1) yield 1
+         else for (_ <- task1; v = 1; _ <- task3; _ <- task1) yield 1
 
-  val task4e: ZIO[Int, Nothing, Int] =
+  val task4f: ZIO[Int, Nothing, Int] =
     if (???) zio.ZIO.succeed(1) ///
-    else if (???) for (_ <- task1; v = 1; t = 1; _ <- task1) yield 1 ///
-    else if (???) for (_ <- task1; v = 1; _ <- task3; t = 1) yield 1 ///
-    else for (_ <- task1; v = 1; _ <- task3; t = 1; _ <- task1) yield 1
+else if (???) for (_ <- task1; v = 1; t = 1; _ <- task1) yield 1 ///
+else if (???) for (_ <- task1; v = 1; _ <- task3; t = 1) yield 1 ///
+         else for (_ <- task1; v = 1; _ <- task3; t = 1; _ <- task1) yield 1
+
+  val nonZIO: Option[Int] =
+    for {
+      _ <- Some(1)
+      _ <- Some(2)
+    } yield 3
 }
