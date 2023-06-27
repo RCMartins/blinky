@@ -7,7 +7,7 @@ package test.zio
 
 import zio.ZIO
 
-object ZIOForYield {
+object ZIOForYield1 {
   val task1: ZIO[Int, Nothing, Int] = ZIO.service[Int]
   val task2: ZIO[String, Nothing, String] = ZIO.service[String]
   val task3: ZIO[Any, Nothing, Int] = ZIO.succeed(1)
@@ -38,12 +38,17 @@ object ZIOForYield {
   val task4e: ZIO[Int, Nothing, Int] =
     for {
       _ <- task1
+    } yield 1
+
+  val task4f: ZIO[Int, Nothing, Int] =
+    for {
+      _ <- task1
       v = 1
       _ <- task3
       _ <- task1
     } yield 1
 
-  val task4f: ZIO[Int, Nothing, Int] =
+  val task4g: ZIO[Int, Nothing, Int] =
     for {
       _ <- task1
       v = 1

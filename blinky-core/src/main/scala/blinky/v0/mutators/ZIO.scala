@@ -43,15 +43,12 @@ object ZIO extends MutatorGroup {
   private val ForYield: SimpleMutator =
     new SimpleMutator("ForYield") {
       private def forYieldRemoveAll(implicit doc: SemanticDocument): MutationSimpleResult = {
-        case Term.ForYield(enums, finalTerm: Lit)
-            if enums.sizeIs >= 2 &&
-              enums.exists {
-                case Enumerator.Generator(_, term)
-                    if getSymbolType(term).exists(SymbolMatcher.exact("zio/ZIO#").matches) =>
-                  true
-                case _ =>
-                  false
-              } =>
+        case Term.ForYield(enums, finalTerm: Lit) if enums.exists {
+              case Enumerator.Generator(_, term) if anyZIOTypeMatch(term) =>
+                true
+              case _ =>
+                false
+            } =>
           finalTerm match {
             case Lit.Unit() =>
               List(Term.Select(Term.Select(Term.Name("zio"), Term.Name("ZIO")), Term.Name("unit")))
@@ -76,8 +73,7 @@ object ZIO extends MutatorGroup {
           enums.zipWithIndex
             .foldLeft((List.empty[Term], isSecondEnumAGenerator)) {
               case ((acc, safeRemove), (Enumerator.Generator(_: Wildcard, term), index))
-                  if safeRemove &&
-                    getSymbolType(term).exists(SymbolMatcher.exact("zio/ZIO#").matches) =>
+                  if safeRemove && anyZIOTypeMatch(term) =>
                 (forYield.copy(enums = enums.patch(index, Nil, 1)) :: acc, true)
               case ((acc, _), _) =>
                 (acc, true)
@@ -94,6 +90,20 @@ object ZIO extends MutatorGroup {
       }
 
     }
+
+  private def anyZIOTypeMatch(term: Term)(implicit doc: SemanticDocument): Boolean =
+    getSymbolType(term).exists(
+      SymbolMatcher
+        .exact(
+          "zio/ZIO#",
+          "zio/package.IO#",
+          "zio/package.Task#",
+          "zio/package.RIO#",
+          "zio/package.UIO#",
+          "zio/package.URIO#",
+        )
+        .matches
+    )
 
   override val getSubMutators: List[Mutator] =
     List(
