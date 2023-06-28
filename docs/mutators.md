@@ -1007,4 +1007,39 @@ example mutation 3:
 + ZIO.succeed("abc").as(None)
 ```
 
+#### ForYield
+
+name: ForYield
+
+description: Removes one line of `for yield` ZIOs that use `_ <- zioTerm` syntax.
+It also adds a mutant that removes all lines if the `yield` expression is a literal.
+
+example mutation 1:
+
+```diff
+  for {
+-   _ <- ZIO.succeed("abc")
+    _ <- ZIO.succeed("def")
+  } yield ()
+```
+
+example mutation 2:
+
+```diff
+  for {
+    _ <- ZIO.succeed("abc")
+-   _ <- ZIO.succeed("def")
+  } yield ()
+```
+
+example mutation 3:
+
+```diff
+- for {
+-   _ <- ZIO.succeed("abc")
+-   _ <- ZIO.succeed("def")
+- } yield "result"
++ zio.ZIO.succeed("result")
+```
+
 ---

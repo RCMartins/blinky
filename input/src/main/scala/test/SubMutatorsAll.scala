@@ -14,7 +14,7 @@ Blinky.enabledMutators = [
   { ScalaStrings = [Concat, Trim, ToUpperCase, ToLowerCase, Capitalize, StripPrefix,
                     StripSuffix, Map, FlatMap, Drop, Take, DropWhile, TakeWhile, Reverse] }
   { ControlFlow = [If] }
-  { ZIO = [When, Unless] }
+  { ZIO = [When, Unless, ForYield] }
 ]
  */
 package test
