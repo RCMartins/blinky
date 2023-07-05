@@ -9,9 +9,12 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v10
+      - uses: actions/checkout@v3
+      - uses: coursier/setup-action@v1
+        with:
+          jvm: adopt:11
       - name: Tests Coverage
         run: |
           sbt clean "set core/coverageEnabled:=true" "set cli/coverageEnabled:=true" test coverageReport \
