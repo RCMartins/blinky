@@ -7,11 +7,14 @@ jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: olafurpg/setup-scala@v10
+      - uses: coursier/setup-action@v1
+        with:
+          jvm: adopt:11
       - run: |
           sbt ci-release
           sbt docs/docusaurusPublishGhpages
