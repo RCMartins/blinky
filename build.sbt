@@ -40,7 +40,7 @@ inThisBuild(
 )
 
 val Versions = new {
-  val ZIO = "2.0.15"
+  val ZIO = "2.0.17"
 }
 
 lazy val stableVersion = Def.setting {
