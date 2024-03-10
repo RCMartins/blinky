@@ -119,8 +119,8 @@ lazy val cli =
       libraryDependencies ++=
         Seq(
           "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.7",
-          "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.11",
-          "com.geirsson"               %% "metaconfig-core"            % "0.9.11",
+          "com.geirsson"               %% "metaconfig-typesafe-config" % "0.12.0",
+          "com.geirsson"               %% "metaconfig-core"            % "0.12.0",
           "com.github.scopt"           %% "scopt"                      % "4.1.0",
           "dev.zio"                    %% "zio"                        % Versions.ZIO,
           "dev.zio"                    %% "zio-test"                   % Versions.ZIO % "test",
