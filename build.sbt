@@ -5,7 +5,7 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
-val semanticdbScalac = "4.8.5"
+val semanticdbScalac = "4.9.1"
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -40,7 +40,7 @@ inThisBuild(
 )
 
 val Versions = new {
-  val ZIO = "2.0.15"
+  val ZIO = "2.0.21"
 }
 
 lazy val stableVersion = Def.setting {
@@ -71,7 +71,7 @@ lazy val core =
           "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
           "com.github.pathikrit" %% "better-files"  % "3.9.2",
           "com.lihaoyi"          %% "os-lib"        % "0.8.1",
-          "dev.zio"              %% "zio-json"      % "0.6.0",
+          "dev.zio"              %% "zio-json"      % "0.6.2",
           "dev.zio"              %% "zio"           % Versions.ZIO,
           "dev.zio"              %% "zio-test"      % Versions.ZIO % "test",
           "dev.zio"              %% "zio-test-sbt"  % Versions.ZIO % "test",
@@ -118,9 +118,9 @@ lazy val cli =
       moduleName := "blinky-cli",
       libraryDependencies ++=
         Seq(
-          "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.6",
-          "com.geirsson"               %% "metaconfig-typesafe-config" % "0.9.11",
-          "com.geirsson"               %% "metaconfig-core"            % "0.9.11",
+          "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.7",
+          "com.geirsson"               %% "metaconfig-typesafe-config" % "0.12.0",
+          "com.geirsson"               %% "metaconfig-core"            % "0.12.0",
           "com.github.scopt"           %% "scopt"                      % "4.1.0",
           "dev.zio"                    %% "zio"                        % Versions.ZIO,
           "dev.zio"                    %% "zio-test"                   % Versions.ZIO % "test",
