@@ -85,7 +85,7 @@ object Interpreter {
     result match {
       case Right(_) =>
         Right(TimeoutResult.Ok)
-      case Left(res @ SubprocessException(CommandResult(_, _))) =>
+      case Left(res @ SubprocessException(CommandResult(_, _, _))) =>
         val elapsedTime = System.currentTimeMillis() - initialTime
         if (elapsedTime >= timeout)
           Right(TimeoutResult.Timeout)
