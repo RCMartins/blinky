@@ -40,7 +40,7 @@ inThisBuild(
 )
 
 val Versions = new {
-  val ZIO = "2.0.21"
+  val ZIO = "2.0.22"
 }
 
 lazy val stableVersion = Def.setting {
@@ -70,7 +70,7 @@ lazy val core =
         Seq(
           "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
           "com.github.pathikrit" %% "better-files"  % "3.9.2",
-          "com.lihaoyi"          %% "os-lib"        % "0.9.3",
+          "com.lihaoyi"          %% "os-lib"        % "0.10.0",
           "dev.zio"              %% "zio-json"      % "0.6.2",
           "dev.zio"              %% "zio"           % Versions.ZIO,
           "dev.zio"              %% "zio-test"      % Versions.ZIO % "test",
