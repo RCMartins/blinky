@@ -14,7 +14,7 @@ jobs:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
         with:
-          jvm: adopt:11
+          jvm: temurin:11
       - run: |
           sbt ci-release
           sbt docs/docusaurusPublishGhpages
