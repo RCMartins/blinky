@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: coursier/setup-action@v1
         with:
-          jvm: adopt:11
+          jvm: temurin:11
       - run: sbt scalafmtCheckAll scalafmtSbtCheck
   self-checks-core:
     name: Self Blinky core module
@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
         with:
-          jvm: adopt:11
+          jvm: temurin:11
           apps: bloop
       - run: sbt "runCurrent \"ci-tests/core.blinky.conf\" --multiRun 1/1"
   self-checks-cli:
@@ -37,7 +37,7 @@ jobs:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
         with:
-          jvm: adopt:11
+          jvm: temurin:11
           apps: bloop
       - run: sbt "runCurrent \"ci-tests/cli.blinky.conf\" --multiRun 1/1"
   integration:
@@ -50,7 +50,7 @@ jobs:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
         with:
-          jvm: adopt:11
+          jvm: temurin:11
           apps: bloop
       - run: sbt runExamples
   #communityTests:
@@ -63,7 +63,7 @@ jobs:
   #    - uses: olafurpg/setup-scala@v10
   #    - uses: laughedelic/coursier-setup@v1
   #      with:
-  #        jvm: adopt:8
+  #        jvm: temurin:8
   #        apps: bloop
   #    - run: sbt "runCommunityProjects spire"
   mdoc-test:
