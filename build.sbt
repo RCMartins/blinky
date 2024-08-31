@@ -70,7 +70,7 @@ lazy val core =
         Seq(
           "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
           "com.github.pathikrit" %% "better-files"  % "3.9.2",
-          "com.lihaoyi"          %% "os-lib"        % "0.10.0",
+          "com.lihaoyi"          %% "os-lib"        % "0.10.5",
           "dev.zio"              %% "zio-json"      % "0.7.1",
           "dev.zio"              %% "zio"           % Versions.ZIO,
           "dev.zio"              %% "zio-test"      % Versions.ZIO % "test",
