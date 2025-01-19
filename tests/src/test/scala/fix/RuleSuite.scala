@@ -92,9 +92,8 @@ class RuleSuite extends AbstractSemanticRuleSuite with AnyWordSpecLike with Matc
 
   testsData.foreach { testData =>
     testData.ruleTest.path.testName should {
-      testData.ruleTest.path.testName in {
+      testData.ruleTest.path.testName in
         evaluateTestBody(testData.ruleTest)
-      }
 
       if (testData.hasMutationsFile) {
         val mutantsExpectedFile = mutantsExpectedFileResolver(testData.ruleTest.path.testPath)
