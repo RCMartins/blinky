@@ -15,6 +15,7 @@ jobs:
       - uses: coursier/setup-action@v1
         with:
           jvm: temurin:11
+          apps: sbt
       - run: |
           sbt ci-release
           sbt docs/docusaurusPublishGhpages
