@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: coursier/setup-action@v1
         with:
           jvm: temurin:11
@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
@@ -57,7 +57,7 @@ jobs:
   #  name: Community projects tests
   #  runs-on: ubuntu-latest
   #  steps:
-  #    - uses: actions/checkout@v3
+  #    - uses: actions/checkout@v4
   #      with:
   #        fetch-depth: 0
   #    - uses: olafurpg/setup-scala@v10
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: |
           sbt mdoc 2>&1 | tee output.txt
           if grep -q 'warning' output.txt; then
