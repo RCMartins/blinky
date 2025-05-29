@@ -9,55 +9,56 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: coursier/setup-action@v1
         with:
           jvm: temurin:11
+          apps: sbt
       - run: sbt scalafmtCheckAll scalafmtSbtCheck
   self-checks-core:
     name: Self Blinky core module
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
         with:
           jvm: temurin:11
-          apps: bloop
+          apps: sbt bloop
       - run: sbt "runCurrent \"ci-tests/core.blinky.conf\" --multiRun 1/1"
   self-checks-cli:
     name: Self Blinky cli module
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
         with:
           jvm: temurin:11
-          apps: bloop
+          apps: sbt bloop
       - run: sbt "runCurrent \"ci-tests/cli.blinky.conf\" --multiRun 1/1"
   integration:
     name: Integration
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
         with:
           jvm: temurin:11
-          apps: bloop
+          apps: sbt bloop
       - run: sbt runExamples
   #communityTests:
   #  name: Community projects tests
   #  runs-on: ubuntu-latest
   #  steps:
-  #    - uses: actions/checkout@v3
+  #    - uses: actions/checkout@v4
   #      with:
   #        fetch-depth: 0
   #    - uses: olafurpg/setup-scala@v10
@@ -71,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: |
           sbt mdoc 2>&1 | tee output.txt
           if grep -q 'warning' output.txt; then
