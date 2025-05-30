@@ -35,8 +35,23 @@ inThisBuild(
                       else "-Werror"),
     coverageEnabled := false,
     Test / fork := false,
-    publish / skip := true
+    publish / skip := true,
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    },
+    versionScheme := Some("early-semver")
   )
+)
+
+credentials += Credentials(
+  "Sonatype Nexus Repository Manager",
+  "oss.sonatype.org",
+  sys.env.getOrElse("SONATYPE_USERNAME", ""),
+  sys.env.getOrElse("SONATYPE_PASSWORD", "")
 )
 
 val Versions = new {
