@@ -49,7 +49,6 @@ object SBTDefaults {
       "-Xlint:constant",
       "-Xlint:delayedinit-select",
       "-Xlint:doc-detached",
-      "-Xlint:missing-interpolator",
       "-Xlint:option-implicit",
       "-Xlint:package-object-classes",
       "-Xlint:poly-implicit-overload",
@@ -83,6 +82,7 @@ object SBTDefaults {
       "2.12.17" -> "0.10.4",
       "2.12.18" -> "0.11.0",
       "2.12.19" -> "0.12.0",
+      "2.12.20" -> "0.14.3",
       // 2.13.x:
       "2.13.2" -> "0.9.17",
       "2.13.3" -> "0.9.23",
@@ -96,6 +96,9 @@ object SBTDefaults {
       "2.13.11" -> "0.11.0",
       "2.13.12" -> "0.11.1",
       "2.13.13" -> "0.12.0",
+      "2.13.14" -> "0.12.1",
+      "2.13.15" -> "0.13.0",
+      "2.13.16" -> "0.14.3",
     )
 
 }

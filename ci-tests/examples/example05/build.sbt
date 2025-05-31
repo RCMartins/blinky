@@ -1,2 +1,2 @@
-scalaVersion := "2.12.19"
+scalaVersion := "2.12.20"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.16" % Test
