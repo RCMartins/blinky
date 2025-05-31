@@ -6,6 +6,8 @@ Blinky.enabledMutators = [LiteralBooleans]
 package test
 
 object LiteralBooleans {
-  val boolT = true
-  val boolF = false
+  val boolT1 = true
+  val boolT2 = !false
+  val boolF1 = false
+  val boolF2 = !true
 }
