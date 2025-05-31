@@ -133,7 +133,7 @@ lazy val cli =
       moduleName := "blinky-cli",
       libraryDependencies ++=
         Seq(
-          "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.7",
+          "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.12",
           "com.geirsson"               %% "metaconfig-typesafe-config" % "0.12.0",
           "com.geirsson"               %% "metaconfig-core"            % "0.12.0",
           "com.github.scopt"           %% "scopt"                      % "4.1.0",
