@@ -49,7 +49,6 @@ object SBTDefaults {
       "-Xlint:constant",
       "-Xlint:delayedinit-select",
       "-Xlint:doc-detached",
-      "-Xlint:missing-interpolator",
       "-Xlint:option-implicit",
       "-Xlint:package-object-classes",
       "-Xlint:poly-implicit-overload",
