@@ -5,7 +5,7 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
-val semanticdbScalac = "4.9.1"
+val semanticdbScalac = "4.13.6"
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -35,12 +35,27 @@ inThisBuild(
                       else "-Werror"),
     coverageEnabled := false,
     Test / fork := false,
-    publish / skip := true
+    publish / skip := true,
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    },
+    versionScheme := Some("early-semver")
   )
 )
 
+credentials += Credentials(
+  "Sonatype Nexus Repository Manager",
+  "oss.sonatype.org",
+  sys.env.getOrElse("SONATYPE_USERNAME", ""),
+  sys.env.getOrElse("SONATYPE_PASSWORD", "")
+)
+
 val Versions = new {
-  val ZIO = "2.1.6"
+  val ZIO = "2.1.19"
 }
 
 lazy val stableVersion = Def.setting {
@@ -71,7 +86,7 @@ lazy val core =
           "ch.epfl.scala"        %% "scalafix-core" % V.scalafixVersion,
           "com.github.pathikrit" %% "better-files"  % "3.9.2",
           "com.lihaoyi"          %% "os-lib"        % "0.10.0",
-          "dev.zio"              %% "zio-json"      % "0.7.1",
+          "dev.zio"              %% "zio-json"      % "0.7.43",
           "dev.zio"              %% "zio"           % Versions.ZIO,
           "dev.zio"              %% "zio-test"      % Versions.ZIO % "test",
           "dev.zio"              %% "zio-test-sbt"  % Versions.ZIO % "test",
@@ -118,7 +133,7 @@ lazy val cli =
       moduleName := "blinky-cli",
       libraryDependencies ++=
         Seq(
-          "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.7",
+          "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.12",
           "com.geirsson"               %% "metaconfig-typesafe-config" % "0.12.0",
           "com.geirsson"               %% "metaconfig-core"            % "0.12.0",
           "com.github.scopt"           %% "scopt"                      % "4.1.0",
