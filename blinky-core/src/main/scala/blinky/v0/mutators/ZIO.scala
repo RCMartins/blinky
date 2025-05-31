@@ -43,7 +43,7 @@ object ZIO extends MutatorGroup {
   private val ForYield: SimpleMutator =
     new SimpleMutator("ForYield") {
       private def forYieldRemoveAll(implicit doc: SemanticDocument): MutationSimpleResult = {
-        case Term.ForYield(enums, finalTerm: Lit) if enums.exists {
+        case Term.ForYield.After_4_9_9(enums, finalTerm: Lit) if enums.exists {
               case Enumerator.Generator(_, term) if anyZIOTypeMatch(term) =>
                 true
               case _ =>
@@ -64,7 +64,7 @@ object ZIO extends MutatorGroup {
       }
 
       private def forYieldRemoveOne(implicit doc: SemanticDocument): MutationSimpleResult = {
-        case forYield @ Term.ForYield(enums, _) if enums.sizeIs >= 2 =>
+        case forYield @ Term.ForYield.After_4_9_9(enums, _) if enums.sizeIs >= 2 =>
           val isSecondEnumAGenerator: Boolean = enums(1) match {
             case Enumerator.Generator(_, _) => true
             case _                          => false

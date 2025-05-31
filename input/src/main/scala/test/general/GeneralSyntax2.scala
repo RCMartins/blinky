@@ -10,7 +10,7 @@ object GeneralSyntax2 {
 
   def str2: String = (1 + 2).toString
 
-  val bool1 = !true
+  val bool1 = !(true)
 
   def functionWithBlock: Boolean = {
     val bool = true
