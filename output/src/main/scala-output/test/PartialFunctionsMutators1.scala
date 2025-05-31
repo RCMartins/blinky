@@ -36,23 +36,19 @@ object PartialFunctionsMutators1 {
 
   val value3 =
     List(10, 20).map (if (???) {
-  case 10 if false =>
-    5
+  case 10 if false => 5
   case _ =>
     1 + 1
 } else if (???) {
-  case 10 =>
-    5
+  case 10 => 5
   case _ if false =>
     1 + 1
 } else if (???) {
-  case 10 =>
-    5
+  case 10 => 5
   case _ =>
     1 - 1
 } else {
-  case 10 =>
-    5
+  case 10 => 5
   case _ =>
     1 + 1
 })

@@ -1,9 +1,9 @@
 package test
 
 object UnaryOperations {
-  val bool1 = if (???) !false && true ///
-         else if (???) false || true ///
-         else if (???) !true || true ///
-         else if (???) !false || false ///
-                  else !false || true
+  val bool1 = if (???) true else false
+  val bool2 = if (???) !bool1 && true ///
+         else if (???) bool1 || true ///
+         else if (???) !bool1 || false ///
+                  else !bool1 || true
 }
