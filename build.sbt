@@ -5,7 +5,7 @@ import sbt.util.FileInfo
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import complete.DefaultParsers._
 
-val semanticdbScalac = "4.9.1"
+val semanticdbScalac = "4.13.6"
 
 lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
@@ -55,7 +55,7 @@ credentials += Credentials(
 )
 
 val Versions = new {
-  val ZIO = "2.1.6"
+  val ZIO = "2.1.19"
 }
 
 lazy val stableVersion = Def.setting {
@@ -133,7 +133,7 @@ lazy val cli =
       moduleName := "blinky-cli",
       libraryDependencies ++=
         Seq(
-          "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.7",
+          "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.12",
           "com.geirsson"               %% "metaconfig-typesafe-config" % "0.12.0",
           "com.geirsson"               %% "metaconfig-core"            % "0.12.0",
           "com.github.scopt"           %% "scopt"                      % "4.1.0",
