@@ -6,13 +6,13 @@ sidebar_label: Installation
 
 ## Requirements
 
-Every pull request is tested on a Linux machine.  
+Every pull request is tested on a Linux machine. Lastest versions tested are:
 
-* **Java 8**
+* **Java: 11**
 
-* **Tested Scala versions: @SCALA_VERSION@**
+* **Tested Scala versions: @SCALA_VERSION_212@, @SCALA_VERSION_213@**
 
-* **Sbt >= 1.3.4**
+* **Sbt: @SBT_VERSION@**
 
 ### Coursier
 
