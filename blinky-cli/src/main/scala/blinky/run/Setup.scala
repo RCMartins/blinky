@@ -11,7 +11,7 @@ object Setup {
   def setupCoursier(path: Path): Instruction[String] =
     runResultEither("coursier", Seq("--help"), path = path).flatMap {
       case Right(_) => succeed("coursier")
-      case _ =>
+      case _        =>
         runResultEither("cs", Seq("--help"), path = path).flatMap {
           case Right(_) => succeed("cs")
           case _        => copyExeFromResources("coursier", path).map(_ => "./coursier")
