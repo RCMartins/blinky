@@ -11,8 +11,7 @@ class ExampleTest extends AnyWordSpec with Matchers {
       Example.calc(Some(4)) mustEqual "small"
     }
 
-    "return an answer when the input is None" in {
+    "return an answer when the input is None" in
       assert(Example.calc(None).nonEmpty)
-    }
   }
 }
