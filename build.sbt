@@ -55,7 +55,7 @@ credentials += Credentials(
 )
 
 val Versions = new {
-  val ZIO = "2.1.19"
+  val ZIO = "2.1.20"
 }
 
 lazy val stableVersion = Def.setting {
