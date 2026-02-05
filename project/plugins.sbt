@@ -6,7 +6,7 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.4")
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.3.1")
 
-addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "2.0.10")
+addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "2.0.19")
 
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.13.1")
 
