@@ -136,7 +136,7 @@ lazy val cli =
           "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.12",
           "com.geirsson"               %% "metaconfig-typesafe-config" % "0.12.0",
           "com.geirsson"               %% "metaconfig-core"            % "0.12.0",
-          "com.github.scopt"           %% "scopt"                      % "4.1.0",
+          "com.github.scopt"           %% "scopt"                      % "4.2.0",
           "dev.zio"                    %% "zio"                        % Versions.ZIO,
           "dev.zio"                    %% "zio-test"                   % Versions.ZIO % "test",
           "dev.zio"                    %% "zio-test-sbt"               % Versions.ZIO % "test",
